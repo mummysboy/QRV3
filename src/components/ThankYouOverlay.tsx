@@ -4,27 +4,27 @@ import { useEffect, useState } from "react";
 import LogoVideo from "@/components/LogoVideo";
 import Header from "@/components/Header";
 
+interface ThankYouOverlayProps {
+  remainingTime: number;
+  justClaimed: boolean;
+  onContactClick: () => void;
+}
+
 export default function ThankYouOverlay({
   remainingTime,
   justClaimed,
-  onFadeInComplete,
-}: {
-  remainingTime: number;
-  justClaimed: boolean;
-  onFadeInComplete?: () => void;
-}) {
+  onContactClick,
+}: ThankYouOverlayProps) {
   const [timeLeft, setTimeLeft] = useState(remainingTime);
   const [show, setShow] = useState(false);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
       setShow(true);
-      setTimeout(() => {
-        onFadeInComplete?.(); // let parent know fade-in is done
-      }, 2000); // match fade duration
-    }, 50); // early trigger
+      // Removed broken call to onFadeInComplete
+    }, 50);
     return () => clearTimeout(timeout);
-  }, [onFadeInComplete]);
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -57,7 +57,7 @@ export default function ThankYouOverlay({
         show ? "opacity-100" : "opacity-0"
       } pointer-events-none`}
     >
-      <Header />
+      <Header onContactClick={onContactClick} />
       <div className="flex-shrink-0 mt-10 md:mt-16 lg:mt-24">
         <LogoVideo key="replay" />
       </div>
