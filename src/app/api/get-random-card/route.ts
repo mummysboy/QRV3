@@ -1,5 +1,8 @@
+// File: /src/app/api/get-random-card/route.ts
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+
+export const dynamic = "force-dynamic"; // ✅ Important!
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -7,15 +10,10 @@ const supabase = createClient(
 );
 
 export async function GET() {
-  // Get today's date in YYYY-MM-DD format
-  const today = new Date().toISOString().slice(0, 10); // e.g., '2025-06-16'
-
-  // Supabase query: quantity > 0 AND expires >= today (treat as full-day)
   const { data: availableCards, error } = await supabase
     .from("cards")
     .select("*")
-    .gt("quantity", 0)
-    .gte("expires", today); // compares just the date portion
+    .gt("quantity", 0);
 
   if (error || !availableCards || availableCards.length === 0) {
     return NextResponse.json({ error: "No available cards" }, { status: 404 });
