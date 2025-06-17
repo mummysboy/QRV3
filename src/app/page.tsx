@@ -138,6 +138,7 @@ export default function Home() {
         <ThankYouOverlay
           remainingTime={cooldown ?? 0}
           justClaimed={justClaimed}
+          onContactClick={() => setShowContactPopup(true)} // ✅ Fix added here
         />
       )}
 
