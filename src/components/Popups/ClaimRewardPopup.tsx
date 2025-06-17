@@ -2,8 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import { getUserIP } from "@/lib/getUserIP";
-import type { CardData } from "@/types"; // or define inline if needed
 
 interface CardData {
   cardid: string;
