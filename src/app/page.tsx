@@ -5,7 +5,6 @@ import Header from "@/components/Header";
 import LogoVideo from "@/components/LogoVideo";
 import CardAnimation from "@/components/CardAnimation";
 import ClaimButton from "@/components/ClaimButton";
-import EmailPopup from "@/components/Popups/EmailPopup";
 import ContactPopup from "@/components/Popups/ContactPopup";
 import UseRewardPopup from "@/components/Popups/UseRewardPopup";
 import PostSubmitOverlay from "@/components/Popups/PostSubmitOverlay";
@@ -14,7 +13,6 @@ import ThankYouOverlay from "@/components/ThankYouOverlay";
 import { supabase } from "@/lib/supabaseClient";
 
 export default function Home() {
-  const [showEmailPopup, setShowEmailPopup] = useState(false);
   const [showContactPopup, setShowContactPopup] = useState(false);
   const [showUseRewardPopup, setShowUseRewardPopup] = useState(false);
   const [showPostSubmit, setShowPostSubmit] = useState(false);
@@ -154,16 +152,6 @@ export default function Home() {
 
         {card && <ClaimButton onClick={() => setShowClaimPopup(true)} />}
       </div>
-
-      {showEmailPopup && (
-        <EmailPopup
-          onClose={() => setShowEmailPopup(false)}
-          onSubmit={() => {
-            setShowEmailPopup(false);
-            setShowPostSubmit(true);
-          }}
-        />
-      )}
 
       {showContactPopup && (
         <ContactPopup onClose={() => setShowContactPopup(false)} />
