@@ -87,7 +87,7 @@ export default function ContactPopup({ onClose }: { onClose: () => void }) {
           }`}
         >
           <h3 className="text-lg font-semibold mb-2">
-            We'd be happy to hear from you!
+            We&rsquo;d be happy to hear from you!
           </h3>
           <input
             type="email"
@@ -132,9 +132,9 @@ export default function ContactPopup({ onClose }: { onClose: () => void }) {
               viewBox="0 0 32 24"
             >
               <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M4 4h24v16H4V4zm0 0l12 8 12-8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M4 4h24v16H4V4zm0 0l12 8 12-8"
               />
             </svg>
           </div>
