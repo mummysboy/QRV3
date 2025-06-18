@@ -2,6 +2,7 @@
 
 import CardAnimation from "@/components/CardAnimation";
 import { createClient } from "@supabase/supabase-js";
+import { JSX } from "react";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
