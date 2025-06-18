@@ -122,7 +122,7 @@ export default function ClaimRewardPopup({
       }
 
       const rewardId = data?.[0]?.id;
-      const rewardUrl = `https://yourdomain.com/reward=${rewardId}`;
+      const rewardUrl = `https://qrewards.net/reward/${rewardId}`;
 
       // Step 4: Send Email (replace with actual service)
       await fetch("/api/send-email", {
