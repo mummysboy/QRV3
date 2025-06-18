@@ -1,24 +1,22 @@
 import { type Metadata } from "next";
-import type { ResolvingMetadata } from "next";
+import Image from "next/image";
 import { supabase } from "@/lib/supabaseClient";
 
-type Props = {
-  params: {
-    code: string;
-  };
-};
-
-export async function generateMetadata(
-  { params }: Props,
-  _parent: ResolvingMetadata
-): Promise<Metadata> {
-  // You can use `params.code` here if you want to customize the title dynamically
+export async function generateMetadata({
+  params,
+}: {
+  params: { code: string };
+}): Promise<Metadata> {
   return {
-    title: "Your QReward 🎉",
+    title: `Your QReward 🎉 – ${params.code}`,
   };
 }
 
-export default async function RewardPage({ params }: RewardPageProps) {
+export default async function RewardPage({
+  params,
+}: {
+  params: { code: string };
+}) {
   const { code } = params;
 
   const { data, error } = await supabase
@@ -36,7 +34,7 @@ export default async function RewardPage({ params }: RewardPageProps) {
   return (
     <div className="relative w-full h-screen">
       <Image
-        src="/logo.png" // Make sure this file exists in /public
+        src="/logo.png" // Ensure this image exists in the /public folder
         alt="Background"
         fill
         className="object-cover"
