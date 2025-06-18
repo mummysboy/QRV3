@@ -14,10 +14,11 @@ type PageProps = {
   };
 };
 
-export default async function RewardPage({ params }: PageProps) {
+export default async function RewardPage({
+  params,
+}: PageProps): Promise<JSX.Element> {
   const { code } = params;
 
-  // Fetch claimed reward entry
   const { data: claimedReward, error: claimError } = await supabase
     .from("claimed_rewards")
     .select("cardid")
@@ -32,7 +33,6 @@ export default async function RewardPage({ params }: PageProps) {
     );
   }
 
-  // Fetch card data using cardid
   const { data: card, error: cardError } = await supabase
     .from("cards")
     .select("*")
@@ -47,7 +47,6 @@ export default async function RewardPage({ params }: PageProps) {
     );
   }
 
-  // Get logo public URL
   const { data: logoData } = supabase.storage
     .from("cards")
     .getPublicUrl(card.logokey);
