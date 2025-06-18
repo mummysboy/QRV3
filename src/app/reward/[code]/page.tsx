@@ -1,3 +1,5 @@
+// File: src/app/reward/[code]/page.tsx
+
 import InteractiveRewardClient from "@/components/InteractiveRewardClient";
 import { createClient } from "@supabase/supabase-js";
 
@@ -6,11 +8,11 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-type PageProps = {
+export default async function RewardPage({
+  params,
+}: {
   params: { code: string };
-};
-
-export default async function RewardPage({ params }: PageProps) {
+}) {
   const { code } = params;
 
   const { data: claimedReward, error } = await supabase
@@ -27,7 +29,8 @@ export default async function RewardPage({ params }: PageProps) {
     );
   }
 
-  const logoUrl = claimedReward.logokey; // ✅ use directly as URL
+  // Assuming logokey in claimedReward is already a full public URL
+  const logoUrl = claimedReward.logokey;
 
   return <InteractiveRewardClient card={claimedReward} logoUrl={logoUrl} />;
 }
