@@ -12,6 +12,7 @@ interface CardData {
   header?: string; // optional if not always present
 }
 
+
 export default function CardAnimation({
   card,
   logoUrl,
