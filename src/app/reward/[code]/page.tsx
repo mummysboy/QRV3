@@ -2,17 +2,20 @@
 
 import InteractiveRewardClient from "@/components/InteractiveRewardClient";
 import { createClient } from "@supabase/supabase-js";
+import { notFound } from "next/navigation";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-export default async function RewardPage({
-  params,
-}: {
-  params: { code: string };
-}) {
+interface RewardPageParams {
+  params: {
+    code: string;
+  };
+}
+
+export default async function RewardPage({ params }: RewardPageParams) {
   const { code } = params;
 
   const { data: claimedReward, error } = await supabase
@@ -22,15 +25,10 @@ export default async function RewardPage({
     .single();
 
   if (error || !claimedReward) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-red-600 text-center p-6">
-        Invalid or expired reward code.
-      </div>
-    );
+    notFound(); // or return a custom error component
   }
 
-  // Assuming logokey in claimedReward is already a full public URL
-  const logoUrl = claimedReward.logokey;
+  const logoUrl = claimedReward.logokey; // already a full URL stored in DB
 
   return <InteractiveRewardClient card={claimedReward} logoUrl={logoUrl} />;
 }
