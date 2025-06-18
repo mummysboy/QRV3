@@ -1,9 +1,6 @@
 import type { NextConfig } from "next";
 import type { Configuration as WebpackConfig } from "webpack";
 
-
-require("dotenv").config();
-
 const nextConfig: NextConfig = {
   experimental: {
     serverActions: {}, // ✅ correct shape is now an object (empty or with options)
@@ -13,7 +10,5 @@ const nextConfig: NextConfig = {
     return config;
   },
 };
-
-module.exports = nextConfig;
 
 export default nextConfig;
