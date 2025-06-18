@@ -8,13 +8,12 @@ type RewardPageProps = {
   };
 };
 
-export async function generateMetadata({
-  params,
-}: RewardPageProps): Promise<Metadata> {
+export async function generateMetadata(): Promise<Metadata> {
   return {
     title: "Your QReward 🎉",
   };
 }
+
 
 export default async function RewardPage({ params }: RewardPageProps) {
   const { code } = params;
