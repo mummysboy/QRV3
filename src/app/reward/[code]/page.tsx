@@ -1,11 +1,22 @@
 import { supabase } from "@/lib/supabaseClient";
 import Image from "next/image";
+import { type Metadata } from "next";
 
-export default async function RewardPage({
+type RewardPageProps = {
+  params: {
+    code: string;
+  };
+};
+
+export async function generateMetadata({
   params,
-}: {
-  params: { code: string };
-}) {
+}: RewardPageProps): Promise<Metadata> {
+  return {
+    title: "Your QReward 🎉",
+  };
+}
+
+export default async function RewardPage({ params }: RewardPageProps) {
   const { code } = params;
 
   const { data, error } = await supabase
@@ -23,7 +34,7 @@ export default async function RewardPage({
   return (
     <div className="relative w-full h-screen">
       <Image
-        src="/your-background.jpg"
+        src="/your-background.jpg" // Make sure this file exists in /public
         alt="Background"
         fill
         className="object-cover"
