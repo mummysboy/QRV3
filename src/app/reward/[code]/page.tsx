@@ -1,4 +1,3 @@
-import { notFound } from "next/navigation";
 import Image from "next/image";
 import { supabase } from "@/lib/supabaseClient";
 
