@@ -7,11 +7,12 @@ const supabase = createClient(
 );
 
 interface Params {
-  code: string;
+  code: Promise<string>; // Updated to handle Promise
 }
 
 export default async function RewardPage({ params }: { params: Params }) {
-  const { code } = params;
+  // Await params to access the code
+  const { code } = await params;
 
   const { data: claimedReward, error } = await supabase
     .from("claimed_rewards")
