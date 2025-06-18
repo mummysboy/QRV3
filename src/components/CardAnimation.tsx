@@ -45,7 +45,7 @@ export default function CardAnimation({
         className={`absolute inset-0 flex items-center justify-center transition-opacity duration-[3500ms] ease-in-out ${
           showOverlay ? "opacity-100" : "opacity-0"
         }`}
-        style={{ transitionDelay: showOverlay ? "2500ms" : "0ms" }}
+        style={{ transitionDelay: showOverlay ? "3500ms" : "0ms" }}
       >
         <div className="bg-white bg-opacity-90 text-black text-center px-3 py-2 rounded-lg max-w-[160px] flex flex-col justify-center transition-all duration-500">
           {!card ? (
