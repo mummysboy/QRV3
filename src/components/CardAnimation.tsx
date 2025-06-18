@@ -47,7 +47,7 @@ export default function CardAnimation({
         }`}
         style={{ transitionDelay: showOverlay ? "2500ms" : "0ms" }}
       >
-        <div className="bg-white text-black text-center px-4 py-4 rounded-xl max-w-[180px] min-h-[260px] flex flex-col justify-center">
+        <div className="bg-white bg-opacity-90 text-black text-center px-3 py-2 rounded-lg max-w-[160px] flex flex-col justify-center transition-all duration-500">
           {!card ? (
             <p className="text-base font-semibold text-gray-700">
               Sorry, there are no rewards available at the moment. Please try
@@ -75,12 +75,12 @@ export default function CardAnimation({
                   {card.addresstext}
                 </a>
               </div>
-              <div className="mt-3">
-                <p className="text-lg font-normal italic leading-snug break-words">
+              <div className="mt-2">
+                <p className="text-sm italic leading-snug break-words">
                   {card.subheader}
                 </p>
               </div>
-              <div className="mt-3">
+              <div className="mt-2">
                 <p className="text-xs font-light leading-snug">
                   Expires: {new Date(card.expires).toLocaleDateString()}
                 </p>
