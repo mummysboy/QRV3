@@ -31,13 +31,11 @@ export default function ClaimRewardPopup({
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Fade in on mount
   useEffect(() => {
     const timeout = setTimeout(() => setIsVisible(true), 10);
     return () => clearTimeout(timeout);
   }, []);
 
-  // Outside click closes
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (popupRef.current && !popupRef.current.contains(e.target as Node)) {
@@ -52,7 +50,7 @@ export default function ClaimRewardPopup({
 
   const triggerClose = () => {
     setIsVisible(false);
-    setTimeout(() => onClose(), 1000); // smoother exit
+    setTimeout(() => onClose(), 1000);
   };
 
   const getUserIP = async (): Promise<string> => {
@@ -82,11 +80,12 @@ export default function ClaimRewardPopup({
         setLoading(false);
         return;
       }
-      // 1. Decrement the reward quantity
+
+      // Step 1: Decrement quantity
       const { error: decrementError } = await supabase.rpc(
         "decrement_quantity",
         {
-          card_id: card.cardid, // ✅ correct
+          card_id: card.cardid,
         }
       );
 
@@ -96,11 +95,11 @@ export default function ClaimRewardPopup({
         return;
       }
 
-      // 2. Get IP address
+      // Step 2: Get IP address
       const ip = await getUserIP();
 
-      // 3. Log the claim
-      const { error: insertError } = await supabase
+      // Step 3: Insert claim and get generated ID
+      const { data, error: insertError } = await supabase
         .from("claimed_rewards")
         .insert([
           {
@@ -113,7 +112,8 @@ export default function ClaimRewardPopup({
             expires: card.expires,
             logokey: card.logokey,
           },
-        ]);
+        ])
+        .select();
 
       if (insertError) {
         console.error("Insert error:", insertError.message);
@@ -121,13 +121,25 @@ export default function ClaimRewardPopup({
         return;
       }
 
-      // 4. Show confirmation
+      const rewardId = data?.[0]?.id;
+      const rewardUrl = `https://yourdomain.com/reward=${rewardId}`;
+
+      // Step 4: Send Email (replace with actual service)
+      await fetch("/api/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: email,
+          url: rewardUrl,
+        }),
+      });
+
+      // Step 5: Show confirmation
       setShowConfirmation(true);
 
       setTimeout(() => {
         setIsFullyClosing(true);
         onComplete();
-
         setTimeout(() => {
           onComplete();
         }, 2000);
@@ -161,7 +173,6 @@ export default function ClaimRewardPopup({
           </button>
         )}
 
-        {/* Email Form */}
         <div
           className={`transition-opacity duration-500 ease-out ${
             showConfirmation ? "opacity-0 pointer-events-none" : "opacity-100"
@@ -212,7 +223,7 @@ export default function ClaimRewardPopup({
           </div>
         </div>
 
-        {/* Loading & Confirmation */}
+        {/* Loading / Confirmation */}
         <div
           className={`absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center transition-opacity duration-1000 ease-out ${
             loading || showConfirmation
