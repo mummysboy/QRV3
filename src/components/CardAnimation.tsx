@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import Image from "next/image";
+
 
 interface CardData {
   cardid: string;
@@ -58,7 +58,7 @@ export default function CardAnimation({
             <>
               <div className="space-y-[2px]">
                 {logoUrl && (
-                  <Image
+                  <img
                     src={logoUrl}
                     alt="Business Logo"
                     className="w-20 h-12 mx-auto mb-1 object-contain"
