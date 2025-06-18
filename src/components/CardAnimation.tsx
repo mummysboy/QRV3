@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+"use client";
 
+import { useEffect, useState } from "react";
 
 interface CardData {
   cardid: string;
@@ -9,9 +10,8 @@ interface CardData {
   expires: string;
   quantity: number;
   logokey: string;
-  header?: string; // optional if not always present
+  header?: string;
 }
-
 
 export default function CardAnimation({
   card,
