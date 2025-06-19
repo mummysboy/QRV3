@@ -3,11 +3,19 @@ import type { Configuration as WebpackConfig } from "webpack";
 
 const nextConfig: NextConfig = {
   experimental: {
-    serverActions: {}, // ✅ correct shape is now an object (empty or with options)
+    serverActions: {},
   },
   webpack: (config: WebpackConfig) => {
     config.module!.exprContextCritical = false;
     return config;
+  },
+  async rewrites() {
+    return [
+      {
+        source: "/reward/:path*",
+        destination: "/", // this makes /reward/* render the homepage
+      },
+    ];
   },
 };
 

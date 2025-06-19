@@ -36,18 +36,42 @@ export default function Home() {
   }
 
   useEffect(() => {
+    const pathname = window.location.pathname;
+    const code = pathname.includes("/reward/")
+      ? pathname.split("/reward/")[1]
+      : null;
+
     const fetchCard = async () => {
       try {
-        const res = await fetch("/api/get-random-card");
-        if (!res.ok) throw new Error("Failed to fetch card");
+        let data: CardData | null = null;
 
-        const data: CardData | null = await res.json();
+        if (code) {
+          console.log("🔍 Detected code:", code);
+          const { data: claimed, error } = await supabase
+            .from("claimed_rewards")
+            .select("*")
+            .eq("id", code)
+            .single();
 
-        if (!data) {
-          setCard(null);
-          return;
+          if (error || !claimed) {
+            console.error("❌ Could not fetch claimed reward:", error);
+            setCard(null);
+            return;
+          }
+
+          data = claimed;
+        } else {
+          console.log("🎲 No code found. Fetching random card...");
+          const res = await fetch("/api/get-random-card");
+          if (!res.ok) throw new Error("Failed to fetch card");
+
+          data = await res.json();
+
+          if (!data) {
+            setCard(null);
+            return;
+          }
         }
-        
 
         setCard(data);
 
@@ -62,16 +86,17 @@ export default function Home() {
           if (logoData?.publicUrl) {
             setLogoUrl(logoData.publicUrl);
           } else {
-            console.warn("Could not resolve logo URL for:", data.logokey);
+            console.warn("⚠️ Could not resolve logo URL for:", data.logokey);
           }
         }
       } catch (error) {
-        console.error("Error fetching card or logo:", error);
+        console.error("🚨 Error fetching card or logo:", error);
       }
     };
 
     fetchCard();
   }, []);
+  
   
 
   useEffect(() => {

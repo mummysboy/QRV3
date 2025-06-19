@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
-import { supabase } from "@/lib/supabaseClient";
 
 interface CardData {
   cardid: string;
@@ -16,51 +14,13 @@ interface CardData {
 }
 
 export default function CardAnimation({
-  card: initialCard,
-  logoUrl: initialLogoUrl,
+  card,
+  logoUrl,
 }: {
   card: CardData | null;
   logoUrl: string | null;
 }) {
-  const pathname = usePathname();
-  const [card, setCard] = useState<CardData | null>(initialCard);
-  const [logoUrl, setLogoUrl] = useState<string | null>(initialLogoUrl);
   const [showOverlay, setShowOverlay] = useState(false);
-
-  useEffect(() => {
-    const code = pathname?.split("/reward/")[1];
-    console.log("👉 Reward code from URL:", code);
-
-    if (!code) return;
-
-    const fetchRewardFromCode = async () => {
-      console.log("🔄 Fetching reward for code:", code);
-      const { data, error } = await supabase
-        .from("claimed_rewards")
-        .select("*")
-        .eq("id", code)
-        .single();
-
-      if (error) {
-        console.error("❌ Supabase error:", error);
-      } else {
-        console.log("✅ Supabase data:", data);
-        setCard(data);
-
-        const { data: logoData } = supabase.storage
-          .from("cards")
-          .getPublicUrl(data.logokey);
-
-        console.log("🖼️ Logo data:", logoData);
-
-        if (logoData?.publicUrl) {
-          setLogoUrl(logoData.publicUrl);
-        }
-      }
-    };
-
-    fetchRewardFromCode();
-  }, [pathname]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
