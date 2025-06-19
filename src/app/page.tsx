@@ -12,6 +12,17 @@ import ClaimRewardPopup from "@/components/Popups/ClaimRewardPopup";
 import ThankYouOverlay from "@/components/ThankYouOverlay";
 import { supabase } from "@/lib/supabaseClient";
 
+interface CardData {
+  cardid: string;
+  addresstext: string;
+  addressurl: string;
+  subheader: string;
+  expires: string;
+  quantity: number;
+  logokey: string;
+  header?: string;
+}
+
 export default function Home() {
   const [showContactPopup, setShowContactPopup] = useState(false);
   const [showUseRewardPopup, setShowUseRewardPopup] = useState(false);
@@ -23,30 +34,14 @@ export default function Home() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [showThankYouOverlay, setShowThankYouOverlay] = useState(false);
   const [fadeOutClaimPopup, setFadeOutClaimPopup] = useState(false);
-
-  interface CardData {
-    cardid: string;
-    addresstext: string;
-    addressurl: string;
-    subheader: string;
-    expires: string;
-    quantity: number;
-    logokey: string;
-    header?: string;
-  }
+  const [code, setCode] = useState<string | null>(null);
 
   useEffect(() => {
-    const pathname = window.location.pathname;
-    const code = pathname.includes("/reward/")
-      ? pathname.split("/reward/")[1]
-      : null;
-
     const fetchCard = async () => {
       try {
         let data: CardData | null = null;
 
         if (code) {
-          console.log("🔍 Detected code:", code);
           const { data: claimed, error } = await supabase
             .from("claimed_rewards")
             .select("*")
@@ -61,22 +56,14 @@ export default function Home() {
 
           data = claimed;
         } else {
-          console.log("🎲 No code found. Fetching random card...");
           const res = await fetch("/api/get-random-card");
           if (!res.ok) throw new Error("Failed to fetch card");
-
           data = await res.json();
-
-          if (!data) {
-            setCard(null);
-            return;
-          }
         }
 
         setCard(data);
 
-        // ✅ Resolve logo
-        if (data && data.logokey) {
+        if (data?.logokey) {
           if (data.logokey.startsWith("http")) {
             setLogoUrl(data.logokey);
           } else {
@@ -86,8 +73,6 @@ export default function Home() {
 
             if (logoData?.publicUrl) {
               setLogoUrl(logoData.publicUrl);
-            } else {
-              console.warn("⚠️ Could not resolve logo URL for:", data.logokey);
             }
           }
         }
@@ -97,9 +82,18 @@ export default function Home() {
     };
 
     fetchCard();
+  }, [code]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const pathname = window.location.pathname;
+      const detected = pathname.includes("/reward/")
+        ? pathname.split("/reward/")[1]
+        : null;
+
+      setCode(detected);
+    }
   }, []);
-  
-  
 
   useEffect(() => {
     const checkCooldown = async () => {
@@ -157,6 +151,25 @@ export default function Home() {
     setJustClaimed(true);
   };
 
+  const handleRedeem = async () => {
+    const confirmed = window.confirm(
+      "Are you sure you want to redeem this reward?\n\nOnce redeemed, it cannot be used again."
+    );
+    if (!confirmed || !code) return;
+
+    const { error } = await supabase
+      .from("claimed_rewards")
+      .delete()
+      .eq("id", code);
+
+    if (error) {
+      alert("❌ Failed to redeem reward.");
+    } else {
+      alert("✅ Reward redeemed.");
+      setCard(null);
+    }
+  };
+
   return (
     <main className="relative min-h-screen bg-white transition-opacity duration-1000">
       <Header onContactClick={() => setShowContactPopup(true)} />
@@ -165,7 +178,7 @@ export default function Home() {
         <ThankYouOverlay
           remainingTime={cooldown ?? 0}
           justClaimed={justClaimed}
-          onContactClick={() => setShowContactPopup(true)} // ✅ Fix added here
+          onContactClick={() => setShowContactPopup(true)}
         />
       )}
 
@@ -178,7 +191,19 @@ export default function Home() {
 
         <CardAnimation card={card} logoUrl={logoUrl} />
 
-        {card && <ClaimButton onClick={() => setShowClaimPopup(true)} />}
+        {card &&
+          (code ? (
+            <div className="flex justify-center mt-4">
+              <button
+                onClick={handleRedeem}
+                className="bg-green-800 hover:bg-green-700 transition text-white text-lg font-semibold px-8 py-3 rounded-full shadow-md"
+              >
+                Redeem Reward
+              </button>
+            </div>
+          ) : (
+            <ClaimButton onClick={() => setShowClaimPopup(true)} />
+          ))}
       </div>
 
       {showContactPopup && (
