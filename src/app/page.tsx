@@ -76,17 +76,19 @@ export default function Home() {
         setCard(data);
 
         // ✅ Resolve logo
-        if (data.logokey.startsWith("http")) {
-          setLogoUrl(data.logokey);
-        } else {
-          const { data: logoData } = supabase.storage
-            .from("cards")
-            .getPublicUrl(data.logokey);
-
-          if (logoData?.publicUrl) {
-            setLogoUrl(logoData.publicUrl);
+        if (data && data.logokey) {
+          if (data.logokey.startsWith("http")) {
+            setLogoUrl(data.logokey);
           } else {
-            console.warn("⚠️ Could not resolve logo URL for:", data.logokey);
+            const { data: logoData } = supabase.storage
+              .from("cards")
+              .getPublicUrl(data.logokey);
+
+            if (logoData?.publicUrl) {
+              setLogoUrl(logoData.publicUrl);
+            } else {
+              console.warn("⚠️ Could not resolve logo URL for:", data.logokey);
+            }
           }
         }
       } catch (error) {
