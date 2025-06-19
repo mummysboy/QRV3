@@ -34,72 +34,61 @@ export default function Home() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [showThankYouOverlay, setShowThankYouOverlay] = useState(false);
   const [fadeOutClaimPopup, setFadeOutClaimPopup] = useState(false);
-  const [code, setCode] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const pathname = window.location.pathname;
-      const detected = pathname.includes("/reward/")
-        ? pathname.split("/reward/")[1]
-        : null;
-      setCode(detected);
-    }
-  }, []);
 
   useEffect(() => {
     const fetchCard = async () => {
       try {
+        const pathname = window.location.pathname;
+        const code = pathname.includes("/reward/")
+          ? pathname.split("/reward/")[1]
+          : null;
+
+        let data: CardData | null = null;
+
         if (code) {
-          const { data: claimedReward, error: claimError } = await supabase
+          const { data: claimed, error } = await supabase
             .from("claimed_rewards")
-            .select("cardid")
+            .select("*")
             .eq("id", code)
             .single();
 
-          if (claimError || !claimedReward?.cardid) {
-            console.error(
-              "❌ Could not fetch claimed reward or cardid:",
-              claimError
-            );
+          if (error || !claimed) {
+            console.error("❌ Could not fetch claimed reward:", error);
+            setCard(null);
             return;
           }
 
-          const { data: cardData, error: cardError } = await supabase
-            .from("cards")
-            .select("*")
-            .eq("cardid", claimedReward.cardid)
-            .single();
+          data = claimed;
+        } else {
+          const res = await fetch("/api/get-random-card");
+          if (!res.ok) throw new Error("Failed to fetch random card");
+          data = await res.json();
+        }
 
-          if (cardError || !cardData) {
-            console.error(
-              "❌ Could not fetch card from cards table:",
-              cardError
-            );
-            return;
-          }
+        setCard(data);
 
-          setCard(cardData);
-
-          if (cardData?.logokey) {
-            const key = cardData.logokey;
-            if (key.startsWith("http")) {
-              setLogoUrl(key);
-            } else {
-              const { data: logoData } = supabase.storage
-                .from("cards")
-                .getPublicUrl(key);
-              if (logoData?.publicUrl) setLogoUrl(logoData.publicUrl);
+        if (data?.logokey) {
+          if (data.logokey.startsWith("http")) {
+            setLogoUrl(data.logokey);
+          } else {
+            const { data: logoData } = supabase.storage
+              .from("cards")
+              .getPublicUrl(data.logokey);
+            if (logoData?.publicUrl) {
+              setLogoUrl(logoData.publicUrl);
             }
           }
         }
       } catch (err) {
-        console.error("🚨 fetchCard error:", err);
+        console.error("🚨 Error fetching card or logo:", err);
+        setCard(null);
       }
     };
 
-    if (code !== undefined) fetchCard();
-  }, [code]);
+    fetchCard();
+  }, []);
 
+  // Cooldown timer logic (same as before)
   useEffect(() => {
     const checkCooldown = async () => {
       try {
@@ -107,6 +96,7 @@ export default function Home() {
         const { ip } = await res.json();
         const storageKey = `rewardClaimedAt:${ip}`;
         const claimedAt = localStorage.getItem(storageKey);
+
         if (claimedAt) {
           const elapsed = Date.now() - parseInt(claimedAt, 10);
           const remaining = 10000 - elapsed;
@@ -134,6 +124,7 @@ export default function Home() {
     localStorage.setItem("rewardClaimedAt", now.toString());
     setCooldown(10000);
     setFadeOutClaimPopup(true);
+
     setTimeout(() => setShowThankYouOverlay(true), 100);
     setTimeout(() => {
       setShowClaimPopup(false);
@@ -147,20 +138,32 @@ export default function Home() {
   };
 
   const handleRedeem = async () => {
+    const pathname = window.location.pathname;
+    const code = pathname.includes("/reward/")
+      ? pathname.split("/reward/")[1]
+      : null;
+
     const confirmed = window.confirm(
       "Are you sure you want to redeem this reward?\n\nOnce redeemed, it cannot be used again."
     );
     if (!confirmed || !code) return;
+
     const { error } = await supabase
       .from("claimed_rewards")
       .delete()
       .eq("id", code);
-    if (error) alert("❌ Failed to redeem reward.");
-    else {
+
+    if (error) {
+      alert("❌ Failed to redeem reward.");
+    } else {
       alert("✅ Reward redeemed.");
       setCard(null);
     }
   };
+
+  const codePresent =
+    typeof window !== "undefined" &&
+    window.location.pathname.includes("/reward/");
 
   return (
     <main className="relative min-h-screen bg-white transition-opacity duration-1000">
@@ -183,7 +186,7 @@ export default function Home() {
         <CardAnimation card={card} logoUrl={logoUrl} />
 
         {card &&
-          (code ? (
+          (codePresent ? (
             <div className="flex justify-center mt-4">
               <button
                 onClick={handleRedeem}
@@ -200,15 +203,12 @@ export default function Home() {
       {showContactPopup && (
         <ContactPopup onClose={() => setShowContactPopup(false)} />
       )}
-
       {showUseRewardPopup && (
         <UseRewardPopup onClose={() => setShowUseRewardPopup(false)} />
       )}
-
       {showPostSubmit && (
         <PostSubmitOverlay onClose={() => setShowPostSubmit(false)} />
       )}
-
       {showClaimPopup && card && (
         <div
           className={`fixed inset-0 z-50 transition-opacity duration-1000 ${
