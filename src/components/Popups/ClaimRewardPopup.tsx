@@ -124,7 +124,7 @@ export default function ClaimRewardPopup({
       }
 
       const rewardId = data?.[0]?.id;
-      const rewardUrl = `https://stately-pothos-7fa43b.netlify.app/reward/${rewardId}`;
+      const rewardUrl = `qrewards.net/reward/${rewardId}`;
 
       // Step 4: Send Email (replace with actual service)
       await fetch("/api/send-email", {
