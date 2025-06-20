@@ -64,21 +64,6 @@ export default function ThankYouOverlay({
 
       <div className="flex-grow flex items-start justify-center px-6 pt-10 md:pt-20">
         <div className="text-center max-w-md w-full bg-white p-8 rounded-xl">
-          <div className="flex justify-center mb-14">
-            <svg
-              className="w-14 h-14 text-green-600"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
-          </div>
           <h2 className="text-2xl font-bold text-gray-800 mb-2">
             {justClaimed
               ? "Thank you for playing!"

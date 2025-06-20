@@ -20,7 +20,7 @@ interface CardData {
   expires: string;
   quantity: number;
   logokey: string;
-  header?: string;
+  header: string;
 }
 
 export default function Home() {

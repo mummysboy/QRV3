@@ -7,6 +7,7 @@ interface CardData {
   cardid: string;
   addresstext: string;
   addressurl: string;
+  header: string;
   subheader: string;
   expires: string;
   quantity: number;
@@ -108,6 +109,7 @@ export default function ClaimRewardPopup({
             ip_address: ip,
             addresstext: card.addresstext,
             addressurl: card.addressurl,
+            header: card.header,
             subheader: card.subheader,
             expires: card.expires,
             logokey: card.logokey,
