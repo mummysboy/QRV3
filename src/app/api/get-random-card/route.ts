@@ -1,25 +1,25 @@
 // File: /src/app/api/get-random-card/route.ts
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 
-export const dynamic = "force-dynamic"; // ✅ Important!
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const { data: availableCards, error } = await supabase
-    .from("cards")
-    .select("*")
-    .gt("quantity", 0);
+  try {
+    const res = await fetch(
+      "https://1m7c4gd9m6.execute-api.us-west-1.amazonaws.com/dev/get-random-card"
+    );
 
-  if (error || !availableCards || availableCards.length === 0) {
-    return NextResponse.json({ error: "No available cards" }, { status: 404 });
+    if (!res.ok) {
+      return NextResponse.json(
+        { error: "Failed to fetch card" },
+        { status: res.status }
+      );
+    }
+
+    const data = await res.json();
+    return NextResponse.json(data);
+  } catch (err) {
+    console.error("Error fetching random card:", err);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
-
-  const selected =
-    availableCards[Math.floor(Math.random() * availableCards.length)];
-  return NextResponse.json(selected);
 }

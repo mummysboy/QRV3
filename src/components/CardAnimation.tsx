@@ -13,14 +13,16 @@ interface CardData {
   header?: string;
 }
 
-export default function CardAnimation({
-  card,
-  logoUrl,
-}: {
-  card: CardData | null;
-  logoUrl: string | null;
-}) {
+export default function CardAnimation({ card }: { card: CardData | null }) {
   const [showOverlay, setShowOverlay] = useState(false);
+
+  // Construct the logo URL using the public S3 path and normalize slashes
+  const logoUrl = card?.logokey
+    ? card.logokey.startsWith("data:") || card.logokey.startsWith("http")
+      ? card.logokey
+      : `https://qrewards-media6367c-dev.s3.us-west-1.amazonaws.com${card.logokey.startsWith("/") ? card.logokey : `/${card.logokey}`}`
+    : null;
+
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -62,6 +64,10 @@ export default function CardAnimation({
                   <img
                     src={logoUrl}
                     alt="Business Logo"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                      console.error("Failed to load logo:", logoUrl);
+                    }}
                     className="w-20 h-12 mx-auto mb-1 object-contain"
                   />
                 )}

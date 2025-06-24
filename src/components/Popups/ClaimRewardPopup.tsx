@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
 
 interface CardData {
   cardid: string;
@@ -44,9 +43,7 @@ export default function ClaimRewardPopup({
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const triggerClose = () => {
@@ -56,7 +53,7 @@ export default function ClaimRewardPopup({
 
   const getUserIP = async (): Promise<string> => {
     try {
-      const res = await fetch("https://api.ipify.org?format=json");
+      const res = await fetch("/api/ip");
       const data = await res.json();
       return data.ip;
     } catch {
@@ -66,7 +63,6 @@ export default function ClaimRewardPopup({
 
   const handleSubmit = async () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
     if (!email.trim() || !emailRegex.test(email)) {
       setError("Please enter a valid email address.");
       return;
@@ -82,51 +78,30 @@ export default function ClaimRewardPopup({
         return;
       }
 
-      // Step 1: Decrement quantity
-      const { error: decrementError } = await supabase.rpc(
-        "decrement_quantity",
-        {
-          card_id: card.cardid,
-        }
-      );
-
-      if (decrementError) {
-        console.error("Supabase RPC error:", decrementError.message);
-        setError("This reward is no longer available.");
-        return;
-      }
-
-      // Step 2: Get IP address
       const ip = await getUserIP();
 
-      // Step 3: Insert claim and get generated ID
-      const { data, error: insertError } = await supabase
-        .from("claimed_rewards")
-        .insert([
-          {
-            cardid: card.cardid,
-            email,
-            ip_address: ip,
-            addresstext: card.addresstext,
-            addressurl: card.addressurl,
-            header: card.header,
-            subheader: card.subheader,
-            expires: card.expires,
-            logokey: card.logokey,
-          },
-        ])
-        .select();
+      // Call AWS API to claim reward
+      const res = await fetch("/api/claim-reward", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          ip_address: ip,
+          ...card,
+        }),
+      });
 
-      if (insertError) {
-        console.error("Insert error:", insertError.message);
+      const result = await res.json();
+      if (!res.ok || !result.id) {
+        console.error("Claim error:", result.error);
         setError("Failed to log reward. Please try again.");
         return;
       }
 
-      const rewardId = data?.[0]?.id;
-      const rewardUrl = `qrewards.net/reward/${rewardId}`;
+      const rewardId = result.id;
+      const rewardUrl = `https://qrewards.net/reward/${rewardId}`;
 
-      // Step 4: Send Email (replace with actual service)
+      // Send email (via AWS Lambda or Resend)
       await fetch("/api/send-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -136,15 +111,12 @@ export default function ClaimRewardPopup({
         }),
       });
 
-      // Step 5: Show confirmation
       setShowConfirmation(true);
 
       setTimeout(() => {
         setIsFullyClosing(true);
         onComplete();
-        setTimeout(() => {
-          onComplete();
-        }, 2000);
+        setTimeout(() => onComplete(), 2000);
       }, 1500);
     } catch (err) {
       console.error("Unexpected error:", err);
@@ -225,7 +197,6 @@ export default function ClaimRewardPopup({
           </div>
         </div>
 
-        {/* Loading / Confirmation */}
         <div
           className={`absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center transition-opacity duration-1000 ease-out ${
             loading || showConfirmation

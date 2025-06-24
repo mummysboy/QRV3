@@ -10,7 +10,6 @@ import UseRewardPopup from "@/components/Popups/UseRewardPopup";
 import PostSubmitOverlay from "@/components/Popups/PostSubmitOverlay";
 import ClaimRewardPopup from "@/components/Popups/ClaimRewardPopup";
 import ThankYouOverlay from "@/components/ThankYouOverlay";
-import { supabase } from "@/lib/supabaseClient";
 
 interface CardData {
   cardid: string;
@@ -46,19 +45,9 @@ export default function Home() {
         let data: CardData | null = null;
 
         if (code) {
-          const { data: claimed, error } = await supabase
-            .from("claimed_rewards")
-            .select("*")
-            .eq("id", code)
-            .single();
-
-          if (error || !claimed) {
-            console.error("❌ Could not fetch claimed reward:", error);
-            setCard(null);
-            return;
-          }
-
-          data = claimed;
+          const res = await fetch(`/api/get-claimed-reward?id=${code}`);
+          if (!res.ok) throw new Error("Failed to fetch claimed reward");
+          data = await res.json();
         } else {
           const res = await fetch("/api/get-random-card");
           if (!res.ok) throw new Error("Failed to fetch random card");
@@ -71,12 +60,9 @@ export default function Home() {
           if (data.logokey.startsWith("http")) {
             setLogoUrl(data.logokey);
           } else {
-            const { data: logoData } = supabase.storage
-              .from("cards")
-              .getPublicUrl(data.logokey);
-            if (logoData?.publicUrl) {
-              setLogoUrl(logoData.publicUrl);
-            }
+            setLogoUrl(
+              `https://qrewards-media6367c-dev.s3.us-west-1.amazonaws.com${data.logokey.startsWith("/") ? data.logokey : `/${data.logokey}`}`
+            );
           }
         }
       } catch (err) {
@@ -88,7 +74,6 @@ export default function Home() {
     fetchCard();
   }, []);
 
-  // Cooldown timer logic (same as before)
   useEffect(() => {
     const checkCooldown = async () => {
       try {
@@ -148,12 +133,11 @@ export default function Home() {
     );
     if (!confirmed || !code) return;
 
-    const { error } = await supabase
-      .from("claimed_rewards")
-      .delete()
-      .eq("id", code);
+    const res = await fetch(`/api/redeem-reward?id=${code}`, {
+      method: "DELETE",
+    });
 
-    if (error) {
+    if (!res.ok) {
       alert("❌ Failed to redeem reward.");
     } else {
       alert("✅ Reward redeemed.");
@@ -183,7 +167,7 @@ export default function Home() {
         }`}
       >
         <LogoVideo key={cooldown ? "cooldown" : "initial"} />
-        <CardAnimation card={card} logoUrl={logoUrl} />
+        <CardAnimation card={card} />
 
         {card &&
           (codePresent ? (

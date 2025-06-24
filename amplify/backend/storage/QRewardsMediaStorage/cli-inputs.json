@@ -1,0 +1,12 @@
+{
+  "resourceName": "QRewardsMediaStorage",
+  "policyUUID": "2f62eafc",
+  "bucketName": "qrewards-media",
+  "storageAccess": "auth",
+  "guestAccess": [],
+  "authAccess": [
+    "READ"
+  ],
+  "triggerFunction": "NONE",
+  "groupAccess": {}
+}
