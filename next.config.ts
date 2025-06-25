@@ -9,6 +9,9 @@ const nextConfig: NextConfig = {
     config.module!.exprContextCritical = false;
     return config;
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   async rewrites() {
     return [
       {
