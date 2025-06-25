@@ -32,6 +32,7 @@ interface CardProps {
 
 export default function CardAnimation({ card }: { card: CardProps | null }) {
   const [showOverlay, setShowOverlay] = useState(false);
+  const [hasTriggered, setHasTriggered] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   // Try different possible property names for flexibility
@@ -58,29 +59,63 @@ export default function CardAnimation({ card }: { card: CardProps | null }) {
     if (!video) return;
 
     const handleTimeUpdate = () => {
-      // Trigger overlay at 5 seconds of video playback (3 seconds later than before)
-      if (video.currentTime >= 5.7 && !showOverlay) {
+      // Trigger overlay at 5.7 seconds of video playback, but only if it hasn't been triggered yet
+      if (video.currentTime >= 5.7 && !showOverlay && !hasTriggered) {
         setShowOverlay(true);
+        setHasTriggered(true);
       }
     };
 
     const handleCanPlay = () => {
-      video.play().catch(console.error);
+      // Only auto-play if overlay hasn't been triggered yet
+      if (!hasTriggered) {
+        video.play().catch((error) => {
+          console.log("Video autoplay failed, trying user interaction:", error);
+        });
+      }
     };
 
-    video.addEventListener('timeupdate', handleTimeUpdate);
-    video.addEventListener('canplay', handleCanPlay);
+    const handleLoadedMetadata = () => {
+      // Only auto-play if overlay hasn't been triggered yet
+      if (!hasTriggered && video.readyState >= 1) {
+        video.play().catch(console.error);
+      }
+    };
 
-    // Try to play immediately if the video is ready
-    if (video.readyState >= 3) {
-      video.play().catch(console.error);
+    // Mobile-specific event to handle user interaction
+    const handleUserInteraction = () => {
+      if (video.paused && !hasTriggered) {
+        video.play().catch(console.error);
+      }
+    };
+
+    // Only add event listeners if overlay hasn't been triggered
+    if (!hasTriggered) {
+      video.addEventListener('timeupdate', handleTimeUpdate);
+      video.addEventListener('canplay', handleCanPlay);
+      video.addEventListener('loadedmetadata', handleLoadedMetadata);
+      
+      // Add touch/click handlers for mobile
+      document.addEventListener('touchstart', handleUserInteraction, { once: true });
+      document.addEventListener('click', handleUserInteraction, { once: true });
+
+      // Try to play immediately if the video is ready
+      if (video.readyState >= 3) {
+        video.play().catch(console.error);
+      }
+    } else {
+      // If already triggered, ensure overlay stays visible
+      setShowOverlay(true);
     }
 
     return () => {
       video.removeEventListener('timeupdate', handleTimeUpdate);
       video.removeEventListener('canplay', handleCanPlay);
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      document.removeEventListener('touchstart', handleUserInteraction);
+      document.removeEventListener('click', handleUserInteraction);
     };
-  }, [showOverlay]);
+  }, [showOverlay, hasTriggered]);
 
   return (
     <div className="relative w-full max-w-md mx-auto overflow-hidden h-[60vh] rounded-lg">
@@ -89,12 +124,14 @@ export default function CardAnimation({ card }: { card: CardProps | null }) {
         src="/assets/videos/Comp%201.mp4"
         muted
         playsInline
+        autoPlay
+        webkit-playsinline="true"
         className="absolute top-0 left-0 w-full h-full object-cover rounded-lg"
         style={{
           objectPosition: "center",
           boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
         }}
-        preload="auto"
+        preload="metadata"
       />
 
       <div
