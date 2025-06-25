@@ -42,7 +42,7 @@ export async function logClaimedReward(data: Record<string, unknown>) {
   try {
     console.log("📝 Attempting to log claimed reward:", JSON.stringify(data, null, 2));
     const command = new PutItemCommand({
-      TableName: "cards",
+      TableName: "claimed_rewards",
       Item: marshall(data),
     });
     const result = await dynamo.send(command);
