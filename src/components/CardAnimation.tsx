@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 interface CardProps {
   cardid?: string | number;
@@ -32,6 +32,7 @@ interface CardProps {
 
 export default function CardAnimation({ card }: { card: CardProps | null }) {
   const [showOverlay, setShowOverlay] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   // Try different possible property names for flexibility
   const cardData = card ? {
@@ -52,21 +53,40 @@ export default function CardAnimation({ card }: { card: CardProps | null }) {
       : `https://qrewards-media6367c-dev.s3.us-west-1.amazonaws.com${cardData.logokey.startsWith("/") ? cardData.logokey : `/${cardData.logokey}`}`
     : null;
 
-
   useEffect(() => {
-    console.log("🕐 Starting timer for overlay...");
-    const timer = setTimeout(() => {
-      console.log("🕐 Timer fired, showing overlay");
-      setShowOverlay(true);
-    }, 3000); // Restored to original 3 seconds
-    return () => clearTimeout(timer);
-  }, []);
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handleTimeUpdate = () => {
+      // Trigger overlay at 5 seconds of video playback (3 seconds later than before)
+      if (video.currentTime >= 5.7 && !showOverlay) {
+        setShowOverlay(true);
+      }
+    };
+
+    const handleCanPlay = () => {
+      video.play().catch(console.error);
+    };
+
+    video.addEventListener('timeupdate', handleTimeUpdate);
+    video.addEventListener('canplay', handleCanPlay);
+
+    // Try to play immediately if the video is ready
+    if (video.readyState >= 3) {
+      video.play().catch(console.error);
+    }
+
+    return () => {
+      video.removeEventListener('timeupdate', handleTimeUpdate);
+      video.removeEventListener('canplay', handleCanPlay);
+    };
+  }, [showOverlay]);
 
   return (
     <div className="relative w-full max-w-md mx-auto overflow-hidden h-[60vh] rounded-lg">
       <video
+        ref={videoRef}
         src="/assets/videos/Comp%201.mp4"
-        autoPlay
         muted
         playsInline
         className="absolute top-0 left-0 w-full h-full object-cover rounded-lg"
@@ -74,30 +94,22 @@ export default function CardAnimation({ card }: { card: CardProps | null }) {
           objectPosition: "center",
           boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
         }}
+        preload="auto"
       />
 
       <div
-        className={`absolute inset-0 flex items-center justify-center transition-opacity duration-[3500ms] ease-in-out ${
+        className={`absolute inset-0 flex items-center justify-center transition-opacity duration-[2500ms] ease-in-out ${
           showOverlay ? "opacity-100" : "opacity-0"
         }`}
-        style={{ transitionDelay: showOverlay ? "4500ms" : "0ms" }}
       >
         <div className="bg-white bg-opacity-90 text-black text-center px-3 py-2 rounded-lg max-w-[160px] flex flex-col justify-center transition-all duration-500">
           {!card ? (
-            <>
-              {console.log("📭 Rendering 'no rewards' message")}
-              <p className="text-base font-semibold text-gray-700">
-                Sorry, there are no rewards available at the moment. Please try
-                again later.
-              </p>
-            </>
+            <p className="text-base font-semibold text-gray-700">
+              Sorry, there are no rewards available at the moment. Please try
+              again later.
+            </p>
           ) : (
             <>
-              {console.log("🎴 Rendering card content:", {
-                header: cardData?.header,
-                logokey: cardData?.logokey,
-                logoUrl: logoUrl
-              })}
               <div className="space-y-[2px]">
                 {logoUrl && (
                   <img
@@ -105,7 +117,6 @@ export default function CardAnimation({ card }: { card: CardProps | null }) {
                     alt="Business Logo"
                     onError={(e) => {
                       e.currentTarget.style.display = "none";
-                      console.error("Failed to load logo:", logoUrl);
                     }}
                     className="w-20 h-12 mx-auto mb-1 object-contain"
                   />
