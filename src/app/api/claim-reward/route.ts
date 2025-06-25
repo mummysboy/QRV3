@@ -31,20 +31,35 @@ export async function POST(req: Request) {
 
     const rewardId = uuidv4(); // You can remove this if DynamoDB generates IDs, but it's best to be explicit
 
-    await decrementQuantity(body.cardid); // ✅ Already working
-    await logClaimedReward({
-      id: rewardId,
-      email: body.email,
-      cardid: body.cardid,
-      ip_address: body.ip_address,
-      addresstext: body.addresstext,
-      addressurl: body.addressurl,
-      header: body.header,
-      subheader: body.subheader,
-      expires: body.expires,
-      logokey: body.logokey,
-      claimed_at: new Date().toISOString(),
-    });
+    try {
+      console.log("🔄 Decrementing quantity for card:", body.cardid);
+      await decrementQuantity(body.cardid); // ✅ Already working
+      console.log("✅ Successfully decremented quantity");
+    } catch (err) {
+      console.error("❌ Failed to decrement quantity:", err);
+      return NextResponse.json({ error: "Failed to update card quantity" }, { status: 500 });
+    }
+
+    try {
+      console.log("🔄 Logging claimed reward with ID:", rewardId);
+      await logClaimedReward({
+        id: rewardId,
+        email: body.email,
+        cardid: body.cardid,
+        ip_address: body.ip_address,
+        addresstext: body.addresstext,
+        addressurl: body.addressurl,
+        header: body.header,
+        subheader: body.subheader,
+        expires: body.expires,
+        logokey: body.logokey,
+        claimed_at: new Date().toISOString(),
+      });
+      console.log("✅ Successfully logged claimed reward");
+    } catch (err) {
+      console.error("❌ Failed to log reward:", err);
+      return NextResponse.json({ error: "Failed to log reward" }, { status: 500 });
+    }
 
     return NextResponse.json({ id: rewardId });
   } catch (err) {

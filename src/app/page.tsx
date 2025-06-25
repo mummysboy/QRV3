@@ -45,15 +45,30 @@ export default function Home() {
         let data: CardData | null = null;
 
         if (code) {
+          console.log("🔍 Fetching claimed reward with code:", code);
           const res = await fetch(`/api/get-claimed-reward?id=${code}`);
           if (!res.ok) throw new Error("Failed to fetch claimed reward");
           data = await res.json();
+          console.log("✅ Claimed reward data:", data);
         } else {
+          console.log("🔍 Fetching random card");
           const res = await fetch("/api/get-random-card");
           if (!res.ok) throw new Error("Failed to fetch random card");
           data = await res.json();
+          console.log("✅ Random card data:", data);
+          console.log("✅ Random card data structure:", {
+            cardid: data?.cardid,
+            header: data?.header,
+            logokey: data?.logokey,
+            addresstext: data?.addresstext,
+            addressurl: data?.addressurl,
+            subheader: data?.subheader,
+            expires: data?.expires,
+            quantity: data?.quantity
+          });
         }
 
+        console.log("📋 Setting card data:", data);
         setCard(data);
 
         if (data?.logokey) {

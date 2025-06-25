@@ -6,7 +6,7 @@ const dynamo = new DynamoDBClient({ region: "us-west-1" });
 
 export async function decrementQuantity(cardid: string) {
   const command = new UpdateItemCommand({
-    TableName: "qrewards-card-table-dev",
+    TableName: "cards",
     Key: marshall({ cardid }),
     UpdateExpression: "SET quantity = quantity - :decr",
     ConditionExpression: "quantity > :zero",

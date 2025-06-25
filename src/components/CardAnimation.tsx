@@ -13,21 +13,41 @@ interface CardData {
   header?: string;
 }
 
-export default function CardAnimation({ card }: { card: CardData | null }) {
+export default function CardAnimation({ card }: { card: any }) {
   const [showOverlay, setShowOverlay] = useState(false);
+  console.log("🎯 CardAnimation received card:", card);
+  console.log("🎯 CardAnimation card keys:", card ? Object.keys(card) : "null");
+  console.log("🎯 CardAnimation card full object:", JSON.stringify(card, null, 2));
+  console.log("🎯 CardAnimation showOverlay state:", showOverlay);
+
+  // Try different possible property names for flexibility
+  const cardData = card ? {
+    cardid: card.cardid || card.id || card.cardId,
+    header: card.header || card.title || card.name || card.business_name,
+    logokey: card.logokey || card.logo || card.logoUrl || card.image,
+    addresstext: card.addresstext || card.address || card.location,
+    addressurl: card.addressurl || card.website || card.url,
+    subheader: card.subheader || card.description || card.subtitle,
+    expires: card.expires || card.expiry || card.expiration_date,
+    quantity: card.quantity || card.qty
+  } : null;
+
+  console.log("🔄 Mapped card data:", cardData);
 
   // Construct the logo URL using the public S3 path and normalize slashes
-  const logoUrl = card?.logokey
-    ? card.logokey.startsWith("data:") || card.logokey.startsWith("http")
-      ? card.logokey
-      : `https://qrewards-media6367c-dev.s3.us-west-1.amazonaws.com${card.logokey.startsWith("/") ? card.logokey : `/${card.logokey}`}`
+  const logoUrl = cardData?.logokey
+    ? cardData.logokey.startsWith("data:") || cardData.logokey.startsWith("http")
+      ? cardData.logokey
+      : `https://qrewards-media6367c-dev.s3.us-west-1.amazonaws.com${cardData.logokey.startsWith("/") ? cardData.logokey : `/${cardData.logokey}`}`
     : null;
 
 
   useEffect(() => {
+    console.log("🕐 Starting timer for overlay...");
     const timer = setTimeout(() => {
+      console.log("🕐 Timer fired, showing overlay");
       setShowOverlay(true);
-    }, 3000);
+    }, 3000); // Restored to original 3 seconds
     return () => clearTimeout(timer);
   }, []);
 
@@ -53,12 +73,20 @@ export default function CardAnimation({ card }: { card: CardData | null }) {
       >
         <div className="bg-white bg-opacity-90 text-black text-center px-3 py-2 rounded-lg max-w-[160px] flex flex-col justify-center transition-all duration-500">
           {!card ? (
-            <p className="text-base font-semibold text-gray-700">
-              Sorry, there are no rewards available at the moment. Please try
-              again later.
-            </p>
+            <>
+              {console.log("📭 Rendering 'no rewards' message")}
+              <p className="text-base font-semibold text-gray-700">
+                Sorry, there are no rewards available at the moment. Please try
+                again later.
+              </p>
+            </>
           ) : (
             <>
+              {console.log("🎴 Rendering card content:", {
+                header: cardData?.header,
+                logokey: cardData?.logokey,
+                logoUrl: logoUrl
+              })}
               <div className="space-y-[2px]">
                 {logoUrl && (
                   <img
@@ -72,25 +100,25 @@ export default function CardAnimation({ card }: { card: CardData | null }) {
                   />
                 )}
                 <p className="text-lg font-bold leading-snug break-words">
-                  {card.header}
+                  {cardData?.header}
                 </p>
                 <a
-                  href={card.addressurl}
+                  href={cardData?.addressurl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-xs font-light leading-tight underline hover:text-blue-600 block"
                 >
-                  {card.addresstext}
+                  {cardData?.addresstext}
                 </a>
               </div>
               <div className="mt-2">
                 <p className="text-sm italic leading-snug break-words">
-                  {card.subheader}
+                  {cardData?.subheader}
                 </p>
               </div>
               <div className="mt-2">
                 <p className="text-xs font-light leading-snug">
-                  Expires: {new Date(card.expires).toLocaleDateString()}
+                  Expires: {cardData?.expires ? new Date(cardData.expires).toLocaleDateString() : 'N/A'}
                 </p>
               </div>
             </>
