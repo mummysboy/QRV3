@@ -2,23 +2,36 @@
 
 import { useEffect, useState } from "react";
 
-interface CardData {
-  cardid: string;
-  addresstext: string;
-  addressurl: string;
-  subheader: string;
-  expires: string;
-  quantity: number;
-  logokey: string;
+interface CardProps {
+  cardid?: string | number;
+  id?: string | number;
+  cardId?: string | number;
   header?: string;
+  title?: string;
+  name?: string;
+  business_name?: string;
+  logokey?: string;
+  logo?: string;
+  logoUrl?: string;
+  image?: string;
+  addresstext?: string;
+  address?: string;
+  location?: string;
+  addressurl?: string;
+  website?: string;
+  url?: string;
+  subheader?: string;
+  description?: string;
+  subtitle?: string;
+  expires?: string | Date;
+  expiry?: string | Date;
+  expiration_date?: string | Date;
+  quantity?: number;
+  qty?: number;
 }
 
-export default function CardAnimation({ card }: { card: any }) {
+export default function CardAnimation({ card }: { card: CardProps | null }) {
   const [showOverlay, setShowOverlay] = useState(false);
-  console.log("🎯 CardAnimation received card:", card);
-  console.log("🎯 CardAnimation card keys:", card ? Object.keys(card) : "null");
-  console.log("🎯 CardAnimation card full object:", JSON.stringify(card, null, 2));
-  console.log("🎯 CardAnimation showOverlay state:", showOverlay);
 
   // Try different possible property names for flexibility
   const cardData = card ? {
@@ -31,8 +44,6 @@ export default function CardAnimation({ card }: { card: any }) {
     expires: card.expires || card.expiry || card.expiration_date,
     quantity: card.quantity || card.qty
   } : null;
-
-  console.log("🔄 Mapped card data:", cardData);
 
   // Construct the logo URL using the public S3 path and normalize slashes
   const logoUrl = cardData?.logokey

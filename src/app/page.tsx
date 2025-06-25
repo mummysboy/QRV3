@@ -30,7 +30,6 @@ export default function Home() {
   const [cooldown, setCooldown] = useState<number | null>(null);
   const [justClaimed, setJustClaimed] = useState(false);
   const [card, setCard] = useState<CardData | null>(null);
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [showThankYouOverlay, setShowThankYouOverlay] = useState(false);
   const [fadeOutClaimPopup, setFadeOutClaimPopup] = useState(false);
 
@@ -70,17 +69,8 @@ export default function Home() {
 
         console.log("📋 Setting card data:", data);
         setCard(data);
-
-        if (data?.logokey) {
-          if (data.logokey.startsWith("http")) {
-            setLogoUrl(data.logokey);
-          } else {
-            setLogoUrl(
-              `https://qrewards-media6367c-dev.s3.us-west-1.amazonaws.com${data.logokey.startsWith("/") ? data.logokey : `/${data.logokey}`}`
-            );
-          }
-        }
       } catch (err) {
+        // If you need to use the logo URL, handle it here or pass it to a component as needed.
         console.error("🚨 Error fetching card or logo:", err);
         setCard(null);
       }
