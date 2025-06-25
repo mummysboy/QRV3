@@ -1,12 +1,16 @@
+import AWS from "aws-sdk";
 import { DynamoDBClient, PutItemCommand, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
 import { marshall } from "@aws-sdk/util-dynamodb";
 
-const dynamoClient = new DynamoDBClient({
-  region: process.env.REGION,
-  credentials: {
-    accessKeyId: process.env.ACCESS_KEY_ID!,
-    secretAccessKey: process.env.SECRET_ACCESS_KEY!,
-  },
+// ✅ Set the region (replace if yours is different)
+AWS.config.update({
+  region: "us-west-1", // or whatever region your table is in
+});
+
+
+
+export const dynamo = new DynamoDBClient({
+  region: "us-west-1",
 });
 
 export async function decrementCardQuantity(cardid: string) {
@@ -25,7 +29,7 @@ export async function decrementCardQuantity(cardid: string) {
 
   try {
     const command = new UpdateItemCommand(params);
-    const result = await dynamoClient.send(command);
+    const result = await dynamo.send(command);
     console.log("✅ Quantity decremented:", result);
     return result;
   } catch (err) {
@@ -38,10 +42,10 @@ export async function logClaimedReward(data: Record<string, unknown>) {
   try {
     console.log("📝 Attempting to log claimed reward:", JSON.stringify(data, null, 2));
     const command = new PutItemCommand({
-      TableName: "claimed_rewards",
+      TableName: "cards",
       Item: marshall(data),
     });
-    const result = await dynamoClient.send(command);
+    const result = await dynamo.send(command);
     console.log("✅ Successfully logged claimed reward:", result);
     return result;
   } catch (error) {
