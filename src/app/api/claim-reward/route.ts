@@ -4,61 +4,62 @@ import { decrementCardQuantity, logClaimedReward } from "@/lib/aws";
 
 export async function POST(request: Request) {
   console.log("🎯 Claim reward API called");
-  console.log("🔧 Environment check:");
-  console.log("🔧 ACCESS_KEY_ID exists:", !!process.env.ACCESS_KEY_ID);
-  console.log("🔧 SECRET_ACCESS_KEY exists:", !!process.env.SECRET_ACCESS_KEY);
-  console.log("🔧 REGION:", process.env.REGION);
 
   try {
     const body = await request.json();
     console.log("📋 Request body:", JSON.stringify(body, null, 2));
-    
-    const { cardid, name, email, phone } = body;
 
-    if (!cardid || !name || !email || !phone) {
-      console.error("❌ Missing required fields:", { cardid, name, email, phone });
+    const {
+      cardid,
+      email,
+      addresstext,
+      addressurl,
+      subheader,
+      expires,
+      logokey,
+      header,
+    } = body;
+
+    // ✅ Check required fields
+    if (!cardid || !email) {
+      console.error("❌ Missing required fields");
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    console.log("➡️ Attempting to decrement card quantity for:", cardid);
-    
-    // First, try to decrement the card quantity
+    // ✅ 1. Decrement card quantity
     try {
       await decrementCardQuantity(cardid);
-      console.log("✅ Card quantity decremented successfully");
-    } catch (error: any) {
-      console.error("❌ Failed to decrement card quantity:", error);
-      console.error("❌ Error details:", {
-        name: error.name,
-        message: error.message,
-        code: error.code
-      });
+      console.log("✅ Card quantity decremented");
+    } catch (error: unknown) {
+      console.error("❌ Failed to decrement quantity:", error);
       return NextResponse.json(
-        { error: "Failed to update card quantity" },
+        { error: "Card is out of stock or invalid" },
         { status: 500 }
       );
     }
 
-    console.log("➡️ Attempting to log claimed reward");
-    
-    // Then, log the claimed reward
+    // ✅ 2. Log the claimed reward
     const rewardData = {
       id: `${cardid}-${Date.now()}`,
       cardid,
-      name,
       email,
-      phone,
+      addresstext,
+      addressurl,
+      subheader,
+      expires,
+      logokey,
+      header,
       claimed_at: new Date().toISOString(),
     };
 
     try {
       await logClaimedReward(rewardData);
-      console.log("✅ Claimed reward logged successfully");
-    } catch (error: any) {
-      console.error("❌ Failed to log claimed reward:", error);
+      console.log("✅ Claimed reward logged");
+    } catch (error: unknown) {
+      console.error("❌ Failed to log reward:", error);
       return NextResponse.json(
         { error: "Failed to log reward" },
         { status: 500 }
@@ -68,11 +69,10 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       message: "Reward claimed successfully",
-      rewardId: rewardData.id
+      rewardId: rewardData.id,
     });
-
-  } catch (error: any) {
-    console.error("❌ Unexpected error in claim-reward API:", error);
+  } catch (error: unknown) {
+    console.error("❌ Unexpected server error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

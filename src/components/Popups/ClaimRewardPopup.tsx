@@ -92,13 +92,13 @@ export default function ClaimRewardPopup({
       });
 
       const result = await res.json();
-      if (!res.ok || !result.id) {
+      if (!res.ok || !result.rewardId) {
         console.error("Claim error:", result.error);
         setError("Failed to log reward. Please try again.");
         return;
       }
 
-      const rewardId = result.id;
+      const rewardId = result.rewardId;
       const rewardUrl = `https://qrewards.net/reward/${rewardId}`;
 
       // Send email (via AWS Lambda or Resend)
