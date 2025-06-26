@@ -1,6 +1,6 @@
 // src/app/api/claim-reward/route.ts
 import { NextResponse } from "next/server";
-import { decrementQuantity } from "@/lib/aws-logic"; // whatever you named it
+import { decrementCardQuantity } from "@/lib/aws"; // whatever you named it
 import { logClaimedReward } from "@/lib/aws";
 import { v4 as uuidv4 } from "uuid";
 
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
 
     try {
       console.log("🔄 Decrementing quantity for card:", body.cardid);
-      await decrementQuantity(body.cardid); // ✅ Already working
+      await decrementCardQuantity(body.cardid); // ✅ Already working
       console.log("✅ Successfully decremented quantity");
     } catch (err) {
       console.error("❌ Failed to decrement quantity:", err);

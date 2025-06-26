@@ -1,17 +1,14 @@
-import AWS from "aws-sdk";
-import { DynamoDBClient, PutItemCommand, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
+// lib/aws.ts
+
+import {
+  DynamoDBClient,
+  PutItemCommand,
+  UpdateItemCommand,
+} from "@aws-sdk/client-dynamodb";
 import { marshall } from "@aws-sdk/util-dynamodb";
 
-// ✅ Set the region (replace if yours is different)
-AWS.config.update({
-  region: "us-west-1", // or whatever region your table is in
-});
-
-
-
-export const dynamo = new DynamoDBClient({
-  region: "us-west-1",
-});
+// Do NOT use `AWS.config.update()` — let Lambda assume the role
+const dynamo = new DynamoDBClient({ region: "us-west-1" });
 
 export async function decrementCardQuantity(cardid: string) {
   console.log("➡️ Attempting to decrement card:", cardid);
@@ -40,7 +37,7 @@ export async function decrementCardQuantity(cardid: string) {
 
 export async function logClaimedReward(data: Record<string, unknown>) {
   try {
-    console.log("📝 Attempting to log claimed reward:", JSON.stringify(data, null, 2));
+    console.log("📝 Logging claimed reward:", JSON.stringify(data, null, 2));
     const command = new PutItemCommand({
       TableName: "claimed_rewards",
       Item: marshall(data),
@@ -50,8 +47,6 @@ export async function logClaimedReward(data: Record<string, unknown>) {
     return result;
   } catch (error) {
     console.error("❌ Failed to log claimed reward:", error);
-    console.error("❌ Data attempted to log:", JSON.stringify(data, null, 2));
     throw error;
   }
 }
-
