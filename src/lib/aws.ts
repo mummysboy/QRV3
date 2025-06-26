@@ -7,8 +7,24 @@ import {
 } from "@aws-sdk/client-dynamodb";
 import { marshall } from "@aws-sdk/util-dynamodb";
 
-// Do NOT use `AWS.config.update()` — let Lambda assume the role
-const dynamo = new DynamoDBClient({ region: "us-west-1" });
+// AWS Amplify can use IAM roles, so credentials might not be needed
+const dynamoClient = new DynamoDBClient({
+  region: process.env.REGION || "us-west-1",
+  // Only use explicit credentials if they're available
+  ...(process.env.ACCESS_KEY_ID && process.env.SECRET_ACCESS_KEY && {
+    credentials: {
+      accessKeyId: process.env.ACCESS_KEY_ID,
+      secretAccessKey: process.env.SECRET_ACCESS_KEY,
+    },
+  }),
+});
+
+console.log("🔧 AWS Configuration for Amplify:");
+console.log("🔧 Region:", process.env.REGION);
+console.log(
+  "🔧 Using explicit credentials:",
+  !!(process.env.ACCESS_KEY_ID && process.env.SECRET_ACCESS_KEY)
+);
 
 export async function decrementCardQuantity(cardid: string) {
   console.log("➡️ Attempting to decrement card:", cardid);
@@ -26,7 +42,7 @@ export async function decrementCardQuantity(cardid: string) {
 
   try {
     const command = new UpdateItemCommand(params);
-    const result = await dynamo.send(command);
+    const result = await dynamoClient.send(command);
     console.log("✅ Quantity decremented:", result);
     return result;
   } catch (err) {
@@ -42,7 +58,7 @@ export async function logClaimedReward(data: Record<string, unknown>) {
       TableName: "claimed_rewards",
       Item: marshall(data),
     });
-    const result = await dynamo.send(command);
+    const result = await dynamoClient.send(command);
     console.log("✅ Successfully logged claimed reward:", result);
     return result;
   } catch (error) {
