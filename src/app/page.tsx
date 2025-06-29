@@ -69,7 +69,15 @@ export default function Home() {
   `,
           });
 
-          const cards = result.data.listCards.items;
+          type ListCardsResult = {
+            data: {
+              listCards: {
+                items: CardData[];
+              };
+            };
+          };
+
+          const cards = (result as ListCardsResult).data.listCards.items;
           if (!cards || cards.length === 0)
             throw new Error("No cards available");
 
