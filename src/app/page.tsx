@@ -10,6 +10,8 @@ import UseRewardPopup from "@/components/Popups/UseRewardPopup";
 import PostSubmitOverlay from "@/components/Popups/PostSubmitOverlay";
 import ClaimRewardPopup from "@/components/Popups/ClaimRewardPopup";
 import ThankYouOverlay from "@/components/ThankYouOverlay";
+import { generateClient } from "aws-amplify/api";
+
 
 interface CardData {
   cardid: string;
@@ -45,9 +47,34 @@ export default function Home() {
 
         if (code) {
           console.log("🔍 Fetching claimed reward with code:", code);
-          const res = await fetch(`/api/get-claimed-reward?id=${code}`);
-          if (!res.ok) throw new Error("Failed to fetch claimed reward");
-          data = await res.json();
+
+          const client = generateClient();
+
+          const result = await client.graphql({
+            query: `
+    query ListCards {
+      listCards {
+        items {
+          cardid
+          addresstext
+          addressurl
+          subheader
+          expires
+          quantity
+          logokey
+          header
+        }
+      }
+    }
+  `,
+          });
+
+          const cards = result.data.listCards.items;
+          if (!cards || cards.length === 0)
+            throw new Error("No cards available");
+
+          data = cards[Math.floor(Math.random() * cards.length)];
+
           console.log("✅ Claimed reward data:", data);
         } else {
           console.log("🔍 Fetching random card");
