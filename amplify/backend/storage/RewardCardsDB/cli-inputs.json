@@ -1,0 +1,10 @@
+{
+  "resourceName": "RewardCardsDB",
+  "tableName": "qrewards-card-table",
+  "partitionKey": {
+    "fieldName": "cardid",
+    "fieldType": "string"
+  },
+  "gsi": [],
+  "triggerFunctions": []
+}

@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
 
 interface CardData {
   cardid: string;
   addresstext: string;
   addressurl: string;
+  header: string;
   subheader: string;
   expires: string;
   quantity: number;
@@ -31,13 +31,11 @@ export default function ClaimRewardPopup({
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Fade in on mount
   useEffect(() => {
     const timeout = setTimeout(() => setIsVisible(true), 10);
     return () => clearTimeout(timeout);
   }, []);
 
-  // Outside click closes
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (popupRef.current && !popupRef.current.contains(e.target as Node)) {
@@ -45,19 +43,17 @@ export default function ClaimRewardPopup({
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const triggerClose = () => {
     setIsVisible(false);
-    setTimeout(() => onClose(), 1000); // smoother exit
+    setTimeout(() => onClose(), 1000);
   };
 
   const getUserIP = async (): Promise<string> => {
     try {
-      const res = await fetch("https://api.ipify.org?format=json");
+      const res = await fetch("/api/ip");
       const data = await res.json();
       return data.ip;
     } catch {
@@ -67,7 +63,6 @@ export default function ClaimRewardPopup({
 
   const handleSubmit = async () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
     if (!email.trim() || !emailRegex.test(email)) {
       setError("Please enter a valid email address.");
       return;
@@ -82,55 +77,46 @@ export default function ClaimRewardPopup({
         setLoading(false);
         return;
       }
-      // 1. Decrement the reward quantity
-      const { error: decrementError } = await supabase.rpc(
-        "decrement_quantity",
-        {
-          card_id: card.cardid, // ✅ correct
-        }
-      );
 
-      if (decrementError) {
-        console.error("Supabase RPC error:", decrementError.message);
-        setError("This reward is no longer available.");
-        return;
-      }
-
-      // 2. Get IP address
       const ip = await getUserIP();
 
-      // 3. Log the claim
-      const { error: insertError } = await supabase
-        .from("claimed_rewards")
-        .insert([
-          {
-            cardid: card.cardid,
-            email,
-            ip_address: ip,
-            addresstext: card.addresstext,
-            addressurl: card.addressurl,
-            subheader: card.subheader,
-            expires: card.expires,
-            logokey: card.logokey,
-          },
-        ]);
+      // Call AWS API to claim reward
+      const res = await fetch("/api/claim-reward", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          ip_address: ip,
+          ...card,
+        }),
+      });
 
-      if (insertError) {
-        console.error("Insert error:", insertError.message);
+      const result = await res.json();
+      if (!res.ok || !result.rewardId) {
+        console.error("Claim error:", result.error);
         setError("Failed to log reward. Please try again.");
         return;
       }
 
-      // 4. Show confirmation
+      const rewardId = result.rewardId;
+      const rewardUrl = `https://qrewards.net/reward/${rewardId}`;
+
+      // Send email (via AWS Lambda or Resend)
+      await fetch("/api/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: email,
+          url: rewardUrl,
+        }),
+      });
+
       setShowConfirmation(true);
 
       setTimeout(() => {
         setIsFullyClosing(true);
         onComplete();
-
-        setTimeout(() => {
-          onComplete();
-        }, 2000);
+        setTimeout(() => onComplete(), 2000);
       }, 1500);
     } catch (err) {
       console.error("Unexpected error:", err);
@@ -161,7 +147,6 @@ export default function ClaimRewardPopup({
           </button>
         )}
 
-        {/* Email Form */}
         <div
           className={`transition-opacity duration-500 ease-out ${
             showConfirmation ? "opacity-0 pointer-events-none" : "opacity-100"
@@ -212,7 +197,6 @@ export default function ClaimRewardPopup({
           </div>
         </div>
 
-        {/* Loading & Confirmation */}
         <div
           className={`absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center transition-opacity duration-1000 ease-out ${
             loading || showConfirmation

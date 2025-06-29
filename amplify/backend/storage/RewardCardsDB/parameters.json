@@ -1,0 +1,14 @@
+{
+  "secondaryIndexes": [
+    {
+      "indexName": "byRandomKey",
+      "keySchema": [
+        {
+          "attributeName": "randomKey",
+          "keyType": "HASH"
+        }
+      ],
+      "projectionType": "ALL"
+    }
+  ]
+}

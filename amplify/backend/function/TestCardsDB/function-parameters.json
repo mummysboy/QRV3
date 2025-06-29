@@ -1,0 +1,13 @@
+{
+  "lambdaLayers": [],
+  "permissions": {
+    "storage": {
+      "RewardCardsDB": [
+        "create",
+        "read",
+        "update",
+        "delete"
+      ]
+    }
+  }
+}
