@@ -1,7 +1,25 @@
 // src/app/layout.tsx
 import { Amplify } from "aws-amplify";
 import outputs from "../amplify_outputs.json";
-Amplify.configure(outputs);
+// Ensure defaultAuthMode is of type GraphQLAuthMode
+const fixedOutputs = {
+  ...outputs,
+  API: {
+    ...outputs.API,
+    GraphQL: {
+      ...outputs.API?.GraphQL,
+      defaultAuthMode: (outputs.API?.GraphQL?.defaultAuthMode === "userPools"
+        ? "userPool"
+        : outputs.API?.GraphQL?.defaultAuthMode) as
+        | "apiKey"
+        | "iam"
+        | "oidc"
+        | "userPool"
+        | "lambda",
+    },
+  },
+};
+Amplify.configure(fixedOutputs);
 import "./globals.css";
 import { ReactNode } from "react";
 
