@@ -1,4 +1,7 @@
 // src/app/layout.tsx
+import { Amplify } from "aws-amplify";
+import outputs from "../amplify_outputs.json";
+Amplify.configure(outputs);
 import "./globals.css";
 import { ReactNode } from "react";
 
