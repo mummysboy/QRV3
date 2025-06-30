@@ -1,9 +1,14 @@
 // /src/app/api/get-claimed-reward/route.ts
 import { NextResponse } from "next/server";
-import { DynamoDBClient, GetItemCommand } from "@aws-sdk/client-dynamodb";
-import { unmarshall } from "@aws-sdk/util-dynamodb";
+import { generateClient } from "aws-amplify/api";
+import { Amplify } from "aws-amplify";
+import { Schema } from "../../../../amplify/data/resource";
+import outputs from "../../../../amplify_outputs.json";
 
-const dynamo = new DynamoDBClient({ region: "us-west-1" }); // use correct region
+// Configure Amplify for server-side usage with the actual generated outputs
+Amplify.configure(outputs);
+
+const client = generateClient<Schema>();
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -13,21 +18,15 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Missing id" }, { status: 400 });
   }
 
-  const command = new GetItemCommand({
-    TableName: "claimed_rewards",
-    Key: { id: { S: id } },
-  });
-
   try {
-    const result = await dynamo.send(command);
-    if (!result.Item) {
+    const result = await client.models.ClaimedReward.get({ id });
+    if (!result.data) {
       return NextResponse.json({ error: "Reward not found" }, { status: 404 });
     }
 
-    const data = unmarshall(result.Item);
-    return NextResponse.json(data);
+    return NextResponse.json(result.data);
   } catch (error) {
-    console.error("DynamoDB error:", error);
+    console.error("Amplify Data error:", error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
