@@ -21,9 +21,9 @@ export async function POST(req: Request) {
         <div style="font-family: 'Segoe UI', sans-serif; background-color: #f4f4f7; padding: 40px 0; color: #1f2937;">
           <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; padding: 32px; box-shadow: 0 8px 24px rgba(0,0,0,0.05);">
             <div style="text-align: center;">
-              <img src="qrewards.net/logo.png" alt="QRewards Logo" style="height: 40px; margin-bottom: 24px;" />
+              <img src="https://www.qrewards.net/logo.png" alt="QRewards Logo" style="height: 40px; margin-bottom: 24px;" />
               <h1 style="color: #16a34a; margin-bottom: 8px; font-size: 24px;">Congratulations!</h1>
-              <p style="font-size: 16px; margin-bottom: 24px;">🎉 You've successfully claimed your reward.</p>
+              <p style="font-size: 16px; margin-bottom: 24px;">You've successfully claimed your reward.</p>
             </div>
 
             <div style="text-align: center; margin-bottom: 30px;">
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
                 text-decoration: none;
                 display: inline-block;
                 font-weight: 600;
-              ">🎁 View My Reward</a>
+              ">View My Reward</a>
             </div>
 
             <hr style="margin: 32px 0; border: none; border-top: 1px solid #e5e7eb;" />

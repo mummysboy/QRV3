@@ -30,6 +30,17 @@ const schema = a.schema({
     })
     .identifier(["id"])
     .authorization((allow) => [allow.publicApiKey()]),
+
+  Contact: a
+    .model({
+      id: a.id().required(),
+      name: a.string().required(),
+      email: a.string().required(),
+      message: a.string().required(),
+      createdAt: a.string(),
+    })
+    .identifier(["id"])
+    .authorization((allow) => [allow.publicApiKey()]),
 });
 
 export type Schema = ClientSchema<typeof schema>;

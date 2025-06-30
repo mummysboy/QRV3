@@ -28,6 +28,20 @@ export default function RewardPage() {
   const [redeeming, setRedeeming] = useState(false);
   const [redeemed, setRedeemed] = useState(false);
   const [redeemError, setRedeemError] = useState("");
+  const [fadeIn, setFadeIn] = useState(false);
+  const [showButton, setShowButton] = useState(false);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => setFadeIn(true), 10);
+    return () => clearTimeout(timeout);
+  }, []);
+
+  useEffect(() => {
+    if (fadeIn) {
+      const timeout = setTimeout(() => setShowButton(true), 400);
+      return () => clearTimeout(timeout);
+    }
+  }, [fadeIn]);
 
   useEffect(() => {
     const fetchCard = async () => {
@@ -117,7 +131,7 @@ export default function RewardPage() {
 
   if (redeemed) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className={`min-h-screen bg-gray-100 flex items-center justify-center transition-opacity duration-1000 ${fadeIn ? "opacity-100" : "opacity-0"}`}>
         <div className="text-center max-w-md mx-auto p-6">
           <div className="text-green-600 text-6xl mb-4">🎉</div>
           <h1 className="text-2xl font-bold text-gray-800 mb-2">Thank You!</h1>
@@ -134,7 +148,7 @@ export default function RewardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 pt-16">
+    <div className={`min-h-screen bg-gray-100 pt-16 transition-opacity duration-1000 ${fadeIn ? "opacity-100" : "opacity-0"}`}>
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-800 mb-2">Your Reward</h1>
@@ -143,7 +157,8 @@ export default function RewardPage() {
         <CardAnimation card={card} />
         <div className="mt-8 text-center">
           <button
-            className="inline-block bg-green-700 text-white px-6 py-2 rounded-lg hover:bg-green-800 transition-colors font-semibold shadow"
+            className={`inline-block bg-green-700 text-white px-6 py-2 rounded-lg hover:bg-green-800 transition-colors font-semibold shadow
+              transition-opacity duration-700 ${showButton ? "opacity-100" : "opacity-0"}`}
             onClick={() => setShowModal(true)}
           >
             Redeem Reward

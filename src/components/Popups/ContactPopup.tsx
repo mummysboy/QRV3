@@ -8,10 +8,12 @@ export default function ContactPopup({ onClose }: { onClose: () => void }) {
   const [isVisible, setIsVisible] = useState(false);
   const [isFullyClosing, setIsFullyClosing] = useState(false);
 
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   // Fade-in mount
   useEffect(() => {
@@ -37,8 +39,12 @@ export default function ContactPopup({ onClose }: { onClose: () => void }) {
     setTimeout(() => onClose(), 700); // match duration
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!name.trim()) {
+      setError("Please enter your name.");
+      return;
+    }
     if (!emailRegex.test(email.trim())) {
       setError("Please enter a valid email address.");
       return;
@@ -48,15 +54,32 @@ export default function ContactPopup({ onClose }: { onClose: () => void }) {
       return;
     }
 
-    // Valid — fade to confirmation
     setError("");
-    setShowConfirmation(true);
-
-    // After a delay, begin full fade-out
-    setTimeout(() => {
-      setIsFullyClosing(true);
-      setTimeout(() => onClose(), 800); // slower fade after confirmation
-    }, 2000);
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/add-contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, message }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to send message");
+      }
+      setShowConfirmation(true);
+      setTimeout(() => {
+        setIsFullyClosing(true);
+        setTimeout(() => onClose(), 800);
+      }, 2000);
+    } catch (err) {
+      setError(
+        typeof err === "object" && err !== null && "message" in err
+          ? String((err as { message: unknown }).message)
+          : "Failed to send message."
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -87,14 +110,23 @@ export default function ContactPopup({ onClose }: { onClose: () => void }) {
           }`}
         >
           <h3 className="text-lg font-semibold mb-2">
-            We&rsquo;d be happy to hear from you!
+            We&apos;d be happy to hear from you!
           </h3>
+          <input
+            type="text"
+            placeholder="Your name"
+            className="w-full border p-2 rounded mb-2"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            disabled={submitting}
+          />
           <input
             type="email"
             placeholder="Your email address"
             className="w-full border p-2 rounded mb-2"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            disabled={submitting}
           />
           <textarea
             placeholder="Your message"
@@ -102,16 +134,18 @@ export default function ContactPopup({ onClose }: { onClose: () => void }) {
             className="w-full border p-2 rounded mb-2"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
+            disabled={submitting}
           />
           {error && <p className="text-red-600 text-sm mb-3">{error}</p>}
           <div className="flex justify-center gap-4">
             <button
               onClick={handleSubmit}
               className="bg-green-700 text-white px-4 py-2 rounded"
+              disabled={submitting}
             >
-              Submit
+              {submitting ? "Sending..." : "Submit"}
             </button>
-            <button onClick={triggerClose} className="border px-4 py-2 rounded">
+            <button onClick={triggerClose} className="border px-4 py-2 rounded" disabled={submitting}>
               Cancel
             </button>
           </div>
@@ -138,7 +172,7 @@ export default function ContactPopup({ onClose }: { onClose: () => void }) {
               />
             </svg>
           </div>
-          <p className="text-black text-lg font-semibold">Message sent!</p>
+          <p className="text-black text-lg font-semibold">Thank you, we will be in contact shortly.</p>
         </div>
       </div>
     </div>
