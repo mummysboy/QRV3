@@ -2,31 +2,43 @@
 "use client";
 
 import { useEffect } from "react";
-import { Amplify } from "aws-amplify";
-import outputs from "../../amplify_outputs.json";
+import { Amplify, type ResourcesConfig } from "aws-amplify";
+import outputsJson from "../../amplify_outputs.json";
+
+type AmplifyOutputs = {
+  API?: {
+    GraphQL?: {
+      defaultAuthMode?: "apiKey" | "iam" | "oidc" | "userPools" | "userPool" | "lambda";
+      [key: string]: unknown;
+    };
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
+};
+
+const outputs = outputsJson as AmplifyOutputs;
 
 export default function AmplifyInit() {
   useEffect(() => {
-    const fixedOutputs = {
-      ...outputs,
-      API: {
-        ...outputs.API,
-        GraphQL: {
-          ...outputs.API?.GraphQL,
-          defaultAuthMode: (outputs.API?.GraphQL?.defaultAuthMode ===
-          "userPools"
-            ? "userPool"
-            : outputs.API?.GraphQL?.defaultAuthMode) as
-            | "apiKey"
-            | "iam"
-            | "oidc"
-            | "userPool"
-            | "lambda",
+    if (
+      outputs.API &&
+      outputs.API.GraphQL &&
+      outputs.API.GraphQL.defaultAuthMode === "userPools"
+    ) {
+      Amplify.configure({
+        ...outputs,
+        API: {
+          ...outputs.API,
+          GraphQL: {
+            ...outputs.API.GraphQL,
+            defaultAuthMode: "userPool",
+            endpoint: outputs.API.GraphQL.endpoint as string,
+          },
         },
-      },
-    };
-
-    Amplify.configure(fixedOutputs);
+      });
+    } else {
+      Amplify.configure(outputs as ResourcesConfig);
+    }
   }, []);
 
   return null;
