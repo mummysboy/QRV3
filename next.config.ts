@@ -12,14 +12,6 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  async rewrites() {
-    return [
-      {
-        source: "/reward/:path*",
-        destination: "/", // this makes /reward/* render the homepage
-      },
-    ];
-  },
 };
 
 export default nextConfig;

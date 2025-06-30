@@ -24,7 +24,28 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Reward not found" }, { status: 404 });
     }
 
-    return NextResponse.json(result.data);
+    // Transform the data to match the get-random-card format
+    const rewardData = result.data;
+    console.log("🔍 Raw claimed reward data:", JSON.stringify(rewardData, null, 2));
+    
+    // Format the response to match get-random-card structure
+    const formattedData = {
+      cardid: rewardData.cardid,
+      header: rewardData.header,
+      subheader: rewardData.subheader,
+      addresstext: rewardData.addresstext,
+      addressurl: rewardData.addressurl,
+      expires: rewardData.expires,
+      logokey: rewardData.logokey, // This should be the base64 encoded logo
+      // Additional fields for claimed rewards
+      id: rewardData.id,
+      email: rewardData.email,
+      claimed_at: rewardData.claimed_at
+    };
+    
+    console.log("🔍 Formatted reward data:", JSON.stringify(formattedData, null, 2));
+    
+    return NextResponse.json(formattedData);
   } catch (error) {
     console.error("Amplify Data error:", error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });

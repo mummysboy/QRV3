@@ -1,32 +1,23 @@
 // /src/app/api/redeem-reward/route.ts
 import { NextResponse } from "next/server";
-import { DynamoDBClient, DeleteItemCommand } from "@aws-sdk/client-dynamodb";
+import { generateClient } from "aws-amplify/api";
+import { Amplify } from "aws-amplify";
+import { Schema } from "../../../../amplify/data/resource";
+import outputs from "../../../../amplify_outputs.json";
 
-const dynamo = new DynamoDBClient({ region: "us-west-1" }); // match your region
+Amplify.configure(outputs);
+const client = generateClient<Schema>();
 
-export async function DELETE(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const id = searchParams.get("id");
-
+export async function POST(req: Request) {
+  const { id } = await req.json();
   if (!id) {
     return NextResponse.json({ error: "Missing id" }, { status: 400 });
   }
-
-  const command = new DeleteItemCommand({
-    TableName: "claimed_rewards",
-    Key: {
-      id: { S: id },
-    },
-  });
-
   try {
-    await dynamo.send(command);
+    await client.models.ClaimedReward.delete({ id });
     return NextResponse.json({ success: true });
-  } catch (err) {
-    console.error("❌ Failed to delete reward:", err);
-    return NextResponse.json(
-      { error: "Failed to delete reward" },
-      { status: 500 }
-    );
+  } catch (error) {
+    console.error("Failed to delete reward:", error);
+    return NextResponse.json({ error: "Failed to delete reward" }, { status: 500 });
   }
 }
