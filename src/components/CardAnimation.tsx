@@ -155,7 +155,7 @@ export default function CardAnimation({ card }: { card: CardProps | null }) {
                     onError={(e) => {
                       e.currentTarget.style.display = "none";
                     }}
-                    className="w-20 h-12 mx-auto mb-1 object-contain"
+                    className="w-23 h-14 mx-auto mb-1 object-contain"
                   />
                 )}
                 <p className="text-lg font-bold leading-snug break-words">
