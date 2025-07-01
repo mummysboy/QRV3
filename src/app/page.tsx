@@ -191,7 +191,7 @@ export default function Home() {
 
   return (
     <main className="relative min-h-screen bg-white transition-opacity duration-1000">
-      <Header onContactClick={() => setShowContactPopup(true)} />
+      <Header onContactClick={() => {}} />
 
       {showThankYouOverlay && (
         <ThankYouOverlay

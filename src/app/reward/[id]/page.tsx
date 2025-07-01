@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import CardAnimation from "@/components/CardAnimation";
+import Header from "@/components/Header";
+import ContactPopup from "@/components/Popups/ContactPopup";
 
 interface CardData {
   id: string;
@@ -30,6 +32,7 @@ export default function RewardPage() {
   const [redeemError, setRedeemError] = useState("");
   const [fadeIn, setFadeIn] = useState(false);
   const [showButton, setShowButton] = useState(false);
+  const [showContactPopup, setShowContactPopup] = useState(false);
 
   useEffect(() => {
     const timeout = setTimeout(() => setFadeIn(true), 10);
@@ -149,11 +152,12 @@ export default function RewardPage() {
 
   return (
     <div className={`min-h-screen bg-gray-100 pt-16 transition-opacity duration-1000 ${fadeIn ? "opacity-100" : "opacity-0"}`}>
+      <Header onContactClick={() => setShowContactPopup(true)} />
+      {showContactPopup && (
+        <ContactPopup onClose={() => setShowContactPopup(false)} />
+      )}
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Your Reward</h1>
-          <p className="text-gray-600">Claimed on {new Date(card.claimed_at).toLocaleDateString()}</p>
-        </div>
+        <div className="mb-8"></div>
         <CardAnimation card={card} />
         <div className="mt-8 text-center">
           <button
