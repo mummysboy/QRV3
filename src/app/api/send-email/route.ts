@@ -17,7 +17,7 @@ export async function POST(req: Request) {
 
   try {
     const command = new SendEmailCommand({
-      Source: process.env.SES_FROM_EMAIL || "qrewards@qrewards.net",
+      Source: process.env.SES_FROM_EMAIL || "QRewards@qrewards.net",
       Destination: {
         ToAddresses: [to],
       },
