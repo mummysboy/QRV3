@@ -4,12 +4,9 @@ import { NextResponse } from "next/server";
 import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
 
 const sesClient = new SESClient({
-  region: process.env.REGION || "us-west-1",
-  credentials: {
-    accessKeyId: process.env.ACCESS_KEY_ID!,
-    secretAccessKey: process.env.SECRET_ACCESS_KEY!,
-  },
+  region: "us-west-1", // or hardcode the verified SES region
 });
+
 
 export async function POST(req: Request) {
   const { to, url } = await req.json();
