@@ -1,17 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Header from "@/components/Header";
 import LogoVideo from "@/components/LogoVideo";
 import CardAnimation from "@/components/CardAnimation";
 import ClaimButton from "@/components/ClaimButton";
-import ContactPopup from "@/components/Popups/ContactPopup";
 import UseRewardPopup from "@/components/Popups/UseRewardPopup";
 import PostSubmitOverlay from "@/components/Popups/PostSubmitOverlay";
 import ClaimRewardPopup from "@/components/Popups/ClaimRewardPopup";
 import ThankYouOverlay from "@/components/ThankYouOverlay";
 import { generateClient } from "aws-amplify/api";
-
 
 interface CardData {
   cardid: string;
@@ -24,8 +21,7 @@ interface CardData {
   header: string;
 }
 
-export default function Home() {
-  const [showContactPopup, setShowContactPopup] = useState(false);
+export default function Home(props) {
   const [showUseRewardPopup, setShowUseRewardPopup] = useState(false);
   const [showPostSubmit, setShowPostSubmit] = useState(false);
   const [showClaimPopup, setShowClaimPopup] = useState(false);
@@ -191,15 +187,19 @@ export default function Home() {
 
   return (
     <main className="relative min-h-screen bg-white transition-opacity duration-1000">
-      <Header onContactClick={() => {}} />
-
-      {showThankYouOverlay && (
+      {showThankYouOverlay && typeof window !== 'undefined' && window.ContactContextHandler ? (
         <ThankYouOverlay
           remainingTime={cooldown ?? 0}
           justClaimed={justClaimed}
-          onContactClick={() => setShowContactPopup(true)}
+          onContactClick={window.ContactContextHandler}
         />
-      )}
+      ) : showThankYouOverlay ? (
+        <ThankYouOverlay
+          remainingTime={cooldown ?? 0}
+          justClaimed={justClaimed}
+          onContactClick={() => {}}
+        />
+      ) : null}
 
       <div
         className={`transition-opacity duration-1000 ease-in-out ${
@@ -224,9 +224,6 @@ export default function Home() {
           ))}
       </div>
 
-      {showContactPopup && (
-        <ContactPopup onClose={() => setShowContactPopup(false)} />
-      )}
       {showUseRewardPopup && (
         <UseRewardPopup onClose={() => setShowUseRewardPopup(false)} />
       )}

@@ -55,11 +55,13 @@ export default function ThankYouOverlay({
     <div
       className={`fixed inset-0 z-60 flex flex-col bg-white transition-opacity duration-[2000ms] ease-in-out min-h-screen overflow-y-auto ${
         show ? "opacity-100" : "opacity-0"
-      } pointer-events-none`}
+      }`}
     >
-      <Header onContactClick={onContactClick} />
+      <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', zIndex: 10000 }}>
+        <Header onContactClick={onContactClick} />
+      </div>
       <div className="flex-shrink-0 mt-10 md:mt-16 lg:mt-24">
-        <LogoVideo key="replay" />
+        <LogoVideo key="replay" playbackRate={1} />
       </div>
 
       <div className="flex-grow flex items-start justify-center px-6 pt-10 md:pt-20">

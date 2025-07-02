@@ -30,7 +30,7 @@ interface CardProps {
   qty?: number;
 }
 
-export default function CardAnimation({ card }: { card: CardProps | null }) {
+export default function CardAnimation({ card, playbackRate = 1 }: { card: CardProps | null, playbackRate?: number }) {
   const [showOverlay, setShowOverlay] = useState(false);
   const [hasTriggered, setHasTriggered] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -57,6 +57,7 @@ export default function CardAnimation({ card }: { card: CardProps | null }) {
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
+    video.playbackRate = playbackRate;
 
     const handleTimeUpdate = () => {
       // Trigger overlay at 5.7 seconds of video playback, but only if it hasn't been triggered yet
@@ -115,7 +116,7 @@ export default function CardAnimation({ card }: { card: CardProps | null }) {
       document.removeEventListener('touchstart', handleUserInteraction);
       document.removeEventListener('click', handleUserInteraction);
     };
-  }, [showOverlay, hasTriggered]);
+  }, [showOverlay, hasTriggered, playbackRate]);
 
   return (
     <div className="relative w-full max-w-md mx-auto overflow-hidden h-[60vh] rounded-lg">

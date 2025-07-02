@@ -1,7 +1,8 @@
 // src/app/layout.tsx
 import "./globals.css";
 import { ReactNode } from "react";
-import AmplifyInit from "@/components/AmplifyInit"; // you'll create this next
+import AmplifyInit from "@/components/AmplifyInit";
+import ClientLayout from './ClientLayout';
 
 export const metadata = {
   title: "QRewards – Scan. Play. Win!",
@@ -13,7 +14,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en">
       <body className="min-h-screen bg-white text-gray-900">
         <AmplifyInit />
-        <main>{children}</main>
+        <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
   );

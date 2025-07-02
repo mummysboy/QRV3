@@ -84,13 +84,13 @@ export default function ContactPopup({ onClose }: { onClose: () => void }) {
 
   return (
     <div
-      className={`fixed inset-0 flex items-center justify-center z-50 transition-opacity duration-700 ${
+      className={`fixed inset-0 flex items-center justify-center transition-opacity duration-700 ${
         isFullyClosing ? "opacity-0" : "opacity-100"
       }`}
     >
       <div
         ref={popupRef}
-        className={`transition-all duration-500 transform ${
+        className={`z-50 transition-all duration-500 transform ${
           isVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
         } bg-white p-6 rounded-xl text-center min-w-[280px] w-[90%] max-w-sm relative shadow-xl`}
       >

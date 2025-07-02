@@ -9,7 +9,7 @@ const sesClient = new SESClient({
 
 
 export async function POST(req: Request) {
-  const { to, url } = await req.json();
+  const { to, url, header } = await req.json();
 
   if (!to || !url) {
     return NextResponse.json({ error: "Missing parameters" }, { status: 400 });
@@ -35,6 +35,7 @@ export async function POST(req: Request) {
                     <img src="https://www.qrewards.net/logo.png" alt="QRewards Logo" style="height: 40px; margin-bottom: 24px;" />
                     <h1 style="color: #16a34a; margin-bottom: 8px; font-size: 24px;">Congratulations!</h1>
                     <p style="font-size: 16px; margin-bottom: 24px;">You've successfully claimed your reward.</p>
+                    ${header ? `<div style='font-size:18px; font-weight:bold; margin-bottom:16px;'>Reward: ${header}</div>` : ''}
                   </div>
 
                   <div style="text-align: center; margin-bottom: 30px;">

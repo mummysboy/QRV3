@@ -4,8 +4,6 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import CardAnimation from "@/components/CardAnimation";
-import Header from "@/components/Header";
-import ContactPopup from "@/components/Popups/ContactPopup";
 import LogoVideo from "@/components/LogoVideo";
 
 interface CardData {
@@ -25,19 +23,19 @@ interface CardData {
 export default function RewardPage() {
   const { id } = useParams();
   const [card, setCard] = useState<CardData | null>(null);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [redeeming, setRedeeming] = useState(false);
   const [redeemed, setRedeemed] = useState(false);
   const [redeemError, setRedeemError] = useState("");
   const [fadeIn, setFadeIn] = useState(false);
-  const [showContactPopup, setShowContactPopup] = useState(false);
 
   useEffect(() => {
-    const timeout = setTimeout(() => setFadeIn(true), 10);
-    return () => clearTimeout(timeout);
-  }, []);
+    if (card || error) {
+      const timeout = setTimeout(() => setFadeIn(true), 500);
+      return () => clearTimeout(timeout);
+    }
+  }, [card, error]);
 
   useEffect(() => {
     const fetchCard = async () => {
@@ -53,8 +51,6 @@ export default function RewardPage() {
             ? String((err as { message: unknown }).message)
             : "Failed to load reward."
         );
-      } finally {
-        setLoading(false);
       }
     };
     fetchCard();
@@ -86,15 +82,8 @@ export default function RewardPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <main className="relative min-h-screen bg-white flex items-center justify-center transition-opacity duration-1000">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading your reward...</p>
-        </div>
-      </main>
-    );
+  if (!card && !error) {
+    return null;
   }
 
   if (error) {
@@ -115,22 +104,11 @@ export default function RewardPage() {
     );
   }
 
-  if (!card) {
-    return (
-      <main className="relative min-h-screen bg-white flex items-center justify-center transition-opacity duration-1000">
-        <div className="text-center">
-          <p className="text-gray-600">No reward data available.</p>
-        </div>
-      </main>
-    );
-  }
-
   if (redeemed) {
     return (
-      <div className="fixed inset-0 z-60 flex flex-col bg-white min-h-screen overflow-y-auto">
-        <Header onContactClick={() => setShowContactPopup(true)} />
+      <div className="fixed inset-0 z-60 flex flex-col bg-white bg-opacity-95 min-h-screen overflow-y-auto pt-20">
         <div className="flex-shrink-0 mt-10 md:mt-16 lg:mt-24">
-          <LogoVideo />
+          <LogoVideo playbackRate={1.2} />
         </div>
         <div className="flex-grow flex items-start justify-center px-6 pt-10 md:pt-20">
           <div className="text-center max-w-md w-full bg-white p-8 rounded-xl">
@@ -144,14 +122,16 @@ export default function RewardPage() {
   }
 
   return (
-    <main className={`relative min-h-screen bg-white transition-opacity duration-1000 ${fadeIn ? "opacity-100" : "opacity-0"}`}>
-      <Header onContactClick={() => setShowContactPopup(true)} />
-      {showContactPopup && (
-        <ContactPopup onClose={() => setShowContactPopup(false)} />
-      )}
+    <main
+      className="relative min-h-screen bg-white"
+      style={{
+        opacity: fadeIn ? 1 : 0,
+        transition: 'opacity 1.2s',
+      }}
+    >
       <div className={`transition-opacity duration-1000 ease-in-out`}>
-        <LogoVideo />
-        <CardAnimation card={card} />
+        <LogoVideo playbackRate={15} />
+        <CardAnimation card={card} playbackRate={15} />
         <div className="flex justify-center mt-4">
           <button
             className="bg-green-800 hover:bg-green-700 transition text-white text-lg font-semibold px-8 py-3 rounded-full shadow-md"
