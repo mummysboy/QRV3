@@ -21,7 +21,7 @@ interface CardData {
   header: string;
 }
 
-export default function Home(props) {
+export default function Home() {
   const [showUseRewardPopup, setShowUseRewardPopup] = useState(false);
   const [showPostSubmit, setShowPostSubmit] = useState(false);
   const [showClaimPopup, setShowClaimPopup] = useState(false);
@@ -187,19 +187,13 @@ export default function Home(props) {
 
   return (
     <main className="relative min-h-screen bg-white transition-opacity duration-1000">
-      {showThankYouOverlay && typeof window !== 'undefined' && window.ContactContextHandler ? (
-        <ThankYouOverlay
-          remainingTime={cooldown ?? 0}
-          justClaimed={justClaimed}
-          onContactClick={window.ContactContextHandler}
-        />
-      ) : showThankYouOverlay ? (
+      {showThankYouOverlay && (
         <ThankYouOverlay
           remainingTime={cooldown ?? 0}
           justClaimed={justClaimed}
           onContactClick={() => {}}
         />
-      ) : null}
+      )}
 
       <div
         className={`transition-opacity duration-1000 ease-in-out ${
