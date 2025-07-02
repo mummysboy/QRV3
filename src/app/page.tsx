@@ -9,6 +9,7 @@ import PostSubmitOverlay from "@/components/Popups/PostSubmitOverlay";
 import ClaimRewardPopup from "@/components/Popups/ClaimRewardPopup";
 import ThankYouOverlay from "@/components/ThankYouOverlay";
 import { generateClient } from "aws-amplify/api";
+import ContactPopup from "@/components/Popups/ContactPopup";
 
 interface CardData {
   cardid: string;
@@ -30,6 +31,7 @@ export default function Home() {
   const [card, setCard] = useState<CardData | null>(null);
   const [showThankYouOverlay, setShowThankYouOverlay] = useState(false);
   const [fadeOutClaimPopup, setFadeOutClaimPopup] = useState(false);
+  const [showContactPopup, setShowContactPopup] = useState(false);
 
   useEffect(() => {
     const fetchCard = async () => {
@@ -236,6 +238,9 @@ export default function Home() {
             onComplete={handleClaimComplete}
           />
         </div>
+      )}
+      {showContactPopup && (
+        <ContactPopup onClose={() => setShowContactPopup(false)} />
       )}
     </main>
   );

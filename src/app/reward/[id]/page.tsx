@@ -32,7 +32,7 @@ export default function RewardPage() {
 
   useEffect(() => {
     if (card || error) {
-      const timeout = setTimeout(() => setFadeIn(true), 500);
+      const timeout = setTimeout(() => setFadeIn(true), 1100);
       return () => clearTimeout(timeout);
     }
   }, [card, error]);

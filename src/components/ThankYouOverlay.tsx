@@ -53,7 +53,7 @@ export default function ThankYouOverlay({
 
   return (
     <div
-      className={`fixed inset-0 z-60 flex flex-col bg-white transition-opacity duration-[2000ms] ease-in-out min-h-screen overflow-y-auto ${
+      className={`fixed inset-0 z-0 flex flex-col bg-white transition-opacity duration-[2000ms] ease-in-out min-h-screen overflow-y-auto ${
         show ? "opacity-100" : "opacity-0"
       }`}
     >
