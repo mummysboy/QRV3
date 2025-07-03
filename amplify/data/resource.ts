@@ -19,7 +19,9 @@ const schema = a.schema({
     .model({
       id: a.string().required(),
       cardid: a.string().required(),
-      email: a.string().required(),
+      email: a.string(),
+      phone: a.string(),
+      delivery_method: a.string(),
       logokey: a.string(),
       header: a.string(),
       subheader: a.string(),

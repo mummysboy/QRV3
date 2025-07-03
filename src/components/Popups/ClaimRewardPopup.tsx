@@ -25,6 +25,8 @@ export default function ClaimRewardPopup({
   const popupRef = useRef<HTMLDivElement>(null);
 
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [deliveryMethod, setDeliveryMethod] = useState<"email" | "sms">("email");
   const [error, setError] = useState("");
   const [isVisible, setIsVisible] = useState(false);
   const [isFullyClosing, setIsFullyClosing] = useState(false);
@@ -61,11 +63,34 @@ export default function ClaimRewardPopup({
     }
   };
 
+  const formatPhoneNumber = (value: string): string => {
+    // Remove all non-digits and limit to 10 digits
+    const cleaned = value.replace(/\D/g, '').slice(0, 10);
+    
+    // Format as (XXX) XXX-XXXX
+    if (cleaned.length <= 3) {
+      return cleaned;
+    } else if (cleaned.length <= 6) {
+      return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3)}`;
+    } else {
+      return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
+    }
+  };
+
   const handleSubmit = async () => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email.trim() || !emailRegex.test(email)) {
-      setError("Please enter a valid email address.");
-      return;
+    if (deliveryMethod === "email") {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!email.trim() || !emailRegex.test(email)) {
+        setError("Please enter a valid email address.");
+        return;
+      }
+    } else {
+      const cleanPhone = phone.replace(/\D/g, '');
+      
+      if (cleanPhone.length !== 10) {
+        setError("Please enter a 10-digit phone number.");
+        return;
+      }
     }
 
     setError("");
@@ -85,10 +110,13 @@ export default function ClaimRewardPopup({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email,
+          email: deliveryMethod === "email" ? email : "",
+          phone: deliveryMethod === "sms" ? phone : "",
+          delivery_method: deliveryMethod,
           ip_address: ip,
           ...card,
         }),
+        cache: 'no-cache', // Prevent caching
       });
 
       const result = await res.json();
@@ -101,15 +129,26 @@ export default function ClaimRewardPopup({
       const rewardId = result.rewardId;
       const rewardUrl = `https://www.qrewards.net/reward/${rewardId}`;
 
-      // Send email (via AWS Lambda or Resend)
-      await fetch("/api/send-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          to: email,
-          url: rewardUrl,
-        }),
-      });
+      // Send reward via email or SMS
+      if (deliveryMethod === "email") {
+        await fetch("/api/send-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            to: email,
+            url: rewardUrl,
+          }),
+        });
+      } else {
+        await fetch("/api/send-sms", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            to: phone,
+            url: rewardUrl,
+          }),
+        });
+      }
 
       setShowConfirmation(true);
 
@@ -154,16 +193,56 @@ export default function ClaimRewardPopup({
         >
           <h3 className="text-xl font-semibold mb-2">Claim Your Reward</h3>
           <p className="text-sm text-gray-700 mb-4">
-            Enter your email and we&apos;ll send your reward right away.
+            Choose how you&apos;d like to receive your reward.
           </p>
 
-          <input
-            type="email"
-            placeholder="you@example.com"
-            className="w-full border border-gray-300 p-2 rounded mb-3 focus:outline-none focus:ring-2 focus:ring-green-600"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+          {/* Delivery Method Toggle */}
+          <div className="flex bg-gray-100 rounded-lg p-1 mb-4">
+            <button
+              onClick={() => setDeliveryMethod("email")}
+              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                deliveryMethod === "email"
+                  ? "bg-white text-green-700 shadow-sm"
+                  : "text-gray-600 hover:text-gray-800"
+              }`}
+            >
+              Email
+            </button>
+            <button
+              onClick={() => setDeliveryMethod("sms")}
+              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                deliveryMethod === "sms"
+                  ? "bg-white text-green-700 shadow-sm"
+                  : "text-gray-600 hover:text-gray-800"
+              }`}
+            >
+              SMS
+            </button>
+          </div>
+
+          {deliveryMethod === "email" ? (
+            <input
+              type="email"
+              placeholder="you@example.com"
+              className="w-full border border-gray-300 p-2 rounded mb-3 focus:outline-none focus:ring-2 focus:ring-green-600"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          ) : (
+            <input
+              type="tel"
+              placeholder="(555) 123-4567"
+              className="w-full border border-gray-300 p-2 rounded mb-3 focus:outline-none focus:ring-2 focus:ring-green-600"
+              value={phone}
+              onChange={(e) => {
+                const formatted = formatPhoneNumber(e.target.value);
+                setPhone(formatted);
+                if (error && error.includes("phone")) {
+                  setError("");
+                }
+              }}
+            />
+          )}
 
           {error && <p className="text-red-600 text-sm mb-3">{error}</p>}
 
@@ -238,7 +317,10 @@ export default function ClaimRewardPopup({
                 Reward sent!
               </p>
               <p className="text-gray-600 text-base text-center max-w-xs mb-2">
-                Please check your inbox (and your spam/promotions folder).
+                {deliveryMethod === "email" 
+                  ? "Please check your inbox (and your spam/promotions folder)."
+                  : "Please check your phone for the SMS message."
+                }
               </p>
               <button
                 onClick={() => {

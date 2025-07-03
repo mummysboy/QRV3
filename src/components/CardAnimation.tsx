@@ -157,7 +157,7 @@ export default function CardAnimation({ card, playbackRate = 1 }: { card: CardPr
                       e.currentTarget.style.display = "none";
                     }}
                     className="mx-auto mb-0 object-contain rounded-lg"
-                    style={{ width: '109px !important', height: '68px !important', minWidth: '109px', minHeight: '68px', maxHeight: '130px' }}
+                    style={{ width: '109px !important', height: '68px !important', minWidth: '109px', minHeight: '68px', maxHeight: '130px', }}
                   />
                 )}
                 <p className="text-lg font-bold leading-snug break-words -mt-5">

@@ -20,6 +20,8 @@ export async function POST(request: Request) {
     const {
       cardid,
       email,
+      phone,
+      delivery_method,
       addresstext,
       addressurl,
       subheader,
@@ -29,13 +31,15 @@ export async function POST(request: Request) {
     } = body;
 
     // ✅ Check required fields
-    if (!cardid || !email) {
+    if (!cardid || (!email && !phone)) {
       console.error("❌ Missing required fields");
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
+
+
 
     // ✅ 1. Get current card and decrement quantity
     try {
@@ -73,7 +77,9 @@ export async function POST(request: Request) {
     const rewardData = {
       id: `${cardid}-${Date.now()}`,
       cardid,
-      email,
+      email: delivery_method === "email" ? email : "",
+      phone: delivery_method === "sms" ? phone : "",
+      delivery_method,
       addresstext,
       addressurl,
       subheader,
