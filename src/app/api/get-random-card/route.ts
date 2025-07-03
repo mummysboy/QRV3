@@ -1,6 +1,14 @@
 // File: /src/app/api/get-random-card/route.ts
 import { NextResponse } from "next/server";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
+import { generateClient } from "aws-amplify/api";
+import { Amplify } from "aws-amplify";
+import { Schema } from "../../../../amplify/data/resource";
+import outputs from "../../../../amplify_outputs.json";
+
+// Configure Amplify for server-side usage
+Amplify.configure(outputs);
+const client = generateClient<Schema>();
 
 export async function GET() {
   try {
@@ -37,6 +45,34 @@ export async function GET() {
     }
     
     console.log("🔍 Processed card data:", JSON.stringify(card, null, 2));
+    
+    // ✅ Store the card in local Amplify database for claiming
+    if (card && card.cardid) {
+      try {
+        // Check if card already exists
+        const existingCard = await client.models.Card.get({ cardid: card.cardid });
+        
+        if (!existingCard.data) {
+          // Create the card in local database
+          await client.models.Card.create({
+            cardid: card.cardid,
+            quantity: card.quantity || 100,
+            logokey: card.logokey,
+            header: card.header,
+            subheader: card.subheader,
+            addressurl: card.addressurl,
+            addresstext: card.addresstext,
+            expires: card.expires,
+          });
+          console.log("✅ Card stored in local database:", card.cardid);
+        } else {
+          console.log("✅ Card already exists in local database:", card.cardid);
+        }
+      } catch (error) {
+        console.error("❌ Failed to store card in local database:", error);
+        // Continue even if local storage fails
+      }
+    }
     
     return NextResponse.json(card);
     

@@ -39,8 +39,6 @@ export async function POST(request: Request) {
       );
     }
 
-
-
     // ✅ 1. Get current card and decrement quantity
     try {
       const cardResponse = await client.models.Card.get({ cardid });
