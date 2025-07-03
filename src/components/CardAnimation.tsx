@@ -156,10 +156,11 @@ export default function CardAnimation({ card, playbackRate = 1 }: { card: CardPr
                     onError={(e) => {
                       e.currentTarget.style.display = "none";
                     }}
-                    className="w-23 h-14 mx-auto mb-1 object-contain"
+                    className="mx-auto mb-0 object-contain rounded-lg"
+                    style={{ width: '109px !important', height: '68px !important', minWidth: '109px', minHeight: '68px', maxHeight: '130px' }}
                   />
                 )}
-                <p className="text-lg font-bold leading-snug break-words">
+                <p className="text-lg font-bold leading-snug break-words -mt-5">
                   {cardData?.header}
                 </p>
                 <a
