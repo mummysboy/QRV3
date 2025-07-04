@@ -54,23 +54,3 @@ export const data = defineData({
     apiKeyAuthorizationMode: { expiresInDays: 30 },
   },
 });
-
-export async function GET() {
-  try {
-    // Fetch all cards from DynamoDB using Amplify Data
-    const result = await client.models.Card.list();
-    const cards = result.data;
-
-    if (!cards || cards.length === 0) {
-      return NextResponse.json({ error: "No cards available" }, { status: 404 });
-    }
-
-    // Pick a random card
-    const card = cards[Math.floor(Math.random() * cards.length)];
-
-    return NextResponse.json(card);
-  } catch (err) {
-    console.error("Error fetching random card from DynamoDB:", err);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
-  }
-}
