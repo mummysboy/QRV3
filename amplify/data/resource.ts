@@ -55,32 +55,6 @@ export const data = defineData({
   },
 });
 
-const dynamoClient = new DynamoDBClient({ region: "us-west-1" });
-
-export async function decrementCardQuantity(cardid: string) {
-  const params = {
-    TableName: "cards",
-    Key: {
-      cardid: { S: cardid }
-    },
-    UpdateExpression: "SET quantity = quantity - :dec",
-    ConditionExpression: "quantity > :zero",
-    ExpressionAttributeValues: {
-      ":dec": { N: "1" },
-      ":zero": { N: "0" }
-    },
-    ReturnValues: "UPDATED_NEW"
-  };
-
-  try {
-    const result = await dynamoClient.send(new UpdateItemCommand(params));
-    return result;
-  } catch (error) {
-    console.error("Failed to decrement card quantity:", error);
-    throw error;
-  }
-}
-
 export async function GET() {
   try {
     // Fetch all cards from DynamoDB using Amplify Data
