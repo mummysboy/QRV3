@@ -54,3 +54,49 @@ export const data = defineData({
     apiKeyAuthorizationMode: { expiresInDays: 30 },
   },
 });
+
+const dynamoClient = new DynamoDBClient({ region: "us-west-1" });
+
+export async function decrementCardQuantity(cardid: string) {
+  const params = {
+    TableName: "cards",
+    Key: {
+      cardid: { S: cardid }
+    },
+    UpdateExpression: "SET quantity = quantity - :dec",
+    ConditionExpression: "quantity > :zero",
+    ExpressionAttributeValues: {
+      ":dec": { N: "1" },
+      ":zero": { N: "0" }
+    },
+    ReturnValues: "UPDATED_NEW"
+  };
+
+  try {
+    const result = await dynamoClient.send(new UpdateItemCommand(params));
+    return result;
+  } catch (error) {
+    console.error("Failed to decrement card quantity:", error);
+    throw error;
+  }
+}
+
+export async function GET() {
+  try {
+    // Fetch all cards from DynamoDB using Amplify Data
+    const result = await client.models.Card.list();
+    const cards = result.data;
+
+    if (!cards || cards.length === 0) {
+      return NextResponse.json({ error: "No cards available" }, { status: 404 });
+    }
+
+    // Pick a random card
+    const card = cards[Math.floor(Math.random() * cards.length)];
+
+    return NextResponse.json(card);
+  } catch (err) {
+    console.error("Error fetching random card from DynamoDB:", err);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  }
+}

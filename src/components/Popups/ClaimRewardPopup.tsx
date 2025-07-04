@@ -78,9 +78,16 @@ export default function ClaimRewardPopup({
   };
 
   const handleSubmit = async () => {
+    console.log("🔵 handleSubmit called");
+    console.log("🔵 deliveryMethod:", deliveryMethod);
+    console.log("🔵 email:", email);
+    console.log("🔵 phone:", phone);
+    console.log("🔵 card:", card);
+    
     if (deliveryMethod === "email") {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!email.trim() || !emailRegex.test(email)) {
+        console.log("🔴 Email validation failed");
         setError("Please enter a valid email address.");
         return;
       }
@@ -88,23 +95,28 @@ export default function ClaimRewardPopup({
       const cleanPhone = phone.replace(/\D/g, '');
       
       if (cleanPhone.length !== 10) {
+        console.log("🔴 Phone validation failed");
         setError("Please enter a 10-digit phone number.");
         return;
       }
     }
 
+    console.log("🔵 Validation passed, setting loading state");
     setError("");
     setLoading(true);
 
     try {
       if (!card || !card.cardid) {
+        console.log("🔴 Card validation failed");
         setError("Reward information is missing.");
         setLoading(false);
         return;
       }
 
+      console.log("🔵 Getting user IP");
       const ip = await getUserIP();
 
+      console.log("🔵 Making API call to /api/claim-reward");
       // Call AWS API to claim reward
       const res = await fetch("/api/claim-reward", {
         method: "POST",
@@ -119,7 +131,10 @@ export default function ClaimRewardPopup({
         cache: 'no-cache', // Prevent caching
       });
 
+      console.log("🔵 API response received:", res.status);
       const result = await res.json();
+      console.log("🔵 API result:", result);
+      
       if (!res.ok || !result.rewardId) {
         console.error("Claim error:", result.error);
         setError("Failed to log reward. Please try again.");
@@ -131,6 +146,7 @@ export default function ClaimRewardPopup({
 
       // Send reward via email or SMS
       if (deliveryMethod === "email") {
+        console.log("🔵 Sending email");
         await fetch("/api/send-email", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -140,6 +156,7 @@ export default function ClaimRewardPopup({
           }),
         });
       } else {
+        console.log("🔵 Sending SMS");
         await fetch("/api/send-sms", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -150,6 +167,7 @@ export default function ClaimRewardPopup({
         });
       }
 
+      console.log("🔵 Setting confirmation state");
       setShowConfirmation(true);
 
       setTimeout(() => {
@@ -158,9 +176,10 @@ export default function ClaimRewardPopup({
         setTimeout(() => onComplete(), 2000);
       }, 1500);
     } catch (err) {
-      console.error("Unexpected error:", err);
+      console.error("🔴 Unexpected error:", err);
       setError("Unexpected error. Please try again.");
     } finally {
+      console.log("🔵 Setting loading to false");
       setLoading(false);
     }
   };
@@ -262,7 +281,10 @@ export default function ClaimRewardPopup({
 
           <div className="flex justify-center gap-4">
             <button
-              onClick={handleSubmit}
+              onClick={() => {
+                console.log("🔵 Submit button clicked");
+                handleSubmit();
+              }}
               className="bg-green-700 hover:bg-green-800 text-white px-5 py-2 rounded transition duration-300"
             >
               Submit

@@ -24,11 +24,16 @@ export default function RewardPage() {
   const { id } = useParams();
   const [card, setCard] = useState<CardData | null>(null);
   const [error, setError] = useState("");
+  const [fadeIn, setFadeIn] = useState(false);
+  const [claiming, setClaiming] = useState(false);
+  const [claimError, setClaimError] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [deliveryMethod, setDeliveryMethod] = useState("email");
   const [showModal, setShowModal] = useState(false);
   const [redeeming, setRedeeming] = useState(false);
   const [redeemed, setRedeemed] = useState(false);
   const [redeemError, setRedeemError] = useState("");
-  const [fadeIn, setFadeIn] = useState(false);
 
   useEffect(() => {
     if (card || error) {
@@ -56,6 +61,45 @@ export default function RewardPage() {
     fetchCard();
   }, [id]);
 
+  // Add claim handler
+  const handleClaim = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!card) return;
+    setClaiming(true);
+    setClaimError("");
+    try {
+      const res = await fetch("/api/claim-reward", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cardid: card.cardid,
+          email: deliveryMethod === "email" ? email : "",
+          phone: deliveryMethod === "sms" ? phone : "",
+          delivery_method: deliveryMethod,
+          addresstext: card.addresstext,
+          addressurl: card.addressurl,
+          subheader: card.subheader,
+          expires: card.expires,
+          logokey: card.logokey,
+          header: card.header,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to claim reward");
+      }
+      // setClaimed(true); // This state variable was removed, so this line is removed.
+    } catch (err) {
+      setClaimError(
+        typeof err === "object" && err !== null && "message" in err
+          ? String((err as { message: unknown }).message)
+          : "Failed to claim reward."
+      );
+    } finally {
+      setClaiming(false);
+    }
+  };
+
   const handleRedeem = async () => {
     if (!card) return;
     setRedeeming(true);
@@ -82,6 +126,8 @@ export default function RewardPage() {
     }
   };
 
+  const isClaimed = !!card && !!card.id;
+
   if (!card && !error) {
     return null;
   }
@@ -104,69 +150,142 @@ export default function RewardPage() {
     );
   }
 
-  if (redeemed) {
-    return (
-      <div className="fixed inset-0 z-60 flex flex-col bg-white bg-opacity-95 min-h-screen overflow-y-auto pt-20">
-        <div className="flex-shrink-0 mt-10 md:mt-16 lg:mt-24">
-          <LogoVideo playbackRate={1.2} />
-        </div>
-        <div className="flex-grow flex items-start justify-center px-6 pt-10 md:pt-20">
-          <div className="text-center max-w-md w-full bg-white p-8 rounded-xl">
-            <div className="text-green-600 text-6xl mb-4">🎉</div>
-            <h1 className="text-2xl font-bold text-gray-800 mb-2">Thank You!</h1>
-            <p className="text-gray-600 mb-4">Your reward has been redeemed and can no longer be used.</p>
+  if (isClaimed) {
+    if (redeemed) {
+      // Show thank you
+      return (
+        <div className="fixed inset-0 z-60 flex flex-col bg-white bg-opacity-95 min-h-screen overflow-y-auto pt-20">
+          <div className="flex-shrink-0 mt-10 md:mt-16 lg:mt-24">
+            <LogoVideo playbackRate={1.2} />
           </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <main
-      className="relative min-h-screen bg-white"
-      style={{
-        opacity: fadeIn ? 1 : 0,
-        transition: 'opacity 1.2s',
-      }}
-    >
-      <div className={`transition-opacity duration-1000 ease-in-out`}>
-        <LogoVideo playbackRate={15} />
-        <CardAnimation card={card} playbackRate={15} />
-        <div className="flex justify-center mt-4">
-          <button
-            className="bg-green-800 hover:bg-green-700 transition text-white text-lg font-semibold px-8 py-3 rounded-full shadow-md"
-            onClick={() => setShowModal(true)}
-          >
-            Redeem Reward
-          </button>
-        </div>
-      </div>
-      {/* Modal Popout */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 transition-opacity duration-1000">
-          <div className="bg-white rounded-lg shadow-lg p-8 max-w-sm w-full mx-4 text-center">
-            <h2 className="text-xl font-bold mb-4">Are you sure?</h2>
-            <p className="mb-6 text-gray-700">Once you redeem your reward you cannot use it again.</p>
-            {redeemError && <p className="text-red-600 mb-3">{redeemError}</p>}
-            <div className="flex justify-center gap-4">
-              <button
-                className="bg-green-800 text-white px-8 py-3 rounded-full hover:bg-green-700 transition font-semibold shadow-md"
-                onClick={handleRedeem}
-                disabled={redeeming}
-              >
-                {redeeming ? "Redeeming..." : "Yes, Redeem"}
-              </button>
-              <button
-                className="border px-8 py-3 rounded-full text-gray-700 hover:bg-gray-100 transition font-semibold"
-                onClick={() => setShowModal(false)}
-                disabled={redeeming}
-              >
-                Cancel
-              </button>
+          <div className="flex-grow flex items-start justify-center px-6 pt-10 md:pt-20">
+            <div className="text-center max-w-md w-full bg-white p-8 rounded-xl">
+              <div className="text-green-600 text-6xl mb-4">🎉</div>
+              <h1 className="text-2xl font-bold text-gray-800 mb-2">Thank You!</h1>
+              <p className="text-gray-600 mb-4">Your reward has been redeemed and can no longer be used.</p>
             </div>
           </div>
         </div>
-      )}
-    </main>
-  );
+      );
+    } else {
+      // Show redeem button
+      return (
+        <main
+          className="relative min-h-screen bg-white"
+          style={{
+            opacity: fadeIn ? 1 : 0,
+            transition: 'opacity 1.2s',
+          }}
+        >
+          <div className={`transition-opacity duration-1000 ease-in-out`}>
+            <LogoVideo playbackRate={15} />
+            <CardAnimation card={card} playbackRate={15} />
+            <div className="flex justify-center mt-4">
+              <button
+                className="bg-green-800 hover:bg-green-700 transition text-white text-lg font-semibold px-8 py-3 rounded-full shadow-md"
+                onClick={() => setShowModal(true)}
+              >
+                Redeem Reward
+              </button>
+            </div>
+          </div>
+          {/* Modal Popout */}
+          {showModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 transition-opacity duration-1000">
+              <div className="bg-white rounded-lg shadow-lg p-8 max-w-sm w-full mx-4 text-center">
+                <h2 className="text-xl font-bold mb-4">Are you sure?</h2>
+                <p className="mb-6 text-gray-700">Once you redeem your reward you cannot use it again.</p>
+                {redeemError && <p className="text-red-600 mb-3">{redeemError}</p>}
+                <div className="flex justify-center gap-4">
+                  <button
+                    className="bg-green-800 text-white px-8 py-3 rounded-full hover:bg-green-700 transition font-semibold shadow-md"
+                    onClick={handleRedeem}
+                    disabled={redeeming}
+                  >
+                    {redeeming ? "Redeeming..." : "Yes, Redeem"}
+                  </button>
+                  <button
+                    className="border px-8 py-3 rounded-full text-gray-700 hover:bg-gray-100 transition font-semibold"
+                    onClick={() => setShowModal(false)}
+                    disabled={redeeming}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </main>
+      );
+    }
+  } else {
+    // Show claim form
+    return (
+      <main
+        className="relative min-h-screen bg-white"
+        style={{
+          opacity: fadeIn ? 1 : 0,
+          transition: 'opacity 1.2s',
+        }}
+      >
+        <div className={`transition-opacity duration-1000 ease-in-out`}>
+          <LogoVideo playbackRate={15} />
+          <CardAnimation card={card} playbackRate={15} />
+          <form
+            className="max-w-md mx-auto mt-8 bg-white p-8 rounded-xl shadow-lg flex flex-col gap-4"
+            onSubmit={handleClaim}
+          >
+            <h2 className="text-xl font-bold mb-2 text-center">Claim Your Reward</h2>
+            <div className="flex justify-center gap-4 mb-2">
+              <button
+                type="button"
+                className={`px-4 py-2 rounded-full font-semibold border transition-colors ${deliveryMethod === "email" ? "bg-green-800 text-white" : "bg-white text-gray-700 border-gray-300"}`}
+                onClick={() => setDeliveryMethod("email")}
+                disabled={claiming}
+              >
+                Email
+              </button>
+              <button
+                type="button"
+                className={`px-4 py-2 rounded-full font-semibold border transition-colors ${deliveryMethod === "sms" ? "bg-green-800 text-white" : "bg-white text-gray-700 border-gray-300"}`}
+                onClick={() => setDeliveryMethod("sms")}
+                disabled={claiming}
+              >
+                SMS
+              </button>
+            </div>
+            {deliveryMethod === "email" ? (
+              <input
+                type="email"
+                className="border rounded px-4 py-2 w-full"
+                placeholder="Enter your email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+                disabled={claiming}
+              />
+            ) : (
+              <input
+                type="tel"
+                className="border rounded px-4 py-2 w-full"
+                placeholder="Enter your phone number"
+                value={phone}
+                onChange={e => setPhone(e.target.value)}
+                required
+                disabled={claiming}
+              />
+            )}
+            {claimError && <p className="text-red-600 text-center">{claimError}</p>}
+            <button
+              type="submit"
+              className="bg-green-800 hover:bg-green-700 transition text-white text-lg font-semibold px-8 py-3 rounded-full shadow-md mt-2"
+              disabled={claiming}
+            >
+              {claiming ? "Claiming..." : "Submit"}
+            </button>
+          </form>
+        </div>
+      </main>
+    );
+  }
 }
