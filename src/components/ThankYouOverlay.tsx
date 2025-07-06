@@ -21,7 +21,6 @@ export default function ThankYouOverlay({
   useEffect(() => {
     const timeout = setTimeout(() => {
       setShow(true);
-      // Removed broken call to onFadeInComplete
     }, 50);
     return () => clearTimeout(timeout);
   }, []);
@@ -60,7 +59,7 @@ export default function ThankYouOverlay({
       <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', zIndex: 10000 }}>
         <Header onContactClick={onContactClick} />
       </div>
-      <div className="flex-shrink-0 mt-10 md:mt-16 lg:mt-24">
+      <div className="flex-shrink-0 mt-25 md:mt-16 lg:mt-24">
         <LogoVideo key="replay" playbackRate={1} />
       </div>
 

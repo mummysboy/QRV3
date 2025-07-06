@@ -118,11 +118,16 @@ export default function Home() {
         const res = await fetch("https://api.ipify.org?format=json");
         const { ip } = await res.json();
         const storageKey = `rewardClaimedAt:${ip}`;
-        const claimedAt = localStorage.getItem(storageKey);
+        let claimedAt = localStorage.getItem(storageKey);
+
+        // Fallback to simple key if IP-based key doesn't exist
+        if (!claimedAt) {
+          claimedAt = localStorage.getItem("rewardClaimedAt");
+        }
 
         if (claimedAt) {
           const elapsed = Date.now() - parseInt(claimedAt, 10);
-          const remaining = 10000 - elapsed;
+          const remaining = 900000 - elapsed; // 15 minutes in milliseconds
           if (remaining > 0) {
             setJustClaimed(false);
             setCooldown(remaining);
@@ -136,16 +141,41 @@ export default function Home() {
         }
       } catch (error) {
         console.error("Failed to check cooldown via IP", error);
+        // Fallback to simple key when IP fetch fails
+        const claimedAt = localStorage.getItem("rewardClaimedAt");
+        if (claimedAt) {
+          const elapsed = Date.now() - parseInt(claimedAt, 10);
+          const remaining = 900000 - elapsed; // 15 minutes in milliseconds
+          if (remaining > 0) {
+            setJustClaimed(false);
+            setCooldown(remaining);
+            setShowThankYouOverlay(true);
+            const timer = setTimeout(() => {
+              setCooldown(null);
+              setShowThankYouOverlay(false);
+            }, remaining);
+            return () => clearTimeout(timer);
+          }
+        }
       }
     };
 
     checkCooldown();
   }, []);
 
-  const handleClaimComplete = () => {
+  const handleClaimComplete = async () => {
     const now = Date.now();
-    localStorage.setItem("rewardClaimedAt", now.toString());
-    setCooldown(10000);
+    try {
+      const res = await fetch("https://api.ipify.org?format=json");
+      const { ip } = await res.json();
+      const storageKey = `rewardClaimedAt:${ip}`;
+      localStorage.setItem(storageKey, now.toString());
+    } catch (error) {
+      console.error("Failed to get IP for storage, using fallback key", error);
+      localStorage.setItem("rewardClaimedAt", now.toString());
+    }
+    
+    setCooldown(900000); // 15 minutes in milliseconds
     setFadeOutClaimPopup(true);
 
     setTimeout(() => setShowThankYouOverlay(true), 100);
@@ -156,7 +186,7 @@ export default function Home() {
     setTimeout(() => {
       setCooldown(null);
       setShowThankYouOverlay(false);
-    }, 10000);
+    }, 900000); // 15 minutes in milliseconds
     setJustClaimed(true);
   };
 
