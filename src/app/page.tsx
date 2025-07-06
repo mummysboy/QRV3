@@ -223,7 +223,7 @@ export default function Home() {
         <ThankYouOverlay
           remainingTime={cooldown ?? 0}
           justClaimed={justClaimed}
-          onContactClick={() => {}}
+          onContactClick={() => setShowContactPopup(true)}
         />
       )}
 
