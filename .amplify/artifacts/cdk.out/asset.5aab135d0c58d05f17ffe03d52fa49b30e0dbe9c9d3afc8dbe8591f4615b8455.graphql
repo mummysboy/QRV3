@@ -1,0 +1,704 @@
+type Card @aws_api_key @aws_iam @aws_cognito_user_pools {
+  cardid: String!
+  quantity: Int!
+  logokey: String
+  header: String
+  subheader: String
+  addressurl: String
+  addresstext: String
+  expires: String
+  zipCode: String
+  advertiserId: String
+  businessName: String
+  businessAddress: String
+  businessPhone: String
+  businessLogo: String
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  owner: String
+}
+
+type ClaimedReward @aws_api_key @aws_iam {
+  id: String!
+  cardid: String!
+  email: String
+  phone: String
+  delivery_method: String
+  logokey: String
+  header: String
+  subheader: String
+  addressurl: String
+  addresstext: String
+  expires: String
+  claimed_at: String
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+type Contact @aws_api_key @aws_iam {
+  id: ID!
+  name: String!
+  email: String!
+  message: String!
+  createdAt: String
+  updatedAt: AWSDateTime!
+}
+
+type Advertiser @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  userId: String!
+  name: String!
+  email: String!
+  businessName: String!
+  zipCode: String!
+  phone: String!
+  logoUrl: String
+  status: AdvertiserStatus
+  createdAt: String
+  updatedAt: String
+  owner: String
+}
+
+type Admin @aws_iam @aws_cognito_user_pools {
+  id: ID!
+  userId: String!
+  email: String!
+  role: String!
+  createdAt: String
+  updatedAt: AWSDateTime!
+  owner: String
+}
+
+enum AdvertiserStatus {
+  pending
+  approved
+  rejected
+}
+
+input AmplifyAIConversationTurnErrorInput {
+  errorType: String!
+  message: String!
+}
+
+input ModelStringInput {
+  ne: String
+  eq: String
+  le: String
+  lt: String
+  ge: String
+  gt: String
+  contains: String
+  notContains: String
+  between: [String]
+  beginsWith: String
+  attributeExists: Boolean
+  attributeType: ModelAttributeTypes
+  size: ModelSizeInput
+}
+
+input ModelIntInput {
+  ne: Int
+  eq: Int
+  le: Int
+  lt: Int
+  ge: Int
+  gt: Int
+  between: [Int]
+  attributeExists: Boolean
+  attributeType: ModelAttributeTypes
+}
+
+input ModelFloatInput {
+  ne: Float
+  eq: Float
+  le: Float
+  lt: Float
+  ge: Float
+  gt: Float
+  between: [Float]
+  attributeExists: Boolean
+  attributeType: ModelAttributeTypes
+}
+
+input ModelBooleanInput {
+  ne: Boolean
+  eq: Boolean
+  attributeExists: Boolean
+  attributeType: ModelAttributeTypes
+}
+
+input ModelIDInput {
+  ne: ID
+  eq: ID
+  le: ID
+  lt: ID
+  ge: ID
+  gt: ID
+  contains: ID
+  notContains: ID
+  between: [ID]
+  beginsWith: ID
+  attributeExists: Boolean
+  attributeType: ModelAttributeTypes
+  size: ModelSizeInput
+}
+
+input ModelSubscriptionStringInput {
+  ne: String
+  eq: String
+  le: String
+  lt: String
+  ge: String
+  gt: String
+  contains: String
+  notContains: String
+  between: [String]
+  beginsWith: String
+  in: [String]
+  notIn: [String]
+}
+
+input ModelSubscriptionIntInput {
+  ne: Int
+  eq: Int
+  le: Int
+  lt: Int
+  ge: Int
+  gt: Int
+  between: [Int]
+  in: [Int]
+  notIn: [Int]
+}
+
+input ModelSubscriptionFloatInput {
+  ne: Float
+  eq: Float
+  le: Float
+  lt: Float
+  ge: Float
+  gt: Float
+  between: [Float]
+  in: [Float]
+  notIn: [Float]
+}
+
+input ModelSubscriptionBooleanInput {
+  ne: Boolean
+  eq: Boolean
+}
+
+input ModelSubscriptionIDInput {
+  ne: ID
+  eq: ID
+  le: ID
+  lt: ID
+  ge: ID
+  gt: ID
+  contains: ID
+  notContains: ID
+  between: [ID]
+  beginsWith: ID
+  in: [ID]
+  notIn: [ID]
+}
+
+enum ModelAttributeTypes {
+  binary
+  binarySet
+  bool
+  list
+  map
+  number
+  numberSet
+  string
+  stringSet
+  _null
+}
+
+input ModelSizeInput {
+  ne: Int
+  eq: Int
+  le: Int
+  lt: Int
+  ge: Int
+  gt: Int
+  between: [Int]
+}
+
+enum ModelSortDirection {
+  ASC
+  DESC
+}
+
+type ModelCardConnection @aws_api_key @aws_iam @aws_cognito_user_pools {
+  items: [Card]!
+  nextToken: String
+}
+
+input ModelCardFilterInput {
+  cardid: ModelStringInput
+  quantity: ModelIntInput
+  logokey: ModelStringInput
+  header: ModelStringInput
+  subheader: ModelStringInput
+  addressurl: ModelStringInput
+  addresstext: ModelStringInput
+  expires: ModelStringInput
+  zipCode: ModelStringInput
+  advertiserId: ModelStringInput
+  businessName: ModelStringInput
+  businessAddress: ModelStringInput
+  businessPhone: ModelStringInput
+  businessLogo: ModelStringInput
+  id: ModelIDInput
+  createdAt: ModelStringInput
+  updatedAt: ModelStringInput
+  and: [ModelCardFilterInput]
+  or: [ModelCardFilterInput]
+  not: ModelCardFilterInput
+  owner: ModelStringInput
+}
+
+type Query {
+  getCard(cardid: String!): Card @aws_api_key @aws_iam @aws_cognito_user_pools
+  listCards(cardid: String, filter: ModelCardFilterInput, limit: Int, nextToken: String, sortDirection: ModelSortDirection): ModelCardConnection @aws_api_key @aws_iam @aws_cognito_user_pools
+  getClaimedReward(id: String!): ClaimedReward @aws_api_key @aws_iam
+  listClaimedRewards(id: String, filter: ModelClaimedRewardFilterInput, limit: Int, nextToken: String, sortDirection: ModelSortDirection): ModelClaimedRewardConnection @aws_api_key @aws_iam
+  getContact(id: ID!): Contact @aws_api_key @aws_iam
+  listContacts(id: ID, filter: ModelContactFilterInput, limit: Int, nextToken: String, sortDirection: ModelSortDirection): ModelContactConnection @aws_api_key @aws_iam
+  getAdvertiser(id: ID!): Advertiser @aws_iam @aws_cognito_user_pools
+  listAdvertisers(id: ID, filter: ModelAdvertiserFilterInput, limit: Int, nextToken: String, sortDirection: ModelSortDirection): ModelAdvertiserConnection @aws_iam @aws_cognito_user_pools
+  getAdmin(id: ID!): Admin @aws_iam @aws_cognito_user_pools
+  listAdmins(id: ID, filter: ModelAdminFilterInput, limit: Int, nextToken: String, sortDirection: ModelSortDirection): ModelAdminConnection @aws_iam @aws_cognito_user_pools
+}
+
+input ModelCardConditionInput {
+  quantity: ModelIntInput
+  logokey: ModelStringInput
+  header: ModelStringInput
+  subheader: ModelStringInput
+  addressurl: ModelStringInput
+  addresstext: ModelStringInput
+  expires: ModelStringInput
+  zipCode: ModelStringInput
+  advertiserId: ModelStringInput
+  businessName: ModelStringInput
+  businessAddress: ModelStringInput
+  businessPhone: ModelStringInput
+  businessLogo: ModelStringInput
+  and: [ModelCardConditionInput]
+  or: [ModelCardConditionInput]
+  not: ModelCardConditionInput
+  createdAt: ModelStringInput
+  updatedAt: ModelStringInput
+  owner: ModelStringInput
+}
+
+input CreateCardInput {
+  cardid: String!
+  quantity: Int!
+  logokey: String
+  header: String
+  subheader: String
+  addressurl: String
+  addresstext: String
+  expires: String
+  zipCode: String
+  advertiserId: String
+  businessName: String
+  businessAddress: String
+  businessPhone: String
+  businessLogo: String
+}
+
+input UpdateCardInput {
+  cardid: String!
+  quantity: Int
+  logokey: String
+  header: String
+  subheader: String
+  addressurl: String
+  addresstext: String
+  expires: String
+  zipCode: String
+  advertiserId: String
+  businessName: String
+  businessAddress: String
+  businessPhone: String
+  businessLogo: String
+}
+
+input DeleteCardInput {
+  cardid: String!
+}
+
+type Mutation {
+  createCard(input: CreateCardInput!, condition: ModelCardConditionInput): Card @aws_iam @aws_cognito_user_pools
+  updateCard(input: UpdateCardInput!, condition: ModelCardConditionInput): Card @aws_iam @aws_cognito_user_pools
+  deleteCard(input: DeleteCardInput!, condition: ModelCardConditionInput): Card @aws_iam @aws_cognito_user_pools
+  createClaimedReward(input: CreateClaimedRewardInput!, condition: ModelClaimedRewardConditionInput): ClaimedReward @aws_api_key @aws_iam
+  updateClaimedReward(input: UpdateClaimedRewardInput!, condition: ModelClaimedRewardConditionInput): ClaimedReward @aws_api_key @aws_iam
+  deleteClaimedReward(input: DeleteClaimedRewardInput!, condition: ModelClaimedRewardConditionInput): ClaimedReward @aws_api_key @aws_iam
+  createContact(input: CreateContactInput!, condition: ModelContactConditionInput): Contact @aws_api_key @aws_iam
+  updateContact(input: UpdateContactInput!, condition: ModelContactConditionInput): Contact @aws_api_key @aws_iam
+  deleteContact(input: DeleteContactInput!, condition: ModelContactConditionInput): Contact @aws_api_key @aws_iam
+  createAdvertiser(input: CreateAdvertiserInput!, condition: ModelAdvertiserConditionInput): Advertiser @aws_iam @aws_cognito_user_pools
+  updateAdvertiser(input: UpdateAdvertiserInput!, condition: ModelAdvertiserConditionInput): Advertiser @aws_iam @aws_cognito_user_pools
+  deleteAdvertiser(input: DeleteAdvertiserInput!, condition: ModelAdvertiserConditionInput): Advertiser @aws_iam @aws_cognito_user_pools
+  createAdmin(input: CreateAdminInput!, condition: ModelAdminConditionInput): Admin @aws_iam @aws_cognito_user_pools
+  updateAdmin(input: UpdateAdminInput!, condition: ModelAdminConditionInput): Admin @aws_iam @aws_cognito_user_pools
+  deleteAdmin(input: DeleteAdminInput!, condition: ModelAdminConditionInput): Admin @aws_iam @aws_cognito_user_pools
+}
+
+input ModelSubscriptionCardFilterInput {
+  cardid: ModelSubscriptionStringInput
+  quantity: ModelSubscriptionIntInput
+  logokey: ModelSubscriptionStringInput
+  header: ModelSubscriptionStringInput
+  subheader: ModelSubscriptionStringInput
+  addressurl: ModelSubscriptionStringInput
+  addresstext: ModelSubscriptionStringInput
+  expires: ModelSubscriptionStringInput
+  zipCode: ModelSubscriptionStringInput
+  advertiserId: ModelSubscriptionStringInput
+  businessName: ModelSubscriptionStringInput
+  businessAddress: ModelSubscriptionStringInput
+  businessPhone: ModelSubscriptionStringInput
+  businessLogo: ModelSubscriptionStringInput
+  id: ModelSubscriptionIDInput
+  createdAt: ModelSubscriptionStringInput
+  updatedAt: ModelSubscriptionStringInput
+  and: [ModelSubscriptionCardFilterInput]
+  or: [ModelSubscriptionCardFilterInput]
+  owner: ModelStringInput
+}
+
+type Subscription {
+  onCreateCard(filter: ModelSubscriptionCardFilterInput, owner: String): Card @aws_subscribe(mutations: ["createCard"]) @aws_api_key @aws_iam @aws_cognito_user_pools
+  onUpdateCard(filter: ModelSubscriptionCardFilterInput, owner: String): Card @aws_subscribe(mutations: ["updateCard"]) @aws_api_key @aws_iam @aws_cognito_user_pools
+  onDeleteCard(filter: ModelSubscriptionCardFilterInput, owner: String): Card @aws_subscribe(mutations: ["deleteCard"]) @aws_api_key @aws_iam @aws_cognito_user_pools
+  onCreateClaimedReward(filter: ModelSubscriptionClaimedRewardFilterInput): ClaimedReward @aws_subscribe(mutations: ["createClaimedReward"]) @aws_api_key @aws_iam
+  onUpdateClaimedReward(filter: ModelSubscriptionClaimedRewardFilterInput): ClaimedReward @aws_subscribe(mutations: ["updateClaimedReward"]) @aws_api_key @aws_iam
+  onDeleteClaimedReward(filter: ModelSubscriptionClaimedRewardFilterInput): ClaimedReward @aws_subscribe(mutations: ["deleteClaimedReward"]) @aws_api_key @aws_iam
+  onCreateContact(filter: ModelSubscriptionContactFilterInput): Contact @aws_subscribe(mutations: ["createContact"]) @aws_api_key @aws_iam
+  onUpdateContact(filter: ModelSubscriptionContactFilterInput): Contact @aws_subscribe(mutations: ["updateContact"]) @aws_api_key @aws_iam
+  onDeleteContact(filter: ModelSubscriptionContactFilterInput): Contact @aws_subscribe(mutations: ["deleteContact"]) @aws_api_key @aws_iam
+  onCreateAdvertiser(filter: ModelSubscriptionAdvertiserFilterInput, owner: String): Advertiser @aws_subscribe(mutations: ["createAdvertiser"]) @aws_iam @aws_cognito_user_pools
+  onUpdateAdvertiser(filter: ModelSubscriptionAdvertiserFilterInput, owner: String): Advertiser @aws_subscribe(mutations: ["updateAdvertiser"]) @aws_iam @aws_cognito_user_pools
+  onDeleteAdvertiser(filter: ModelSubscriptionAdvertiserFilterInput, owner: String): Advertiser @aws_subscribe(mutations: ["deleteAdvertiser"]) @aws_iam @aws_cognito_user_pools
+  onCreateAdmin(filter: ModelSubscriptionAdminFilterInput, owner: String): Admin @aws_subscribe(mutations: ["createAdmin"]) @aws_iam @aws_cognito_user_pools
+  onUpdateAdmin(filter: ModelSubscriptionAdminFilterInput, owner: String): Admin @aws_subscribe(mutations: ["updateAdmin"]) @aws_iam @aws_cognito_user_pools
+  onDeleteAdmin(filter: ModelSubscriptionAdminFilterInput, owner: String): Admin @aws_subscribe(mutations: ["deleteAdmin"]) @aws_iam @aws_cognito_user_pools
+}
+
+type ModelClaimedRewardConnection @aws_api_key @aws_iam {
+  items: [ClaimedReward]!
+  nextToken: String
+}
+
+input ModelClaimedRewardFilterInput {
+  id: ModelStringInput
+  cardid: ModelStringInput
+  email: ModelStringInput
+  phone: ModelStringInput
+  delivery_method: ModelStringInput
+  logokey: ModelStringInput
+  header: ModelStringInput
+  subheader: ModelStringInput
+  addressurl: ModelStringInput
+  addresstext: ModelStringInput
+  expires: ModelStringInput
+  claimed_at: ModelStringInput
+  createdAt: ModelStringInput
+  updatedAt: ModelStringInput
+  and: [ModelClaimedRewardFilterInput]
+  or: [ModelClaimedRewardFilterInput]
+  not: ModelClaimedRewardFilterInput
+}
+
+input ModelClaimedRewardConditionInput {
+  cardid: ModelStringInput
+  email: ModelStringInput
+  phone: ModelStringInput
+  delivery_method: ModelStringInput
+  logokey: ModelStringInput
+  header: ModelStringInput
+  subheader: ModelStringInput
+  addressurl: ModelStringInput
+  addresstext: ModelStringInput
+  expires: ModelStringInput
+  claimed_at: ModelStringInput
+  and: [ModelClaimedRewardConditionInput]
+  or: [ModelClaimedRewardConditionInput]
+  not: ModelClaimedRewardConditionInput
+  createdAt: ModelStringInput
+  updatedAt: ModelStringInput
+}
+
+input CreateClaimedRewardInput {
+  id: String
+  cardid: String!
+  email: String
+  phone: String
+  delivery_method: String
+  logokey: String
+  header: String
+  subheader: String
+  addressurl: String
+  addresstext: String
+  expires: String
+  claimed_at: String
+}
+
+input UpdateClaimedRewardInput {
+  id: String!
+  cardid: String
+  email: String
+  phone: String
+  delivery_method: String
+  logokey: String
+  header: String
+  subheader: String
+  addressurl: String
+  addresstext: String
+  expires: String
+  claimed_at: String
+}
+
+input DeleteClaimedRewardInput {
+  id: String!
+}
+
+input ModelSubscriptionClaimedRewardFilterInput {
+  id: ModelSubscriptionStringInput
+  cardid: ModelSubscriptionStringInput
+  email: ModelSubscriptionStringInput
+  phone: ModelSubscriptionStringInput
+  delivery_method: ModelSubscriptionStringInput
+  logokey: ModelSubscriptionStringInput
+  header: ModelSubscriptionStringInput
+  subheader: ModelSubscriptionStringInput
+  addressurl: ModelSubscriptionStringInput
+  addresstext: ModelSubscriptionStringInput
+  expires: ModelSubscriptionStringInput
+  claimed_at: ModelSubscriptionStringInput
+  createdAt: ModelSubscriptionStringInput
+  updatedAt: ModelSubscriptionStringInput
+  and: [ModelSubscriptionClaimedRewardFilterInput]
+  or: [ModelSubscriptionClaimedRewardFilterInput]
+}
+
+type ModelContactConnection @aws_api_key @aws_iam {
+  items: [Contact]!
+  nextToken: String
+}
+
+input ModelContactFilterInput {
+  id: ModelIDInput
+  name: ModelStringInput
+  email: ModelStringInput
+  message: ModelStringInput
+  createdAt: ModelStringInput
+  updatedAt: ModelStringInput
+  and: [ModelContactFilterInput]
+  or: [ModelContactFilterInput]
+  not: ModelContactFilterInput
+}
+
+input ModelContactConditionInput {
+  name: ModelStringInput
+  email: ModelStringInput
+  message: ModelStringInput
+  createdAt: ModelStringInput
+  and: [ModelContactConditionInput]
+  or: [ModelContactConditionInput]
+  not: ModelContactConditionInput
+  updatedAt: ModelStringInput
+}
+
+input CreateContactInput {
+  id: ID
+  name: String!
+  email: String!
+  message: String!
+  createdAt: String
+}
+
+input UpdateContactInput {
+  id: ID!
+  name: String
+  email: String
+  message: String
+  createdAt: String
+}
+
+input DeleteContactInput {
+  id: ID!
+}
+
+input ModelSubscriptionContactFilterInput {
+  id: ModelSubscriptionIDInput
+  name: ModelSubscriptionStringInput
+  email: ModelSubscriptionStringInput
+  message: ModelSubscriptionStringInput
+  createdAt: ModelSubscriptionStringInput
+  updatedAt: ModelSubscriptionStringInput
+  and: [ModelSubscriptionContactFilterInput]
+  or: [ModelSubscriptionContactFilterInput]
+}
+
+type ModelAdvertiserConnection @aws_iam @aws_cognito_user_pools {
+  items: [Advertiser]!
+  nextToken: String
+}
+
+input ModelAdvertiserStatusInput {
+  eq: AdvertiserStatus
+  ne: AdvertiserStatus
+}
+
+input ModelAdvertiserFilterInput {
+  id: ModelIDInput
+  userId: ModelStringInput
+  name: ModelStringInput
+  email: ModelStringInput
+  businessName: ModelStringInput
+  zipCode: ModelStringInput
+  phone: ModelStringInput
+  logoUrl: ModelStringInput
+  status: ModelAdvertiserStatusInput
+  createdAt: ModelStringInput
+  updatedAt: ModelStringInput
+  and: [ModelAdvertiserFilterInput]
+  or: [ModelAdvertiserFilterInput]
+  not: ModelAdvertiserFilterInput
+  owner: ModelStringInput
+}
+
+input ModelAdvertiserConditionInput {
+  userId: ModelStringInput
+  name: ModelStringInput
+  email: ModelStringInput
+  businessName: ModelStringInput
+  zipCode: ModelStringInput
+  phone: ModelStringInput
+  logoUrl: ModelStringInput
+  status: ModelAdvertiserStatusInput
+  createdAt: ModelStringInput
+  updatedAt: ModelStringInput
+  and: [ModelAdvertiserConditionInput]
+  or: [ModelAdvertiserConditionInput]
+  not: ModelAdvertiserConditionInput
+  owner: ModelStringInput
+}
+
+input CreateAdvertiserInput {
+  id: ID
+  userId: String!
+  name: String!
+  email: String!
+  businessName: String!
+  zipCode: String!
+  phone: String!
+  logoUrl: String
+  status: AdvertiserStatus
+  createdAt: String
+  updatedAt: String
+}
+
+input UpdateAdvertiserInput {
+  id: ID!
+  userId: String
+  name: String
+  email: String
+  businessName: String
+  zipCode: String
+  phone: String
+  logoUrl: String
+  status: AdvertiserStatus
+  createdAt: String
+  updatedAt: String
+}
+
+input DeleteAdvertiserInput {
+  id: ID!
+}
+
+input ModelSubscriptionAdvertiserFilterInput {
+  id: ModelSubscriptionIDInput
+  userId: ModelSubscriptionStringInput
+  name: ModelSubscriptionStringInput
+  email: ModelSubscriptionStringInput
+  businessName: ModelSubscriptionStringInput
+  zipCode: ModelSubscriptionStringInput
+  phone: ModelSubscriptionStringInput
+  logoUrl: ModelSubscriptionStringInput
+  status: ModelSubscriptionStringInput
+  createdAt: ModelSubscriptionStringInput
+  updatedAt: ModelSubscriptionStringInput
+  and: [ModelSubscriptionAdvertiserFilterInput]
+  or: [ModelSubscriptionAdvertiserFilterInput]
+  owner: ModelStringInput
+}
+
+type ModelAdminConnection @aws_iam @aws_cognito_user_pools {
+  items: [Admin]!
+  nextToken: String
+}
+
+input ModelAdminFilterInput {
+  id: ModelIDInput
+  userId: ModelStringInput
+  email: ModelStringInput
+  role: ModelStringInput
+  createdAt: ModelStringInput
+  updatedAt: ModelStringInput
+  and: [ModelAdminFilterInput]
+  or: [ModelAdminFilterInput]
+  not: ModelAdminFilterInput
+  owner: ModelStringInput
+}
+
+input ModelAdminConditionInput {
+  userId: ModelStringInput
+  email: ModelStringInput
+  role: ModelStringInput
+  createdAt: ModelStringInput
+  and: [ModelAdminConditionInput]
+  or: [ModelAdminConditionInput]
+  not: ModelAdminConditionInput
+  updatedAt: ModelStringInput
+  owner: ModelStringInput
+}
+
+input CreateAdminInput {
+  id: ID
+  userId: String!
+  email: String!
+  role: String!
+  createdAt: String
+}
+
+input UpdateAdminInput {
+  id: ID!
+  userId: String
+  email: String
+  role: String
+  createdAt: String
+}
+
+input DeleteAdminInput {
+  id: ID!
+}
+
+input ModelSubscriptionAdminFilterInput {
+  id: ModelSubscriptionIDInput
+  userId: ModelSubscriptionStringInput
+  email: ModelSubscriptionStringInput
+  role: ModelSubscriptionStringInput
+  createdAt: ModelSubscriptionStringInput
+  updatedAt: ModelSubscriptionStringInput
+  and: [ModelSubscriptionAdminFilterInput]
+  or: [ModelSubscriptionAdminFilterInput]
+  owner: ModelStringInput
+}

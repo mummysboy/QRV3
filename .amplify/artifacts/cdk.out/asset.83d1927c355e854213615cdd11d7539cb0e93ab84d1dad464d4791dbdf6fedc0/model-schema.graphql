@@ -1,0 +1,73 @@
+type Card @model @auth(rules: [{allow: public, provider: apiKey, operations: [read]},
+  {allow: owner, operations: [create, update, delete, read], ownerField: "owner"}])
+{
+  cardid: String! @primaryKey
+  quantity: Int!
+  logokey: String
+  header: String
+  subheader: String
+  addressurl: String
+  addresstext: String
+  expires: String
+  zipCode: String
+  advertiserId: String
+  businessName: String
+  businessAddress: String
+  businessPhone: String
+  businessLogo: String
+}
+
+type ClaimedReward @model @auth(rules: [{allow: public, provider: apiKey}])
+{
+  id: String! @primaryKey
+  cardid: String!
+  email: String
+  phone: String
+  delivery_method: String
+  logokey: String
+  header: String
+  subheader: String
+  addressurl: String
+  addresstext: String
+  expires: String
+  claimed_at: String
+}
+
+type Contact @model @auth(rules: [{allow: public, provider: apiKey}])
+{
+  id: ID! @primaryKey
+  name: String!
+  email: String!
+  message: String!
+  createdAt: String
+}
+
+type Advertiser @model @auth(rules: [{allow: owner, operations: [read, update], ownerField: "owner"}])
+{
+  id: ID! @primaryKey
+  userId: String!
+  name: String!
+  email: String!
+  businessName: String!
+  zipCode: String!
+  phone: String!
+  logoUrl: String
+  status: AdvertiserStatus
+  createdAt: String
+  updatedAt: String
+}
+
+type Admin @model @auth(rules: [{allow: owner, operations: [read], ownerField: "owner"}])
+{
+  id: ID! @primaryKey
+  userId: String!
+  email: String!
+  role: String!
+  createdAt: String
+}
+
+enum AdvertiserStatus {
+  pending
+  approved
+  rejected
+}

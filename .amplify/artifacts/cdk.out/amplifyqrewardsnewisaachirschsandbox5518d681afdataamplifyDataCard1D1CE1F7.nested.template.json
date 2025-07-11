@@ -1,0 +1,2311 @@
+{
+ "Parameters": {
+  "DynamoDBModelTableReadIOPS": {
+   "Type": "Number",
+   "Default": 5,
+   "Description": "The number of read IOPS the table should support."
+  },
+  "DynamoDBModelTableWriteIOPS": {
+   "Type": "Number",
+   "Default": 5,
+   "Description": "The number of write IOPS the table should support."
+  },
+  "DynamoDBBillingMode": {
+   "Type": "String",
+   "Default": "PAY_PER_REQUEST",
+   "AllowedValues": [
+    "PAY_PER_REQUEST",
+    "PROVISIONED"
+   ],
+   "Description": "Configure @model types to create DynamoDB tables with PAY_PER_REQUEST or PROVISIONED billing modes."
+  },
+  "DynamoDBEnablePointInTimeRecovery": {
+   "Type": "String",
+   "Default": "false",
+   "AllowedValues": [
+    "true",
+    "false"
+   ],
+   "Description": "Whether to enable Point in Time Recovery on the table."
+  },
+  "DynamoDBEnableServerSideEncryption": {
+   "Type": "String",
+   "Default": "true",
+   "AllowedValues": [
+    "true",
+    "false"
+   ],
+   "Description": "Enable server side encryption powered by KMS."
+  },
+  "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataAmplifyTableManagerNestedStackAmplifyTableManagerNestedStackResourceAC0CAF09Outputsamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataAmplifyTableManagerTable878A6F1B": {
+   "Type": "String"
+  },
+  "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId": {
+   "Type": "String"
+  },
+  "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPINONEDS246A2C35Name": {
+   "Type": "String"
+  },
+  "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afauthNestedStackauthNestedStackResource775B14B6Outputsamplifyqrewardsnewisaachirschsandbox5518d681afauthamplifyAuthauthenticatedUserRoleBA2B0BF5Ref": {
+   "Type": "String"
+  },
+  "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afauthNestedStackauthNestedStackResource775B14B6Outputsamplifyqrewardsnewisaachirschsandbox5518d681afauthamplifyAuthunauthenticatedUserRole4F89C5B0Ref": {
+   "Type": "String"
+  },
+  "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afauthNestedStackauthNestedStackResource775B14B6Outputsamplifyqrewardsnewisaachirschsandbox5518d681afauthamplifyAuthIdentityPool957AA97BRef": {
+   "Type": "String"
+  }
+ },
+ "Conditions": {
+  "HasEnvironmentParameter": {
+   "Fn::Not": [
+    {
+     "Fn::Equals": [
+      "NONE",
+      "NONE"
+     ]
+    }
+   ]
+  },
+  "ShouldUsePayPerRequestBilling": {
+   "Fn::Equals": [
+    {
+     "Ref": "DynamoDBBillingMode"
+    },
+    "PAY_PER_REQUEST"
+   ]
+  },
+  "ShouldUsePointInTimeRecovery": {
+   "Fn::Equals": [
+    {
+     "Ref": "DynamoDBEnablePointInTimeRecovery"
+    },
+    "true"
+   ]
+  },
+  "CDKMetadataAvailable": {
+   "Fn::Or": [
+    {
+     "Fn::Or": [
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "af-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-east-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-northeast-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-northeast-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-northeast-3"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-south-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-southeast-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-southeast-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-southeast-3"
+       ]
+      }
+     ]
+    },
+    {
+     "Fn::Or": [
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-southeast-4"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ca-central-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ca-west-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "cn-north-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "cn-northwest-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-central-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-central-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-north-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-south-2"
+       ]
+      }
+     ]
+    },
+    {
+     "Fn::Or": [
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-west-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-west-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-west-3"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "il-central-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "me-central-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "me-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "sa-east-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-east-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-east-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-west-1"
+       ]
+      }
+     ]
+    },
+    {
+     "Fn::Equals": [
+      {
+       "Ref": "AWS::Region"
+      },
+      "us-west-2"
+     ]
+    }
+   ]
+  }
+ },
+ "Resources": {
+  "CardTable": {
+   "Type": "Custom::AmplifyDynamoDBTable",
+   "Properties": {
+    "ServiceToken": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataAmplifyTableManagerNestedStackAmplifyTableManagerNestedStackResourceAC0CAF09Outputsamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataAmplifyTableManagerTable878A6F1B"
+    },
+    "tableName": {
+     "Fn::Join": [
+      "",
+      [
+       "Card-",
+       {
+        "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+       },
+       "-NONE"
+      ]
+     ]
+    },
+    "attributeDefinitions": [
+     {
+      "attributeName": "cardid",
+      "attributeType": "S"
+     }
+    ],
+    "keySchema": [
+     {
+      "attributeName": "cardid",
+      "keyType": "HASH"
+     }
+    ],
+    "provisionedThroughput": {
+     "Fn::If": [
+      "ShouldUsePayPerRequestBilling",
+      {
+       "Ref": "AWS::NoValue"
+      },
+      {
+       "ReadCapacityUnits": {
+        "Ref": "DynamoDBModelTableReadIOPS"
+       },
+       "WriteCapacityUnits": {
+        "Ref": "DynamoDBModelTableWriteIOPS"
+       }
+      }
+     ]
+    },
+    "sseSpecification": {
+     "sseEnabled": false
+    },
+    "streamSpecification": {
+     "streamViewType": "NEW_AND_OLD_IMAGES"
+    },
+    "deletionProtectionEnabled": false,
+    "allowDestructiveGraphqlSchemaUpdates": true,
+    "replaceTableUponGsiUpdate": true,
+    "pointInTimeRecoverySpecification": {
+     "Fn::If": [
+      "ShouldUsePointInTimeRecovery",
+      {
+       "PointInTimeRecoveryEnabled": true
+      },
+      {
+       "Ref": "AWS::NoValue"
+      }
+     ]
+    },
+    "billingMode": {
+     "Fn::If": [
+      "ShouldUsePayPerRequestBilling",
+      "PAY_PER_REQUEST",
+      {
+       "Ref": "AWS::NoValue"
+      }
+     ]
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/CardTable/Default/Default"
+   }
+  },
+  "CardIAMRoleC8B1F287": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "appsync.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "Policies": [
+     {
+      "PolicyDocument": {
+       "Statement": [
+        {
+         "Action": [
+          "dynamodb:BatchGetItem",
+          "dynamodb:BatchWriteItem",
+          "dynamodb:PutItem",
+          "dynamodb:DeleteItem",
+          "dynamodb:GetItem",
+          "dynamodb:Scan",
+          "dynamodb:Query",
+          "dynamodb:UpdateItem",
+          "dynamodb:ConditionCheckItem",
+          "dynamodb:DescribeTable",
+          "dynamodb:GetRecords",
+          "dynamodb:GetShardIterator"
+         ],
+         "Effect": "Allow",
+         "Resource": [
+          {
+           "Fn::Sub": [
+            "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${tablename}",
+            {
+             "tablename": {
+              "Fn::Join": [
+               "",
+               [
+                "Card-",
+                {
+                 "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+                },
+                "-NONE"
+               ]
+              ]
+             }
+            }
+           ]
+          },
+          {
+           "Fn::Sub": [
+            "arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${tablename}/*",
+            {
+             "tablename": {
+              "Fn::Join": [
+               "",
+               [
+                "Card-",
+                {
+                 "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+                },
+                "-NONE"
+               ]
+              ]
+             }
+            }
+           ]
+          }
+         ]
+        }
+       ],
+       "Version": "2012-10-17"
+      },
+      "PolicyName": "DynamoDBAccess"
+     }
+    ],
+    "RoleName": {
+     "Fn::Join": [
+      "",
+      [
+       "CardIAMRole189df4-",
+       {
+        "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+       },
+       "-NONE"
+      ]
+     ]
+    },
+    "Tags": [
+     {
+      "Key": "amplify:deployment-type",
+      "Value": "sandbox"
+     },
+     {
+      "Key": "amplify:friendly-name",
+      "Value": "amplifyData"
+     },
+     {
+      "Key": "created-by",
+      "Value": "amplify"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/CardIAMRole/Resource"
+   }
+  },
+  "CardDataSource": {
+   "Type": "AWS::AppSync::DataSource",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "DynamoDBConfig": {
+     "AwsRegion": {
+      "Ref": "AWS::Region"
+     },
+     "TableName": {
+      "Fn::Select": [
+       1,
+       {
+        "Fn::Split": [
+         "/",
+         {
+          "Fn::Select": [
+           5,
+           {
+            "Fn::Split": [
+             ":",
+             {
+              "Fn::GetAtt": [
+               "CardTable",
+               "TableArn"
+              ]
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     }
+    },
+    "Name": "CardTable",
+    "ServiceRoleArn": {
+     "Fn::GetAtt": [
+      "CardIAMRoleC8B1F287",
+      "Arn"
+     ]
+    },
+    "Type": "AMAZON_DYNAMODB"
+   },
+   "DependsOn": [
+    "CardIAMRoleC8B1F287"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/CardDataSource/Resource"
+   }
+  },
+  "QuerygetCardpreAuth0FunctionQuerygetCardpreAuth0FunctionAppSyncFunctionAC5617CA": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPINONEDS246A2C35Name"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "QuerygetCardpreAuth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/0029782ad57fa1bf359be8b44e9a433c1b99db7219ba8d0fd500088f93bc6588.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/QuerygetCardpreAuth0Function/QuerygetCardpreAuth0Function.AppSyncFunction"
+   }
+  },
+  "QuerygetCardauth0FunctionQuerygetCardauth0FunctionAppSyncFunctionCD9E44B2": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPINONEDS246A2C35Name"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "QuerygetCardauth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/b3e5411cda152c2308dac0a81ffb999cc9c81ea2a1f51e6ce05a377bef8c4dfd.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/QuerygetCardauth0Function/QuerygetCardauth0Function.AppSyncFunction"
+   }
+  },
+  "QuerygetCardpostAuth0FunctionQuerygetCardpostAuth0FunctionAppSyncFunctionEE3E1425": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPINONEDS246A2C35Name"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "QuerygetCardpostAuth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/QuerygetCardpostAuth0Function/QuerygetCardpostAuth0Function.AppSyncFunction"
+   }
+  },
+  "QueryGetCardDataResolverFnQueryGetCardDataResolverFnAppSyncFunction776FE2CA": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "DataSourceName": {
+     "Fn::GetAtt": [
+      "CardDataSource",
+      "Name"
+     ]
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "QueryGetCardDataResolverFn",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/08f4d557693d96c1a4efba0f9dc91330e4b19772fd5477c156468843e3d9cb5e.vtl"
+    },
+    "ResponseMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/4c6a2d29f01c6091bd1d9afe16e5849d456c96f17c3b215938c8067399532719.vtl"
+    }
+   },
+   "DependsOn": [
+    "CardDataSource"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/QueryGetCardDataResolverFn/QueryGetCardDataResolverFn.AppSyncFunction"
+   }
+  },
+  "GetCardResolver": {
+   "Type": "AWS::AppSync::Resolver",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "FieldName": "getCard",
+    "Kind": "PIPELINE",
+    "PipelineConfig": {
+     "Functions": [
+      {
+       "Fn::GetAtt": [
+        "QuerygetCardpreAuth0FunctionQuerygetCardpreAuth0FunctionAppSyncFunctionAC5617CA",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "QuerygetCardauth0FunctionQuerygetCardauth0FunctionAppSyncFunctionCD9E44B2",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "QuerygetCardpostAuth0FunctionQuerygetCardpostAuth0FunctionAppSyncFunctionEE3E1425",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "QueryGetCardDataResolverFnQueryGetCardDataResolverFnAppSyncFunction776FE2CA",
+        "FunctionId"
+       ]
+      }
+     ]
+    },
+    "RequestMappingTemplate": {
+     "Fn::Join": [
+      "",
+      [
+       "$util.qr($ctx.stash.put(\"typeName\", \"Query\"))\n$util.qr($ctx.stash.put(\"fieldName\", \"getCard\"))\n$util.qr($ctx.stash.put(\"conditions\", []))\n$util.qr($ctx.stash.put(\"metadata\", {}))\n$util.qr($ctx.stash.metadata.put(\"dataSourceType\", \"AMAZON_DYNAMODB\"))\n$util.qr($ctx.stash.metadata.put(\"apiId\", \"",
+       {
+        "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+       },
+       "\"))\n$util.qr($ctx.stash.put(\"connectionAttributes\", {}))\n$util.qr($ctx.stash.put(\"tableName\", \"",
+       {
+        "Fn::Select": [
+         1,
+         {
+          "Fn::Split": [
+           "/",
+           {
+            "Fn::Select": [
+             5,
+             {
+              "Fn::Split": [
+               ":",
+               {
+                "Fn::GetAtt": [
+                 "CardTable",
+                 "TableArn"
+                ]
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       "\"))\n$util.qr($ctx.stash.put(\"authRole\", \"arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":sts::",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":assumed-role/",
+       {
+        "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afauthNestedStackauthNestedStackResource775B14B6Outputsamplifyqrewardsnewisaachirschsandbox5518d681afauthamplifyAuthauthenticatedUserRoleBA2B0BF5Ref"
+       },
+       "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"unauthRole\", \"arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":sts::",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":assumed-role/",
+       {
+        "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afauthNestedStackauthNestedStackResource775B14B6Outputsamplifyqrewardsnewisaachirschsandbox5518d681afauthamplifyAuthunauthenticatedUserRole4F89C5B0Ref"
+       },
+       "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"identityPoolId\", \"",
+       {
+        "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afauthNestedStackauthNestedStackResource775B14B6Outputsamplifyqrewardsnewisaachirschsandbox5518d681afauthamplifyAuthIdentityPool957AA97BRef"
+       },
+       "\"))\n$util.qr($ctx.stash.put(\"adminRoles\", []))\n$util.toJson({})"
+      ]
+     ]
+    },
+    "ResponseMappingTemplate": "$util.toJson($ctx.prev.result)",
+    "TypeName": "Query"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/queryGetCardResolver"
+   }
+  },
+  "QuerylistCardspreAuth0FunctionQuerylistCardspreAuth0FunctionAppSyncFunctionD78DACE5": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPINONEDS246A2C35Name"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "QuerylistCardspreAuth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/ff9c7332f1947a0ee1ddaf7e844598fbcc78beb24935faa8b6e3fa1ffcf5e858.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/QuerylistCardspreAuth0Function/QuerylistCardspreAuth0Function.AppSyncFunction"
+   }
+  },
+  "QuerylistCardsauth0FunctionQuerylistCardsauth0FunctionAppSyncFunction8EE860EF": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPINONEDS246A2C35Name"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "QuerylistCardsauth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/b3e5411cda152c2308dac0a81ffb999cc9c81ea2a1f51e6ce05a377bef8c4dfd.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/QuerylistCardsauth0Function/QuerylistCardsauth0Function.AppSyncFunction"
+   }
+  },
+  "QuerylistCardspostAuth0FunctionQuerylistCardspostAuth0FunctionAppSyncFunction695CF534": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPINONEDS246A2C35Name"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "QuerylistCardspostAuth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/QuerylistCardspostAuth0Function/QuerylistCardspostAuth0Function.AppSyncFunction"
+   }
+  },
+  "QueryListCardsDataResolverFnQueryListCardsDataResolverFnAppSyncFunction9B83EB34": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "DataSourceName": {
+     "Fn::GetAtt": [
+      "CardDataSource",
+      "Name"
+     ]
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "QueryListCardsDataResolverFn",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/9fcbe070ecd3023c5bf5b966fa9584757db9762eef123bad0820bd87591b2174.vtl"
+    },
+    "ResponseMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/cc01911d0269d4080ea57505dc445dfc315ef7ad85d3d9d4ea1357858bff451d.vtl"
+    }
+   },
+   "DependsOn": [
+    "CardDataSource"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/QueryListCardsDataResolverFn/QueryListCardsDataResolverFn.AppSyncFunction"
+   }
+  },
+  "ListCardResolver": {
+   "Type": "AWS::AppSync::Resolver",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "FieldName": "listCards",
+    "Kind": "PIPELINE",
+    "PipelineConfig": {
+     "Functions": [
+      {
+       "Fn::GetAtt": [
+        "QuerylistCardspreAuth0FunctionQuerylistCardspreAuth0FunctionAppSyncFunctionD78DACE5",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "QuerylistCardsauth0FunctionQuerylistCardsauth0FunctionAppSyncFunction8EE860EF",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "QuerylistCardspostAuth0FunctionQuerylistCardspostAuth0FunctionAppSyncFunction695CF534",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "QueryListCardsDataResolverFnQueryListCardsDataResolverFnAppSyncFunction9B83EB34",
+        "FunctionId"
+       ]
+      }
+     ]
+    },
+    "RequestMappingTemplate": {
+     "Fn::Join": [
+      "",
+      [
+       "$util.qr($ctx.stash.put(\"typeName\", \"Query\"))\n$util.qr($ctx.stash.put(\"fieldName\", \"listCards\"))\n$util.qr($ctx.stash.put(\"conditions\", []))\n$util.qr($ctx.stash.put(\"metadata\", {}))\n$util.qr($ctx.stash.metadata.put(\"dataSourceType\", \"AMAZON_DYNAMODB\"))\n$util.qr($ctx.stash.metadata.put(\"apiId\", \"",
+       {
+        "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+       },
+       "\"))\n$util.qr($ctx.stash.put(\"connectionAttributes\", {}))\n$util.qr($ctx.stash.put(\"tableName\", \"",
+       {
+        "Fn::Select": [
+         1,
+         {
+          "Fn::Split": [
+           "/",
+           {
+            "Fn::Select": [
+             5,
+             {
+              "Fn::Split": [
+               ":",
+               {
+                "Fn::GetAtt": [
+                 "CardTable",
+                 "TableArn"
+                ]
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       "\"))\n$util.qr($ctx.stash.put(\"authRole\", \"arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":sts::",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":assumed-role/",
+       {
+        "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afauthNestedStackauthNestedStackResource775B14B6Outputsamplifyqrewardsnewisaachirschsandbox5518d681afauthamplifyAuthauthenticatedUserRoleBA2B0BF5Ref"
+       },
+       "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"unauthRole\", \"arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":sts::",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":assumed-role/",
+       {
+        "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afauthNestedStackauthNestedStackResource775B14B6Outputsamplifyqrewardsnewisaachirschsandbox5518d681afauthamplifyAuthunauthenticatedUserRole4F89C5B0Ref"
+       },
+       "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"identityPoolId\", \"",
+       {
+        "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afauthNestedStackauthNestedStackResource775B14B6Outputsamplifyqrewardsnewisaachirschsandbox5518d681afauthamplifyAuthIdentityPool957AA97BRef"
+       },
+       "\"))\n$util.qr($ctx.stash.put(\"adminRoles\", []))\n$util.toJson({})"
+      ]
+     ]
+    },
+    "ResponseMappingTemplate": "$util.toJson($ctx.prev.result)",
+    "TypeName": "Query"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/queryListCardsResolver"
+   }
+  },
+  "MutationcreateCardinit0FunctionMutationcreateCardinit0FunctionAppSyncFunctionAA11F791": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPINONEDS246A2C35Name"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "MutationcreateCardinit0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/3cf32e28e3985b88b598dacbcc9a81cbb12cab62b6507082eb20a0702d3c197e.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/MutationcreateCardinit0Function/MutationcreateCardinit0Function.AppSyncFunction"
+   }
+  },
+  "MutationcreateCardpreAuth0FunctionMutationcreateCardpreAuth0FunctionAppSyncFunction0089E4ED": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPINONEDS246A2C35Name"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "MutationcreateCardpreAuth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/979229525fe7aaf6d048bc0df605227b25350e1a6fa3250a8860e38eb245837d.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/MutationcreateCardpreAuth0Function/MutationcreateCardpreAuth0Function.AppSyncFunction"
+   }
+  },
+  "MutationcreateCardauth0FunctionMutationcreateCardauth0FunctionAppSyncFunctionA3089F6C": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPINONEDS246A2C35Name"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "MutationcreateCardauth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/f71fea44c50ba8fd20954bbcba48f6aeef255312df46b78d901b6a36054d02e7.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/MutationcreateCardauth0Function/MutationcreateCardauth0Function.AppSyncFunction"
+   }
+  },
+  "MutationcreateCardpostAuth0FunctionMutationcreateCardpostAuth0FunctionAppSyncFunction7DBC5E05": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPINONEDS246A2C35Name"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "MutationcreateCardpostAuth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/MutationcreateCardpostAuth0Function/MutationcreateCardpostAuth0Function.AppSyncFunction"
+   }
+  },
+  "MutationCreateCardDataResolverFnMutationCreateCardDataResolverFnAppSyncFunction18132F9C": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "DataSourceName": {
+     "Fn::GetAtt": [
+      "CardDataSource",
+      "Name"
+     ]
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "MutationCreateCardDataResolverFn",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/9d565a7c512d857cf87536c5ce64f3a033bea18a00a2a7b47aac31cf72bdbd88.vtl"
+    },
+    "ResponseMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/f4a52b72209a9dfa197b5e7367a5c378c5bb86de6e29ddd9e48b49a3fe54b249.vtl"
+    }
+   },
+   "DependsOn": [
+    "CardDataSource"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/MutationCreateCardDataResolverFn/MutationCreateCardDataResolverFn.AppSyncFunction"
+   }
+  },
+  "CreateCardResolver": {
+   "Type": "AWS::AppSync::Resolver",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "FieldName": "createCard",
+    "Kind": "PIPELINE",
+    "PipelineConfig": {
+     "Functions": [
+      {
+       "Fn::GetAtt": [
+        "MutationcreateCardinit0FunctionMutationcreateCardinit0FunctionAppSyncFunctionAA11F791",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "MutationcreateCardpreAuth0FunctionMutationcreateCardpreAuth0FunctionAppSyncFunction0089E4ED",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "MutationcreateCardauth0FunctionMutationcreateCardauth0FunctionAppSyncFunctionA3089F6C",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "MutationcreateCardpostAuth0FunctionMutationcreateCardpostAuth0FunctionAppSyncFunction7DBC5E05",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "MutationCreateCardDataResolverFnMutationCreateCardDataResolverFnAppSyncFunction18132F9C",
+        "FunctionId"
+       ]
+      }
+     ]
+    },
+    "RequestMappingTemplate": {
+     "Fn::Join": [
+      "",
+      [
+       "$util.qr($ctx.stash.put(\"typeName\", \"Mutation\"))\n$util.qr($ctx.stash.put(\"fieldName\", \"createCard\"))\n$util.qr($ctx.stash.put(\"conditions\", []))\n$util.qr($ctx.stash.put(\"metadata\", {}))\n$util.qr($ctx.stash.metadata.put(\"dataSourceType\", \"AMAZON_DYNAMODB\"))\n$util.qr($ctx.stash.metadata.put(\"apiId\", \"",
+       {
+        "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+       },
+       "\"))\n$util.qr($ctx.stash.put(\"connectionAttributes\", {}))\n$util.qr($ctx.stash.put(\"tableName\", \"",
+       {
+        "Fn::Select": [
+         1,
+         {
+          "Fn::Split": [
+           "/",
+           {
+            "Fn::Select": [
+             5,
+             {
+              "Fn::Split": [
+               ":",
+               {
+                "Fn::GetAtt": [
+                 "CardTable",
+                 "TableArn"
+                ]
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       "\"))\n$util.qr($ctx.stash.put(\"authRole\", \"arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":sts::",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":assumed-role/",
+       {
+        "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afauthNestedStackauthNestedStackResource775B14B6Outputsamplifyqrewardsnewisaachirschsandbox5518d681afauthamplifyAuthauthenticatedUserRoleBA2B0BF5Ref"
+       },
+       "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"unauthRole\", \"arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":sts::",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":assumed-role/",
+       {
+        "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afauthNestedStackauthNestedStackResource775B14B6Outputsamplifyqrewardsnewisaachirschsandbox5518d681afauthamplifyAuthunauthenticatedUserRole4F89C5B0Ref"
+       },
+       "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"identityPoolId\", \"",
+       {
+        "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afauthNestedStackauthNestedStackResource775B14B6Outputsamplifyqrewardsnewisaachirschsandbox5518d681afauthamplifyAuthIdentityPool957AA97BRef"
+       },
+       "\"))\n$util.qr($ctx.stash.put(\"adminRoles\", []))\n$util.toJson({})"
+      ]
+     ]
+    },
+    "ResponseMappingTemplate": "$util.toJson($ctx.prev.result)",
+    "TypeName": "Mutation"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/mutationCreateCardResolver"
+   }
+  },
+  "MutationupdateCardinit0FunctionMutationupdateCardinit0FunctionAppSyncFunctionCF9919D0": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPINONEDS246A2C35Name"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "MutationupdateCardinit0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/06db846fd14e6fc371f22b12b5545ba8e2dbfeda85d8c8d586c71c282166657b.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/MutationupdateCardinit0Function/MutationupdateCardinit0Function.AppSyncFunction"
+   }
+  },
+  "MutationupdateCardpreAuth0FunctionMutationupdateCardpreAuth0FunctionAppSyncFunctionC4376503": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPINONEDS246A2C35Name"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "MutationupdateCardpreAuth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/979229525fe7aaf6d048bc0df605227b25350e1a6fa3250a8860e38eb245837d.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/MutationupdateCardpreAuth0Function/MutationupdateCardpreAuth0Function.AppSyncFunction"
+   }
+  },
+  "MutationupdateCardauth0FunctionMutationupdateCardauth0FunctionAppSyncFunctionBE0A7280": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "DataSourceName": {
+     "Fn::GetAtt": [
+      "CardDataSource",
+      "Name"
+     ]
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "MutationupdateCardauth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/1f5fed297da9c32ae3af922bf3a38ccf23b956078887d16891ec06c20c64722c.vtl"
+    },
+    "ResponseMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/f6cf80d167abe66f7b5553cbbe61854544b0d4249f82cde163787f0da033fb18.vtl"
+    }
+   },
+   "DependsOn": [
+    "CardDataSource"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/MutationupdateCardauth0Function/MutationupdateCardauth0Function.AppSyncFunction"
+   }
+  },
+  "MutationupdateCardpostAuth0FunctionMutationupdateCardpostAuth0FunctionAppSyncFunction686CCF24": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPINONEDS246A2C35Name"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "MutationupdateCardpostAuth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/MutationupdateCardpostAuth0Function/MutationupdateCardpostAuth0Function.AppSyncFunction"
+   }
+  },
+  "MutationUpdateCardDataResolverFnMutationUpdateCardDataResolverFnAppSyncFunction2E4D00DF": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "DataSourceName": {
+     "Fn::GetAtt": [
+      "CardDataSource",
+      "Name"
+     ]
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "MutationUpdateCardDataResolverFn",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/474bf0776ec2164a13191d1a0a9e057154931e4918fea5086f49850d02a5371b.vtl"
+    },
+    "ResponseMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/f4a52b72209a9dfa197b5e7367a5c378c5bb86de6e29ddd9e48b49a3fe54b249.vtl"
+    }
+   },
+   "DependsOn": [
+    "CardDataSource"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/MutationUpdateCardDataResolverFn/MutationUpdateCardDataResolverFn.AppSyncFunction"
+   }
+  },
+  "UpdateCardResolver": {
+   "Type": "AWS::AppSync::Resolver",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "FieldName": "updateCard",
+    "Kind": "PIPELINE",
+    "PipelineConfig": {
+     "Functions": [
+      {
+       "Fn::GetAtt": [
+        "MutationupdateCardinit0FunctionMutationupdateCardinit0FunctionAppSyncFunctionCF9919D0",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "MutationupdateCardpreAuth0FunctionMutationupdateCardpreAuth0FunctionAppSyncFunctionC4376503",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "MutationupdateCardauth0FunctionMutationupdateCardauth0FunctionAppSyncFunctionBE0A7280",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "MutationupdateCardpostAuth0FunctionMutationupdateCardpostAuth0FunctionAppSyncFunction686CCF24",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "MutationUpdateCardDataResolverFnMutationUpdateCardDataResolverFnAppSyncFunction2E4D00DF",
+        "FunctionId"
+       ]
+      }
+     ]
+    },
+    "RequestMappingTemplate": {
+     "Fn::Join": [
+      "",
+      [
+       "$util.qr($ctx.stash.put(\"typeName\", \"Mutation\"))\n$util.qr($ctx.stash.put(\"fieldName\", \"updateCard\"))\n$util.qr($ctx.stash.put(\"conditions\", []))\n$util.qr($ctx.stash.put(\"metadata\", {}))\n$util.qr($ctx.stash.metadata.put(\"dataSourceType\", \"AMAZON_DYNAMODB\"))\n$util.qr($ctx.stash.metadata.put(\"apiId\", \"",
+       {
+        "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+       },
+       "\"))\n$util.qr($ctx.stash.put(\"connectionAttributes\", {}))\n$util.qr($ctx.stash.put(\"tableName\", \"",
+       {
+        "Fn::Select": [
+         1,
+         {
+          "Fn::Split": [
+           "/",
+           {
+            "Fn::Select": [
+             5,
+             {
+              "Fn::Split": [
+               ":",
+               {
+                "Fn::GetAtt": [
+                 "CardTable",
+                 "TableArn"
+                ]
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       "\"))\n$util.qr($ctx.stash.put(\"authRole\", \"arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":sts::",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":assumed-role/",
+       {
+        "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afauthNestedStackauthNestedStackResource775B14B6Outputsamplifyqrewardsnewisaachirschsandbox5518d681afauthamplifyAuthauthenticatedUserRoleBA2B0BF5Ref"
+       },
+       "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"unauthRole\", \"arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":sts::",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":assumed-role/",
+       {
+        "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afauthNestedStackauthNestedStackResource775B14B6Outputsamplifyqrewardsnewisaachirschsandbox5518d681afauthamplifyAuthunauthenticatedUserRole4F89C5B0Ref"
+       },
+       "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"identityPoolId\", \"",
+       {
+        "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afauthNestedStackauthNestedStackResource775B14B6Outputsamplifyqrewardsnewisaachirschsandbox5518d681afauthamplifyAuthIdentityPool957AA97BRef"
+       },
+       "\"))\n$util.qr($ctx.stash.put(\"adminRoles\", []))\n$util.toJson({})"
+      ]
+     ]
+    },
+    "ResponseMappingTemplate": "$util.toJson($ctx.prev.result)",
+    "TypeName": "Mutation"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/mutationUpdateCardResolver"
+   }
+  },
+  "MutationdeleteCardpreAuth0FunctionMutationdeleteCardpreAuth0FunctionAppSyncFunction229777BB": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPINONEDS246A2C35Name"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "MutationdeleteCardpreAuth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/3aeec6b2e47459b3ed6d50a868270bac17fae0e2566ffa452b50ca1023073bf6.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/MutationdeleteCardpreAuth0Function/MutationdeleteCardpreAuth0Function.AppSyncFunction"
+   }
+  },
+  "MutationdeleteCardauth0FunctionMutationdeleteCardauth0FunctionAppSyncFunctionE9688D4D": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "DataSourceName": {
+     "Fn::GetAtt": [
+      "CardDataSource",
+      "Name"
+     ]
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "MutationdeleteCardauth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/1f5fed297da9c32ae3af922bf3a38ccf23b956078887d16891ec06c20c64722c.vtl"
+    },
+    "ResponseMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/6257bfd1ef2992bd01df135516c0df15c5ff692f426e0c71c93960be8f8c81df.vtl"
+    }
+   },
+   "DependsOn": [
+    "CardDataSource"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/MutationdeleteCardauth0Function/MutationdeleteCardauth0Function.AppSyncFunction"
+   }
+  },
+  "MutationdeleteCardpostAuth0FunctionMutationdeleteCardpostAuth0FunctionAppSyncFunction244226E5": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPINONEDS246A2C35Name"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "MutationdeleteCardpostAuth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/MutationdeleteCardpostAuth0Function/MutationdeleteCardpostAuth0Function.AppSyncFunction"
+   }
+  },
+  "MutationDeleteCardDataResolverFnMutationDeleteCardDataResolverFnAppSyncFunction54163392": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "DataSourceName": {
+     "Fn::GetAtt": [
+      "CardDataSource",
+      "Name"
+     ]
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "MutationDeleteCardDataResolverFn",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/4f7907d1209a2c9953a0c053df402c634e359546d70c7cc5c2e8e21ea734880f.vtl"
+    },
+    "ResponseMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/f4a52b72209a9dfa197b5e7367a5c378c5bb86de6e29ddd9e48b49a3fe54b249.vtl"
+    }
+   },
+   "DependsOn": [
+    "CardDataSource"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/MutationDeleteCardDataResolverFn/MutationDeleteCardDataResolverFn.AppSyncFunction"
+   }
+  },
+  "DeleteCardResolver": {
+   "Type": "AWS::AppSync::Resolver",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "FieldName": "deleteCard",
+    "Kind": "PIPELINE",
+    "PipelineConfig": {
+     "Functions": [
+      {
+       "Fn::GetAtt": [
+        "MutationdeleteCardpreAuth0FunctionMutationdeleteCardpreAuth0FunctionAppSyncFunction229777BB",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "MutationdeleteCardauth0FunctionMutationdeleteCardauth0FunctionAppSyncFunctionE9688D4D",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "MutationdeleteCardpostAuth0FunctionMutationdeleteCardpostAuth0FunctionAppSyncFunction244226E5",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "MutationDeleteCardDataResolverFnMutationDeleteCardDataResolverFnAppSyncFunction54163392",
+        "FunctionId"
+       ]
+      }
+     ]
+    },
+    "RequestMappingTemplate": {
+     "Fn::Join": [
+      "",
+      [
+       "$util.qr($ctx.stash.put(\"typeName\", \"Mutation\"))\n$util.qr($ctx.stash.put(\"fieldName\", \"deleteCard\"))\n$util.qr($ctx.stash.put(\"conditions\", []))\n$util.qr($ctx.stash.put(\"metadata\", {}))\n$util.qr($ctx.stash.metadata.put(\"dataSourceType\", \"AMAZON_DYNAMODB\"))\n$util.qr($ctx.stash.metadata.put(\"apiId\", \"",
+       {
+        "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+       },
+       "\"))\n$util.qr($ctx.stash.put(\"connectionAttributes\", {}))\n$util.qr($ctx.stash.put(\"tableName\", \"",
+       {
+        "Fn::Select": [
+         1,
+         {
+          "Fn::Split": [
+           "/",
+           {
+            "Fn::Select": [
+             5,
+             {
+              "Fn::Split": [
+               ":",
+               {
+                "Fn::GetAtt": [
+                 "CardTable",
+                 "TableArn"
+                ]
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       "\"))\n$util.qr($ctx.stash.put(\"authRole\", \"arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":sts::",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":assumed-role/",
+       {
+        "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afauthNestedStackauthNestedStackResource775B14B6Outputsamplifyqrewardsnewisaachirschsandbox5518d681afauthamplifyAuthauthenticatedUserRoleBA2B0BF5Ref"
+       },
+       "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"unauthRole\", \"arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":sts::",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":assumed-role/",
+       {
+        "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afauthNestedStackauthNestedStackResource775B14B6Outputsamplifyqrewardsnewisaachirschsandbox5518d681afauthamplifyAuthunauthenticatedUserRole4F89C5B0Ref"
+       },
+       "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"identityPoolId\", \"",
+       {
+        "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afauthNestedStackauthNestedStackResource775B14B6Outputsamplifyqrewardsnewisaachirschsandbox5518d681afauthamplifyAuthIdentityPool957AA97BRef"
+       },
+       "\"))\n$util.qr($ctx.stash.put(\"adminRoles\", []))\n$util.toJson({})"
+      ]
+     ]
+    },
+    "ResponseMappingTemplate": "$util.toJson($ctx.prev.result)",
+    "TypeName": "Mutation"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/mutationDeleteCardResolver"
+   }
+  },
+  "SubscriptiononCreateCardauth0FunctionSubscriptiononCreateCardauth0FunctionAppSyncFunctionA64DD935": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPINONEDS246A2C35Name"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "SubscriptiononCreateCardauth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/15280eef569babaeeee5f837ecf7400c728eec6ca2f4c0437bcbddfcb67fe27b.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/SubscriptiononCreateCardauth0Function/SubscriptiononCreateCardauth0Function.AppSyncFunction"
+   }
+  },
+  "SubscriptiononCreateCardpostAuth0FunctionSubscriptiononCreateCardpostAuth0FunctionAppSyncFunction9127F63A": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPINONEDS246A2C35Name"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "SubscriptiononCreateCardpostAuth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/SubscriptiononCreateCardpostAuth0Function/SubscriptiononCreateCardpostAuth0Function.AppSyncFunction"
+   }
+  },
+  "SubscriptionOnCreateCardDataResolverFnSubscriptionOnCreateCardDataResolverFnAppSyncFunction00E2B403": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPINONEDS246A2C35Name"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "SubscriptionOnCreateCardDataResolverFn",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/fe3c43ada4b9d681a5e2312663ef7a73386424d73b73e51f8e2e9d4b50f7c502.vtl"
+    },
+    "ResponseMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/e0cff47fb007f0bbf2a4e43ca256d6aa7ec109821769fd79fa7c5e83f0e7f9fc.vtl"
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/SubscriptionOnCreateCardDataResolverFn/SubscriptionOnCreateCardDataResolverFn.AppSyncFunction"
+   }
+  },
+  "SubscriptiononCreateCardResolver": {
+   "Type": "AWS::AppSync::Resolver",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "FieldName": "onCreateCard",
+    "Kind": "PIPELINE",
+    "PipelineConfig": {
+     "Functions": [
+      {
+       "Fn::GetAtt": [
+        "SubscriptiononCreateCardauth0FunctionSubscriptiononCreateCardauth0FunctionAppSyncFunctionA64DD935",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "SubscriptiononCreateCardpostAuth0FunctionSubscriptiononCreateCardpostAuth0FunctionAppSyncFunction9127F63A",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "SubscriptionOnCreateCardDataResolverFnSubscriptionOnCreateCardDataResolverFnAppSyncFunction00E2B403",
+        "FunctionId"
+       ]
+      }
+     ]
+    },
+    "RequestMappingTemplate": {
+     "Fn::Join": [
+      "",
+      [
+       "$util.qr($ctx.stash.put(\"typeName\", \"Subscription\"))\n$util.qr($ctx.stash.put(\"fieldName\", \"onCreateCard\"))\n$util.qr($ctx.stash.put(\"conditions\", []))\n$util.qr($ctx.stash.put(\"metadata\", {}))\n$util.qr($ctx.stash.metadata.put(\"dataSourceType\", \"NONE\"))\n$util.qr($ctx.stash.metadata.put(\"apiId\", \"",
+       {
+        "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+       },
+       "\"))\n$util.qr($ctx.stash.put(\"connectionAttributes\", {}))\n\n$util.qr($ctx.stash.put(\"authRole\", \"arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":sts::",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":assumed-role/",
+       {
+        "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afauthNestedStackauthNestedStackResource775B14B6Outputsamplifyqrewardsnewisaachirschsandbox5518d681afauthamplifyAuthauthenticatedUserRoleBA2B0BF5Ref"
+       },
+       "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"unauthRole\", \"arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":sts::",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":assumed-role/",
+       {
+        "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afauthNestedStackauthNestedStackResource775B14B6Outputsamplifyqrewardsnewisaachirschsandbox5518d681afauthamplifyAuthunauthenticatedUserRole4F89C5B0Ref"
+       },
+       "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"identityPoolId\", \"",
+       {
+        "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afauthNestedStackauthNestedStackResource775B14B6Outputsamplifyqrewardsnewisaachirschsandbox5518d681afauthamplifyAuthIdentityPool957AA97BRef"
+       },
+       "\"))\n$util.qr($ctx.stash.put(\"adminRoles\", []))\n$util.toJson({})"
+      ]
+     ]
+    },
+    "ResponseMappingTemplate": "$util.toJson($ctx.prev.result)",
+    "TypeName": "Subscription"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/subscriptionOnCreateCardResolver"
+   }
+  },
+  "SubscriptiononUpdateCardauth0FunctionSubscriptiononUpdateCardauth0FunctionAppSyncFunction6CF40DB3": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPINONEDS246A2C35Name"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "SubscriptiononUpdateCardauth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/15280eef569babaeeee5f837ecf7400c728eec6ca2f4c0437bcbddfcb67fe27b.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/SubscriptiononUpdateCardauth0Function/SubscriptiononUpdateCardauth0Function.AppSyncFunction"
+   }
+  },
+  "SubscriptiononUpdateCardpostAuth0FunctionSubscriptiononUpdateCardpostAuth0FunctionAppSyncFunction7DAEB750": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPINONEDS246A2C35Name"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "SubscriptiononUpdateCardpostAuth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/SubscriptiononUpdateCardpostAuth0Function/SubscriptiononUpdateCardpostAuth0Function.AppSyncFunction"
+   }
+  },
+  "SubscriptionOnUpdateCardDataResolverFnSubscriptionOnUpdateCardDataResolverFnAppSyncFunctionAE9EA3BD": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPINONEDS246A2C35Name"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "SubscriptionOnUpdateCardDataResolverFn",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/fe3c43ada4b9d681a5e2312663ef7a73386424d73b73e51f8e2e9d4b50f7c502.vtl"
+    },
+    "ResponseMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/e0cff47fb007f0bbf2a4e43ca256d6aa7ec109821769fd79fa7c5e83f0e7f9fc.vtl"
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/SubscriptionOnUpdateCardDataResolverFn/SubscriptionOnUpdateCardDataResolverFn.AppSyncFunction"
+   }
+  },
+  "SubscriptiononUpdateCardResolver": {
+   "Type": "AWS::AppSync::Resolver",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "FieldName": "onUpdateCard",
+    "Kind": "PIPELINE",
+    "PipelineConfig": {
+     "Functions": [
+      {
+       "Fn::GetAtt": [
+        "SubscriptiononUpdateCardauth0FunctionSubscriptiononUpdateCardauth0FunctionAppSyncFunction6CF40DB3",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "SubscriptiononUpdateCardpostAuth0FunctionSubscriptiononUpdateCardpostAuth0FunctionAppSyncFunction7DAEB750",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "SubscriptionOnUpdateCardDataResolverFnSubscriptionOnUpdateCardDataResolverFnAppSyncFunctionAE9EA3BD",
+        "FunctionId"
+       ]
+      }
+     ]
+    },
+    "RequestMappingTemplate": {
+     "Fn::Join": [
+      "",
+      [
+       "$util.qr($ctx.stash.put(\"typeName\", \"Subscription\"))\n$util.qr($ctx.stash.put(\"fieldName\", \"onUpdateCard\"))\n$util.qr($ctx.stash.put(\"conditions\", []))\n$util.qr($ctx.stash.put(\"metadata\", {}))\n$util.qr($ctx.stash.metadata.put(\"dataSourceType\", \"NONE\"))\n$util.qr($ctx.stash.metadata.put(\"apiId\", \"",
+       {
+        "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+       },
+       "\"))\n$util.qr($ctx.stash.put(\"connectionAttributes\", {}))\n\n$util.qr($ctx.stash.put(\"authRole\", \"arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":sts::",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":assumed-role/",
+       {
+        "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afauthNestedStackauthNestedStackResource775B14B6Outputsamplifyqrewardsnewisaachirschsandbox5518d681afauthamplifyAuthauthenticatedUserRoleBA2B0BF5Ref"
+       },
+       "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"unauthRole\", \"arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":sts::",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":assumed-role/",
+       {
+        "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afauthNestedStackauthNestedStackResource775B14B6Outputsamplifyqrewardsnewisaachirschsandbox5518d681afauthamplifyAuthunauthenticatedUserRole4F89C5B0Ref"
+       },
+       "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"identityPoolId\", \"",
+       {
+        "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afauthNestedStackauthNestedStackResource775B14B6Outputsamplifyqrewardsnewisaachirschsandbox5518d681afauthamplifyAuthIdentityPool957AA97BRef"
+       },
+       "\"))\n$util.qr($ctx.stash.put(\"adminRoles\", []))\n$util.toJson({})"
+      ]
+     ]
+    },
+    "ResponseMappingTemplate": "$util.toJson($ctx.prev.result)",
+    "TypeName": "Subscription"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/subscriptionOnUpdateCardResolver"
+   }
+  },
+  "SubscriptiononDeleteCardauth0FunctionSubscriptiononDeleteCardauth0FunctionAppSyncFunction31C46F10": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPINONEDS246A2C35Name"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "SubscriptiononDeleteCardauth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/15280eef569babaeeee5f837ecf7400c728eec6ca2f4c0437bcbddfcb67fe27b.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/SubscriptiononDeleteCardauth0Function/SubscriptiononDeleteCardauth0Function.AppSyncFunction"
+   }
+  },
+  "SubscriptiononDeleteCardpostAuth0FunctionSubscriptiononDeleteCardpostAuth0FunctionAppSyncFunction2F250E0B": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPINONEDS246A2C35Name"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "SubscriptiononDeleteCardpostAuth0Function",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/c1721bcd774e27c514d3454b5be4f9bdd094c0161b57ddf053d618e3b0086a77.vtl"
+    },
+    "ResponseMappingTemplate": "$util.toJson({})"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/SubscriptiononDeleteCardpostAuth0Function/SubscriptiononDeleteCardpostAuth0Function.AppSyncFunction"
+   }
+  },
+  "SubscriptionOnDeleteCardDataResolverFnSubscriptionOnDeleteCardDataResolverFnAppSyncFunction9D669B73": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPINONEDS246A2C35Name"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "SubscriptionOnDeleteCardDataResolverFn",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/fe3c43ada4b9d681a5e2312663ef7a73386424d73b73e51f8e2e9d4b50f7c502.vtl"
+    },
+    "ResponseMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/e0cff47fb007f0bbf2a4e43ca256d6aa7ec109821769fd79fa7c5e83f0e7f9fc.vtl"
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/SubscriptionOnDeleteCardDataResolverFn/SubscriptionOnDeleteCardDataResolverFn.AppSyncFunction"
+   }
+  },
+  "SubscriptiononDeleteCardResolver": {
+   "Type": "AWS::AppSync::Resolver",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "FieldName": "onDeleteCard",
+    "Kind": "PIPELINE",
+    "PipelineConfig": {
+     "Functions": [
+      {
+       "Fn::GetAtt": [
+        "SubscriptiononDeleteCardauth0FunctionSubscriptiononDeleteCardauth0FunctionAppSyncFunction31C46F10",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "SubscriptiononDeleteCardpostAuth0FunctionSubscriptiononDeleteCardpostAuth0FunctionAppSyncFunction2F250E0B",
+        "FunctionId"
+       ]
+      },
+      {
+       "Fn::GetAtt": [
+        "SubscriptionOnDeleteCardDataResolverFnSubscriptionOnDeleteCardDataResolverFnAppSyncFunction9D669B73",
+        "FunctionId"
+       ]
+      }
+     ]
+    },
+    "RequestMappingTemplate": {
+     "Fn::Join": [
+      "",
+      [
+       "$util.qr($ctx.stash.put(\"typeName\", \"Subscription\"))\n$util.qr($ctx.stash.put(\"fieldName\", \"onDeleteCard\"))\n$util.qr($ctx.stash.put(\"conditions\", []))\n$util.qr($ctx.stash.put(\"metadata\", {}))\n$util.qr($ctx.stash.metadata.put(\"dataSourceType\", \"NONE\"))\n$util.qr($ctx.stash.metadata.put(\"apiId\", \"",
+       {
+        "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+       },
+       "\"))\n$util.qr($ctx.stash.put(\"connectionAttributes\", {}))\n\n$util.qr($ctx.stash.put(\"authRole\", \"arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":sts::",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":assumed-role/",
+       {
+        "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afauthNestedStackauthNestedStackResource775B14B6Outputsamplifyqrewardsnewisaachirschsandbox5518d681afauthamplifyAuthauthenticatedUserRoleBA2B0BF5Ref"
+       },
+       "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"unauthRole\", \"arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":sts::",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":assumed-role/",
+       {
+        "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afauthNestedStackauthNestedStackResource775B14B6Outputsamplifyqrewardsnewisaachirschsandbox5518d681afauthamplifyAuthunauthenticatedUserRole4F89C5B0Ref"
+       },
+       "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"identityPoolId\", \"",
+       {
+        "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afauthNestedStackauthNestedStackResource775B14B6Outputsamplifyqrewardsnewisaachirschsandbox5518d681afauthamplifyAuthIdentityPool957AA97BRef"
+       },
+       "\"))\n$util.qr($ctx.stash.put(\"adminRoles\", []))\n$util.toJson({})"
+      ]
+     ]
+    },
+    "ResponseMappingTemplate": "$util.toJson($ctx.prev.result)",
+    "TypeName": "Subscription"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/subscriptionOnDeleteCardResolver"
+   }
+  },
+  "CardOwnerDataResolverFnCardOwnerDataResolverFnAppSyncFunction74C17DF4": {
+   "Type": "AWS::AppSync::FunctionConfiguration",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "DataSourceName": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPINONEDS246A2C35Name"
+    },
+    "FunctionVersion": "2018-05-29",
+    "Name": "CardOwnerDataResolverFn",
+    "RequestMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/041534e5fd916595f752318f161512d7c7f83b9f2cf32d0f0be381c12253ff68.vtl"
+    },
+    "ResponseMappingTemplateS3Location": {
+     "Fn::Sub": "s3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/064303962e481067b44300212516363b99aaee539b6bafaf756fdd83ff0b60f0.vtl"
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/CardOwnerDataResolverFn/CardOwnerDataResolverFn.AppSyncFunction"
+   }
+  },
+  "CardownerResolver": {
+   "Type": "AWS::AppSync::Resolver",
+   "Properties": {
+    "ApiId": {
+     "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+    },
+    "FieldName": "owner",
+    "Kind": "PIPELINE",
+    "PipelineConfig": {
+     "Functions": [
+      {
+       "Fn::GetAtt": [
+        "CardOwnerDataResolverFnCardOwnerDataResolverFnAppSyncFunction74C17DF4",
+        "FunctionId"
+       ]
+      }
+     ]
+    },
+    "RequestMappingTemplate": {
+     "Fn::Join": [
+      "",
+      [
+       "$util.qr($ctx.stash.put(\"typeName\", \"Card\"))\n$util.qr($ctx.stash.put(\"fieldName\", \"owner\"))\n$util.qr($ctx.stash.put(\"conditions\", []))\n$util.qr($ctx.stash.put(\"metadata\", {}))\n$util.qr($ctx.stash.metadata.put(\"dataSourceType\", \"NONE\"))\n$util.qr($ctx.stash.metadata.put(\"apiId\", \"",
+       {
+        "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+       },
+       "\"))\n$util.qr($ctx.stash.put(\"connectionAttributes\", {}))\n\n$util.qr($ctx.stash.put(\"authRole\", \"arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":sts::",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":assumed-role/",
+       {
+        "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afauthNestedStackauthNestedStackResource775B14B6Outputsamplifyqrewardsnewisaachirschsandbox5518d681afauthamplifyAuthauthenticatedUserRoleBA2B0BF5Ref"
+       },
+       "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"unauthRole\", \"arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":sts::",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":assumed-role/",
+       {
+        "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afauthNestedStackauthNestedStackResource775B14B6Outputsamplifyqrewardsnewisaachirschsandbox5518d681afauthamplifyAuthunauthenticatedUserRole4F89C5B0Ref"
+       },
+       "/CognitoIdentityCredentials\"))\n$util.qr($ctx.stash.put(\"identityPoolId\", \"",
+       {
+        "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afauthNestedStackauthNestedStackResource775B14B6Outputsamplifyqrewardsnewisaachirschsandbox5518d681afauthamplifyAuthIdentityPool957AA97BRef"
+       },
+       "\"))\n$util.qr($ctx.stash.put(\"adminRoles\", []))\n$util.toJson({})"
+      ]
+     ]
+    },
+    "ResponseMappingTemplate": "$util.toJson($ctx.prev.result)",
+    "TypeName": "Card"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/cardOwnerResolver"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/1WOwW6DMAyGn6X31GN0lx1X0I7bBLtXJjEoBRwUO60qxLtP0KnTTr8/+ZP955BnL5Dt8Cp76/r94BuYP0iUXK1oe1O0/IURR1KKKxSBnVcf2FQkIUVLpkiiYfzDlh8zXuU0uxvjGFwD39gMdEQh43GEuQrD3Q4DLQanSW5sYS43vWxKVKwfJ//Te2K7ligCt75LEbdGv5+HC8XFyOGEIqQCb2sYOcAx2Z50LbCs7mfSKanZ1rVi57lbDAdHcJanS57B8yvku7N4v4+J1Y8E1T1/AA0xyBc2AQAA"
+   },
+   "Metadata": {
+    "aws:cdk:path": "amplify-qrewardsnew-isaachirsch-sandbox-5518d681af/data/amplifyData/Card/CDKMetadata/Default"
+   },
+   "Condition": "CDKMetadataAvailable"
+  }
+ },
+ "Outputs": {
+  "GetAttCardTableStreamArn": {
+   "Description": "Your DynamoDB table StreamArn.",
+   "Value": {
+    "Fn::GetAtt": [
+     "CardTable",
+     "TableStreamArn"
+    ]
+   },
+   "Export": {
+    "Name": {
+     "Fn::Join": [
+      ":",
+      [
+       {
+        "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+       },
+       "GetAtt:CardTable:StreamArn"
+      ]
+     ]
+    }
+   }
+  },
+  "GetAttCardTableName": {
+   "Description": "Your DynamoDB table name.",
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "Card-",
+      {
+       "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+      },
+      "-NONE"
+     ]
+    ]
+   },
+   "Export": {
+    "Name": {
+     "Fn::Join": [
+      ":",
+      [
+       {
+        "Ref": "referencetoamplifyqrewardsnewisaachirschsandbox5518d681afdataamplifyDataGraphQLAPI60A116C4ApiId"
+       },
+       "GetAtt:CardTable:Name"
+      ]
+     ]
+    }
+   }
+  }
+ }
+}
