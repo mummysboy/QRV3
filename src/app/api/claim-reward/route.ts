@@ -42,6 +42,7 @@ export async function POST(req: Request) {
     }
 
     // ✅ 1. Get current card and decrement quantity (skip for demo)
+    let card: { quantity: number; businessId?: string } | null = null;
     if (!isDemo) {
       try {
         console.log("🔍 Attempting to get card with cardid:", cardid);
@@ -56,7 +57,7 @@ export async function POST(req: Request) {
           );
         }
 
-        const card = cardResponse.data;
+        card = cardResponse.data;
         console.log("🔍 Found card:", JSON.stringify(card, null, 2));
         
         if (card.quantity <= 0) {
@@ -103,6 +104,7 @@ export async function POST(req: Request) {
       logokey,
       header,
       claimed_at: new Date().toISOString(),
+      businessId: card?.businessId || "", // Include business ID from the card
     };
 
     console.log("🔍 Creating claimed reward with data:", JSON.stringify(rewardData, null, 2));
