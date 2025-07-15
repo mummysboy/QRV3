@@ -1,15 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import LogoVideo from "@/components/LogoVideo";
+import SignupForm, { SignupData } from "@/components/SignupForm";
+import SignupSuccess from "@/components/SignupSuccess";
 
 export default function Home() {
-  const router = useRouter();
   const [zipCode, setZipCode] = useState("");
   const [isVisible, setIsVisible] = useState(false);
   const [currentSection, setCurrentSection] = useState(0);
   const [currentReview, setCurrentReview] = useState(0);
+  const [showSignupForm, setShowSignupForm] = useState(false);
+  const [showSignupSuccess, setShowSignupSuccess] = useState(false);
 
   const reviews = [
     {
@@ -67,11 +69,37 @@ export default function Home() {
   }, [reviews.length]);
 
   const handleGetStarted = () => {
-    if (zipCode.trim()) {
-      router.push(`/claim-reward/${zipCode.trim()}`);
-    } else {
-      router.push("/claim-reward/12345");
+    setShowSignupForm(true);
+  };
+
+  const handleSignupSubmit = async (data: SignupData) => {
+    try {
+      const response = await fetch('/api/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit signup');
+      }
+
+      setShowSignupForm(false);
+      setShowSignupSuccess(true);
+    } catch (error) {
+      console.error('Error submitting signup:', error);
+      alert('Failed to submit signup. Please try again.');
     }
+  };
+
+  const handleCloseSignupForm = () => {
+    setShowSignupForm(false);
+  };
+
+  const handleCloseSignupSuccess = () => {
+    setShowSignupSuccess(false);
   };
 
   const handleEnterZipCode = (e: React.FormEvent) => {
@@ -371,7 +399,7 @@ export default function Home() {
         </div>
       </div>
 
-             {/* Subtle footer */}
+                    {/* Subtle footer */}
        <footer className="relative z-10 border-t border-gray-200 py-8 mt-20">
          <div className="container mx-auto px-6 text-center">
            <p className="text-gray-500 text-sm">
@@ -379,6 +407,19 @@ export default function Home() {
            </p>
          </div>
        </footer>
-    </main>
-  );
-}
+
+       {/* Signup Form Modal */}
+       <SignupForm
+         isOpen={showSignupForm}
+         onClose={handleCloseSignupForm}
+         onSubmit={handleSignupSubmit}
+       />
+
+       {/* Signup Success Modal */}
+       <SignupSuccess
+         isOpen={showSignupSuccess}
+         onClose={handleCloseSignupSuccess}
+       />
+     </main>
+   );
+ }
