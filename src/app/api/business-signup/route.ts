@@ -6,6 +6,9 @@ import bcrypt from "bcryptjs";
 interface BusinessSignupData {
   businessName: string;
   businessPhone: string;
+  businessAddress: string;
+  businessCity: string;
+  businessState: string;
   businessZipCode: string;
   category: string;
   email: string;
@@ -20,6 +23,9 @@ export async function POST(request: NextRequest) {
     const {
       businessName,
       businessPhone,
+      businessAddress,
+      businessCity,
+      businessState,
       businessZipCode,
       category,
       email,
@@ -29,7 +35,7 @@ export async function POST(request: NextRequest) {
     }: BusinessSignupData = body;
 
     // Validate required fields
-    if (!businessName || !businessPhone || !businessZipCode || !category || !email || !password || !firstName || !lastName) {
+    if (!businessName || !businessPhone || !businessAddress || !businessCity || !businessState || !businessZipCode || !category || !email || !password || !firstName || !lastName) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -161,9 +167,9 @@ export async function POST(request: NextRequest) {
           zipCode: businessZipCode,
           category: category,
           status: "pending_approval",
-          address: "", // Will be filled in profile setup
-          city: "", // Will be filled in profile setup
-          state: "", // Will be filled in profile setup
+          address: businessAddress,
+          city: businessCity,
+          state: businessState,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         },

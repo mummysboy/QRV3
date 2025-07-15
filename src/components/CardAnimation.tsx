@@ -54,6 +54,10 @@ export default function CardAnimation({ card, playbackRate = 1 }: { card: CardPr
       : `https://qrewards-media6367c-dev.s3.us-west-1.amazonaws.com${cardData.logokey.startsWith("/") ? cardData.logokey : `/${cardData.logokey}`}`
     : null;
 
+  // Debug: Log logo URL construction
+  console.log('CardAnimation - logokey:', cardData?.logokey);
+  console.log('CardAnimation - constructed logoUrl:', logoUrl);
+
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;

@@ -21,6 +21,7 @@ interface Business {
   photos: string;
   primaryContactEmail: string;
   primaryContactPhone: string;
+  profileComplete?: boolean;
   createdAt: string;
   updatedAt: string;
   approvedAt: string;
@@ -46,6 +47,7 @@ export async function PUT(request: NextRequest) {
       photos,
       primaryContactEmail,
       primaryContactPhone,
+      // profileComplete, // Temporarily commented out
     } = body;
 
     if (!businessId) {
@@ -104,6 +106,8 @@ export async function PUT(request: NextRequest) {
           ...(photos !== undefined && { photos }),
           ...(primaryContactEmail !== undefined && { primaryContactEmail }),
           ...(primaryContactPhone !== undefined && { primaryContactPhone }),
+          // Temporarily remove profileComplete until schema is deployed
+          // ...(profileComplete !== undefined && { profileComplete }),
         },
       },
     });

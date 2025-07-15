@@ -121,6 +121,8 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    console.log('API received request body:', body);
+    
     const {
       businessId,
       header,
@@ -132,9 +134,11 @@ export async function POST(request: NextRequest) {
       addresstext,
     } = body;
 
-    if (!businessId || !header || !quantity) {
+    console.log('Extracted address fields:', { addressurl, addresstext });
+
+    if (!businessId || !subheader) {
       return NextResponse.json(
-        { error: "Business ID, header, and quantity are required" },
+        { error: "Business ID and description are required" },
         { status: 400 }
       );
     }
@@ -144,7 +148,21 @@ export async function POST(request: NextRequest) {
     // Generate unique card ID
     const cardid = `${businessId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-    // Create new card
+    const cardInput = {
+      cardid,
+      businessId,
+      quantity: parseInt(quantity) || 100,
+      header: header || "Reward", // Use business name as header, fallback to "Reward"
+      subheader: subheader,
+      expires: expires || "",
+      logokey: logokey || "",
+      addressurl: addressurl || "",
+      addresstext: addresstext || "",
+    };
+
+    console.log('Creating card with input:', cardInput);
+
+    // Create new card with all business information
     const createResult = await client.graphql({
       query: `
         mutation CreateCard($input: CreateCardInput!) {
@@ -162,25 +180,22 @@ export async function POST(request: NextRequest) {
         }
       `,
       variables: {
-        input: {
-          cardid,
-          businessId,
-          quantity: parseInt(quantity),
-          header,
-          subheader: subheader || "",
-          expires: expires || "",
-          logokey: logokey || "",
-          addressurl: addressurl || "",
-          addresstext: addresstext || "",
-        },
+        input: cardInput,
       },
     });
 
     const newCard = (createResult as { data: { createCard: Card } }).data.createCard;
+    
+    console.log('Card created successfully:', newCard);
+    console.log('Address fields in created card:', {
+      addressurl: newCard.addressurl,
+      addresstext: newCard.addresstext
+    });
 
     return NextResponse.json({
       success: true,
       card: newCard,
+      message: "Reward created successfully with business information",
     });
   } catch (error) {
     console.error("Error creating reward:", error);

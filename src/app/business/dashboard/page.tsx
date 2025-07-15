@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import LogoVideo from "@/components/LogoVideo";
+import CreateRewardForm from "@/components/CreateRewardForm";
+import LogoUpload from "@/components/LogoUpload";
 
 interface BusinessUser {
   id: string;
@@ -84,15 +86,7 @@ export default function BusinessDashboard() {
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [showCreateReward, setShowCreateReward] = useState(false);
   const [showEditBusiness, setShowEditBusiness] = useState(false);
-  const [newReward, setNewReward] = useState({
-    header: "",
-    subheader: "",
-    quantity: 100,
-    expires: "",
-    logokey: "",
-    addressurl: "",
-    addresstext: "",
-  });
+  const [showLogoUpload, setShowLogoUpload] = useState(false);
   const [editBusiness, setEditBusiness] = useState({
     name: "",
     phone: "",
@@ -195,43 +189,7 @@ export default function BusinessDashboard() {
     router.push('/business/login');
   };
 
-  const handleCreateReward = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!business?.id) return;
 
-    try {
-      const response = await fetch('/api/business/rewards', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          businessId: business.id,
-          ...newReward,
-        }),
-      });
-
-      if (response.ok) {
-        setShowCreateReward(false);
-        setNewReward({
-          header: "",
-          subheader: "",
-          quantity: 100,
-          expires: "",
-          logokey: "",
-          addressurl: "",
-          addresstext: "",
-        });
-        fetchDashboardData(); // Refresh data
-      } else {
-        const error = await response.json();
-        alert(error.error || 'Failed to create reward');
-      }
-    } catch (error) {
-      console.error('Error creating reward:', error);
-      alert('Failed to create reward');
-    }
-  };
 
   const handleUpdateBusiness = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -283,6 +241,125 @@ export default function BusinessDashboard() {
     } catch (error) {
       console.error('Error deleting reward:', error);
       alert('Failed to delete reward');
+    }
+  };
+
+  // Check if business profile is complete
+  // For now, just check if logo exists since profileComplete field might not be deployed yet
+  const isProfileComplete = Boolean(business?.logo);
+
+  // Handle logo upload
+  const handleLogoUpload = async (logoUrl: string) => {
+    if (!business?.id) return;
+
+    try {
+      const response = await fetch('/api/business/update', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          businessId: business.id,
+          logo: logoUrl,
+          // profileComplete: true, // Temporarily commented out until schema is deployed
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setBusiness(result.business);
+        sessionStorage.setItem('businessData', JSON.stringify(result.business));
+        setShowLogoUpload(false);
+        alert('Logo uploaded successfully!');
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to upload logo');
+      }
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      alert('Failed to upload logo');
+    }
+  };
+
+  // Handle reward creation with new form
+  const handleCreateRewardSubmit = async (rewardData: { 
+    businessId: string;
+    businessName: string;
+    businessAddress: string;
+    businessCity: string;
+    businessState: string;
+    businessZipCode: string;
+    businessCategory: string;
+    businessLogo?: string;
+    subheader: string;
+    quantity: number;
+    expires: string;
+  }) => {
+    if (!business?.id) return;
+
+    // Validate that all address fields are present
+    if (!rewardData.businessAddress || !rewardData.businessCity || !rewardData.businessState || !rewardData.businessZipCode) {
+      console.error('Missing address fields:', {
+        address: rewardData.businessAddress,
+        city: rewardData.businessCity,
+        state: rewardData.businessState,
+        zipCode: rewardData.businessZipCode
+      });
+      alert('Business address information is incomplete. Please update your business profile.');
+      return;
+    }
+
+    // Debug: Log the reward data being sent
+    console.log('Creating reward with data:', rewardData);
+
+    const constructedAddress = `${rewardData.businessAddress}, ${rewardData.businessCity}, ${rewardData.businessState} ${rewardData.businessZipCode}`;
+    
+    // Check if the constructed address is valid (not just commas and spaces)
+    if (constructedAddress.replace(/[,\s]/g, '').length < 5) {
+      console.error('Invalid address constructed:', constructedAddress);
+      alert('Business address information is invalid. Please update your business profile.');
+      return;
+    }
+
+    const requestBody = {
+      businessId: rewardData.businessId,
+      header: rewardData.businessName, // Use business name as header
+      subheader: rewardData.subheader,
+      quantity: rewardData.quantity,
+      expires: rewardData.expires,
+      // Store business info in additional fields
+      logokey: rewardData.businessLogo || "",
+      addressurl: constructedAddress,
+      addresstext: constructedAddress, // Use full address instead of business name + category
+    };
+
+    // Debug: Log the constructed address
+    console.log('Constructed address:', requestBody.addressurl);
+    console.log('Full request body:', requestBody);
+
+    try {
+      const response = await fetch('/api/business/rewards', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Reward created successfully:', result);
+        setShowCreateReward(false);
+        fetchDashboardData(); // Refresh data
+        alert('Reward created successfully!');
+      } else {
+        const error = await response.json();
+        console.error('Failed to create reward:', error);
+        alert(error.error || 'Failed to create reward');
+      }
+    } catch (error) {
+      console.error('Error creating reward:', error);
+      alert('Failed to create reward');
     }
   };
 
@@ -342,6 +419,35 @@ export default function BusinessDashboard() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Profile Completion Banner */}
+        {!isProfileComplete && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-yellow-800">
+                    Your profile is incomplete
+                  </h3>
+                  <div className="mt-2 text-sm text-yellow-700">
+                    <p>Please upload your business logo to start creating rewards.</p>
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowLogoUpload(true)}
+                className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              >
+                Upload Logo
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar */}
           <div className="lg:w-64 flex-shrink-0">
@@ -494,9 +600,14 @@ export default function BusinessDashboard() {
                     <h2 className="text-2xl font-bold text-gray-900">Rewards</h2>
                     <button 
                       onClick={() => setShowCreateReward(true)}
-                      className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                      disabled={!isProfileComplete}
+                      className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                        isProfileComplete 
+                          ? 'bg-green-600 hover:bg-green-700 text-white' 
+                          : 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                      }`}
                     >
-                      Create Reward
+                      {isProfileComplete ? 'Create Reward' : 'Upload Logo First'}
                     </button>
                   </div>
                   
@@ -594,21 +705,54 @@ export default function BusinessDashboard() {
                       <h3 className="text-lg font-semibold text-gray-900 mb-4">Location</h3>
                       <div className="space-y-3">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700">Address</label>
-                          <p className="text-gray-900">{business.address || "Not set"}</p>
+                          <label className="block text-sm font-medium text-gray-700">Full Address</label>
+                          <p className="text-gray-900 bg-gray-100 p-2 rounded border">
+                            {business.address && business.city && business.state 
+                              ? `${business.address}, ${business.city}, ${business.state} ${business.zipCode}`
+                              : "Address not set"
+                            }
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">Address is locked and cannot be edited</p>
                         </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700">City</label>
-                          <p className="text-gray-900">{business.city || "Not set"}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Logo Section */}
+                  <div className="bg-gray-50 rounded-lg p-6 mt-6">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900">Business Logo</h3>
+                      <button
+                        onClick={() => setShowLogoUpload(true)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                      >
+                        {business.logo ? 'Change Logo' : 'Upload Logo'}
+                      </button>
+                    </div>
+                    <div className="flex items-center space-x-4">
+                      {business.logo ? (
+                        <img 
+                          src={business.logo} 
+                          alt={`${business.name} logo`}
+                          className="h-16 w-16 object-contain border border-gray-200 rounded-lg"
+                        />
+                      ) : (
+                        <div className="h-16 w-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                          <span className="text-gray-500 text-2xl">🏢</span>
                         </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700">State</label>
-                          <p className="text-gray-900">{business.state || "Not set"}</p>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700">ZIP Code</label>
-                          <p className="text-gray-900">{business.zipCode}</p>
-                        </div>
+                      )}
+                      <div>
+                        <p className="text-sm text-gray-600">
+                          {business.logo 
+                            ? "Logo uploaded successfully" 
+                            : "Upload your business logo to complete your profile"
+                          }
+                        </p>
+                        {!business.logo && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            Logo is required to create rewards
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -717,66 +861,57 @@ export default function BusinessDashboard() {
       </div>
 
       {/* Create Reward Modal */}
-      {showCreateReward && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Create New Reward</h3>
-            <form onSubmit={handleCreateReward} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Reward Title</label>
-                <input
-                  type="text"
-                  value={newReward.header}
-                  onChange={(e) => setNewReward({...newReward, header: e.target.value})}
-                  className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-green-500 focus:border-green-500"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Description</label>
-                <input
-                  type="text"
-                  value={newReward.subheader}
-                  onChange={(e) => setNewReward({...newReward, subheader: e.target.value})}
-                  className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-green-500 focus:border-green-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Quantity</label>
-                <input
-                  type="number"
-                  value={newReward.quantity}
-                  onChange={(e) => setNewReward({...newReward, quantity: parseInt(e.target.value)})}
-                  className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-green-500 focus:border-green-500"
-                  min="1"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Expiration Date</label>
-                <input
-                  type="date"
-                  value={newReward.expires}
-                  onChange={(e) => setNewReward({...newReward, expires: e.target.value})}
-                  className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-green-500 focus:border-green-500"
-                />
-              </div>
-              <div className="flex space-x-3 pt-4">
-                <button
-                  type="submit"
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md font-medium transition-colors"
-                >
-                  Create Reward
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowCreateReward(false)}
-                  className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-md font-medium transition-colors"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
+      {showCreateReward && business && (
+        <>
+          {console.log('Business data being passed to form:', {
+            id: business.id,
+            name: business.name,
+            address: business.address,
+            city: business.city,
+            state: business.state,
+            zipCode: business.zipCode,
+            category: business.category,
+            logo: business.logo,
+          })}
+          <CreateRewardForm
+            isOpen={showCreateReward}
+            onClose={() => setShowCreateReward(false)}
+            onSubmit={handleCreateRewardSubmit}
+            business={{
+              id: business.id,
+              name: business.name,
+              address: business.address,
+              city: business.city,
+              state: business.state,
+              zipCode: business.zipCode,
+              category: business.category,
+              logo: business.logo,
+            }}
+            isProfileComplete={isProfileComplete}
+          />
+        </>
+      )}
+
+      {/* Logo Upload Modal */}
+      {showLogoUpload && business && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Upload Business Logo</h3>
+              <button
+                onClick={() => setShowLogoUpload(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <LogoUpload
+              currentLogo={business.logo}
+              onUpload={handleLogoUpload}
+              businessName={business.name}
+            />
           </div>
         </div>
       )}
@@ -832,28 +967,11 @@ export default function BusinessDashboard() {
                   <label className="block text-sm font-medium text-gray-700">Address</label>
                   <input
                     type="text"
-                    value={editBusiness.address}
-                    onChange={(e) => setEditBusiness({...editBusiness, address: e.target.value})}
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                    value={`${editBusiness.address}, ${editBusiness.city}, ${editBusiness.state} ${editBusiness.zipCode}`}
+                    disabled
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-50 text-gray-600 cursor-not-allowed"
                   />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">City</label>
-                  <input
-                    type="text"
-                    value={editBusiness.city}
-                    onChange={(e) => setEditBusiness({...editBusiness, city: e.target.value})}
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-green-500 focus:border-green-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">State</label>
-                  <input
-                    type="text"
-                    value={editBusiness.state}
-                    onChange={(e) => setEditBusiness({...editBusiness, state: e.target.value})}
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-green-500 focus:border-green-500"
-                  />
+                  <p className="text-xs text-gray-500 mt-1">Address cannot be edited</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Website</label>

@@ -84,6 +84,7 @@ const schema = a.schema({
       photos: a.string(), // JSON array of S3 keys
       primaryContactEmail: a.string(),
       primaryContactPhone: a.string(),
+      profileComplete: a.boolean().default(false), // Track if profile is complete
       createdAt: a.string(),
       updatedAt: a.string(),
       approvedAt: a.string(),

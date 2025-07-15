@@ -11,6 +11,9 @@ interface BusinessSignupFormProps {
 export interface BusinessSignupData {
   businessName: string;
   businessPhone: string;
+  businessAddress: string;
+  businessCity: string;
+  businessState: string;
   businessZipCode: string;
   category: string;
   email: string;
@@ -37,6 +40,9 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
   const [formData, setFormData] = useState<BusinessSignupData>({
     businessName: "",
     businessPhone: "",
+    businessAddress: "",
+    businessCity: "",
+    businessState: "",
     businessZipCode: "",
     category: "",
     email: "",
@@ -103,6 +109,9 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
       setFormData({
         businessName: "",
         businessPhone: "",
+        businessAddress: "",
+        businessCity: "",
+        businessState: "",
         businessZipCode: "",
         category: "",
         email: "",
@@ -210,20 +219,71 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
               </div>
 
               <div>
-                <label htmlFor="businessZipCode" className="block text-sm font-medium text-gray-700 mb-1">
-                  Business ZIP Code *
+                <label htmlFor="businessAddress" className="block text-sm font-medium text-gray-700 mb-1">
+                  Business Address *
                 </label>
                 <input
                   type="text"
-                  id="businessZipCode"
-                  name="businessZipCode"
-                  value={formData.businessZipCode}
+                  id="businessAddress"
+                  name="businessAddress"
+                  value={formData.businessAddress}
                   onChange={handleInputChange}
                   required
                   className="w-full px-3 sm:px-4 py-3 border border-gray-300 rounded-xl focus:border-green-500 focus:outline-none transition-colors text-base"
-                  placeholder="12345"
-                  maxLength={10}
+                  placeholder="123 Main Street"
                 />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label htmlFor="businessCity" className="block text-sm font-medium text-gray-700 mb-1">
+                    City *
+                  </label>
+                  <input
+                    type="text"
+                    id="businessCity"
+                    name="businessCity"
+                    value={formData.businessCity}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-3 sm:px-4 py-3 border border-gray-300 rounded-xl focus:border-green-500 focus:outline-none transition-colors text-base"
+                    placeholder="City"
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="businessState" className="block text-sm font-medium text-gray-700 mb-1">
+                    State *
+                  </label>
+                  <input
+                    type="text"
+                    id="businessState"
+                    name="businessState"
+                    value={formData.businessState}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-3 sm:px-4 py-3 border border-gray-300 rounded-xl focus:border-green-500 focus:outline-none transition-colors text-base"
+                    placeholder="CA"
+                    maxLength={2}
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="businessZipCode" className="block text-sm font-medium text-gray-700 mb-1">
+                    ZIP Code *
+                  </label>
+                  <input
+                    type="text"
+                    id="businessZipCode"
+                    name="businessZipCode"
+                    value={formData.businessZipCode}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-3 sm:px-4 py-3 border border-gray-300 rounded-xl focus:border-green-500 focus:outline-none transition-colors text-base"
+                    placeholder="12345"
+                    maxLength={10}
+                  />
+                </div>
               </div>
 
               <div>
