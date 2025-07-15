@@ -35,10 +35,23 @@ export default function ClaimRewardPage() {
   const [card, setCard] = useState<CardData | null>(null);
   const [showThankYouOverlay, setShowThankYouOverlay] = useState(false);
   const [showContactPopup, setShowContactPopup] = useState(false);
+  const [isDemo, setIsDemo] = useState(false);
 
   // Log the zip code for debugging
   useEffect(() => {
     console.log("📍 Current zip code:", zipCode);
+    
+    // Check if this is a demo flow by looking at the referrer
+    if (typeof window !== "undefined") {
+      const referrer = document.referrer;
+      const isFromHomepage = referrer.includes(window.location.origin) && 
+                            (referrer.endsWith('/') || referrer.endsWith(window.location.origin));
+      
+      if (isFromHomepage) {
+        console.log("🎯 Demo flow detected - user came from homepage");
+        setIsDemo(true);
+      }
+    }
   }, [zipCode]);
 
   useEffect(() => {
@@ -260,6 +273,7 @@ export default function ClaimRewardPage() {
             card={card}
             onClose={() => setShowClaimPopup(false)}
             onComplete={handleClaimComplete}
+            isDemo={isDemo}
           />
         )}
 

@@ -10,25 +10,28 @@ const client = generateClient<Schema>();
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
-  console.log("🚨 API ROUTE CALLED - POST /api/claim-reward");
-  console.log("🎯 Claim reward API called");
+          console.log("🚨 API ROUTE CALLED - POST /api/claim-reward");
+    console.log("🎯 Claim reward API called");
 
-  try {
-    const data = await req.json();
-    console.log("📋 Request body:", JSON.stringify(data, null, 2));
+    try {
+            const data = await req.json();
+      console.log("📋 Request body:", JSON.stringify(data, null, 2));
 
-    const {
-      cardid,
-      email,
-      phone,
-      delivery_method,
-      addresstext,
-      addressurl,
-      subheader,
-      expires,
-      logokey,
-      header,
-    } = data;
+      const {
+        cardid,
+        email,
+        phone,
+        delivery_method,
+        addresstext,
+        addressurl,
+        subheader,
+        expires,
+        logokey,
+        header,
+        isDemo,
+      } = data;
+      
+      console.log("🎯 Demo mode:", isDemo ? "YES" : "NO");
 
     if (!cardid || (!email && !phone)) {
       console.error("❌ Missing required fields");
@@ -38,48 +41,52 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ 1. Get current card and decrement quantity
-    try {
-      console.log("🔍 Attempting to get card with cardid:", cardid);
-      const cardResponse = await client.models.Card.get({ cardid });
-      console.log("🔍 Card response:", JSON.stringify(cardResponse, null, 2));
-      
-      if (!cardResponse.data) {
-        console.error("❌ Card not found:", cardid);
+    // ✅ 1. Get current card and decrement quantity (skip for demo)
+    if (!isDemo) {
+      try {
+        console.log("🔍 Attempting to get card with cardid:", cardid);
+        const cardResponse = await client.models.Card.get({ cardid });
+        console.log("🔍 Card response:", JSON.stringify(cardResponse, null, 2));
+        
+        if (!cardResponse.data) {
+          console.error("❌ Card not found:", cardid);
+          return NextResponse.json(
+            { error: "Card not found" },
+            { status: 404 }
+          );
+        }
+
+        const card = cardResponse.data;
+        console.log("🔍 Found card:", JSON.stringify(card, null, 2));
+        
+        if (card.quantity <= 0) {
+          console.error("❌ Card is out of stock. Current quantity:", card.quantity);
+          return NextResponse.json(
+            { error: "Card is out of stock" },
+            { status: 400 }
+          );
+        }
+
+        console.log("🔍 Updating card quantity from", card.quantity, "to", card.quantity - 1);
+        // Update card quantity
+        const updateResponse = await client.models.Card.update({
+          cardid,
+          quantity: card.quantity - 1,
+        });
+        console.log("✅ Card quantity update response:", JSON.stringify(updateResponse, null, 2));
+        console.log("✅ Card quantity decremented");
+      } catch (error: unknown) {
+        console.error("❌ Failed to update card quantity. Error details:", error);
+        console.error("❌ Error type:", typeof error);
+        console.error("❌ Error message:", error instanceof Error ? error.message : String(error));
+        console.error("❌ Error stack:", error instanceof Error ? error.stack : "No stack trace");
         return NextResponse.json(
-          { error: "Card not found" },
-          { status: 404 }
+          { error: "Card is out of stock or invalid" },
+          { status: 500 }
         );
       }
-
-      const card = cardResponse.data;
-      console.log("🔍 Found card:", JSON.stringify(card, null, 2));
-      
-      if (card.quantity <= 0) {
-        console.error("❌ Card is out of stock. Current quantity:", card.quantity);
-        return NextResponse.json(
-          { error: "Card is out of stock" },
-          { status: 400 }
-        );
-      }
-
-      console.log("🔍 Updating card quantity from", card.quantity, "to", card.quantity - 1);
-      // Update card quantity
-      const updateResponse = await client.models.Card.update({
-        cardid,
-        quantity: card.quantity - 1,
-      });
-      console.log("✅ Card quantity update response:", JSON.stringify(updateResponse, null, 2));
-      console.log("✅ Card quantity decremented");
-    } catch (error: unknown) {
-      console.error("❌ Failed to update card quantity. Error details:", error);
-      console.error("❌ Error type:", typeof error);
-      console.error("❌ Error message:", error instanceof Error ? error.message : String(error));
-      console.error("❌ Error stack:", error instanceof Error ? error.stack : "No stack trace");
-      return NextResponse.json(
-        { error: "Card is out of stock or invalid" },
-        { status: 500 }
-      );
+    } else {
+      console.log("🎯 Demo mode: Skipping card quantity decrement");
     }
 
     // ✅ 2. Log the claimed reward
@@ -92,7 +99,7 @@ export async function POST(req: Request) {
       addresstext,
       addressurl,
       subheader,
-      expires,
+      expires: isDemo ? "Demo Reward Not Valid" : expires,
       logokey,
       header,
       claimed_at: new Date().toISOString(),

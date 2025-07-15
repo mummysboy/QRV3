@@ -17,10 +17,12 @@ export default function ClaimRewardPopup({
   card,
   onClose,
   onComplete,
+  isDemo = false,
 }: {
   card: CardData;
   onClose: () => void;
   onComplete: () => void;
+  isDemo?: boolean;
 }) {
   const popupRef = useRef<HTMLDivElement>(null);
 
@@ -117,6 +119,7 @@ export default function ClaimRewardPopup({
       const ip = await getUserIP();
 
       console.log("🔵 Making API call to /api/claim-reward");
+      console.log("🔵 isDemo:", isDemo);
       // Call AWS API to claim reward
       const res = await fetch("/api/claim-reward", {
         method: "POST",
@@ -126,6 +129,7 @@ export default function ClaimRewardPopup({
           phone: deliveryMethod === "sms" ? phone : "",
           delivery_method: deliveryMethod,
           ip_address: ip,
+          isDemo: isDemo,
           ...card,
         }),
         cache: 'no-cache', // Prevent caching

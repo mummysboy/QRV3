@@ -179,7 +179,11 @@ export default function CardAnimation({ card, playbackRate = 1 }: { card: CardPr
               </div>
               <div className="mt-2">
                 <p className="text-xs font-light leading-snug">
-                  Expires: {cardData?.expires ? new Date(cardData.expires).toLocaleDateString() : 'N/A'}
+                  Expires: {cardData?.expires ? 
+                    (cardData.expires === "Demo Reward Not Valid" ? 
+                      cardData.expires : 
+                      new Date(cardData.expires).toLocaleDateString()
+                    ) : 'N/A'}
                 </p>
               </div>
             </>
