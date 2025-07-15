@@ -1,5 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateClient } from "aws-amplify/api";
+import "../../../lib/amplify-client";
+
+interface SignupData {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  businessName: string;
+  businessAddress: string;
+  businessCity: string;
+  businessState: string;
+  businessZip: string;
+  status?: string;
+  createdAt?: string;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -67,7 +83,7 @@ export async function POST(request: NextRequest) {
       { 
         success: true, 
         message: "Signup submitted successfully",
-        data: (result as any).data.createSignup 
+        data: (result as { data: { createSignup: SignupData } }).data.createSignup 
       },
       { status: 201 }
     );
