@@ -104,7 +104,18 @@ export default function Home() {
 
   const handleEnterZipCode = (e: React.FormEvent) => {
     e.preventDefault();
-    handleGetStarted();
+    const trimmedZipCode = zipCode.trim();
+    if (trimmedZipCode) {
+      // Basic zip code validation (5 digits or 5+4 format)
+      const zipCodeRegex = /^\d{5}(-\d{4})?$/;
+      if (zipCodeRegex.test(trimmedZipCode)) {
+        window.open(`/claim-reward/${trimmedZipCode}`, '_blank');
+      } else {
+        alert('Please enter a valid zip code (e.g., 12345 or 12345-6789)');
+      }
+    } else {
+      alert('Please enter a zip code');
+    }
   };
 
   const sections = [
