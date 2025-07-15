@@ -2,16 +2,17 @@
 
 import { useState, useEffect } from "react";
 import LogoVideo from "@/components/LogoVideo";
-import SignupForm, { SignupData } from "@/components/SignupForm";
-import SignupSuccess from "@/components/SignupSuccess";
+import BusinessSignupForm, { BusinessSignupData } from "@/components/BusinessSignupForm";
+import BusinessSignupSuccess from "@/components/BusinessSignupSuccess";
+import Link from "next/link";
 
 export default function Home() {
   const [zipCode, setZipCode] = useState("");
   const [isVisible, setIsVisible] = useState(false);
   const [currentSection, setCurrentSection] = useState(0);
   const [currentReview, setCurrentReview] = useState(0);
-  const [showSignupForm, setShowSignupForm] = useState(false);
-  const [showSignupSuccess, setShowSignupSuccess] = useState(false);
+  const [showBusinessSignupForm, setShowBusinessSignupForm] = useState(false);
+  const [showBusinessSignupSuccess, setShowBusinessSignupSuccess] = useState(false);
 
   const reviews = [
     {
@@ -69,12 +70,12 @@ export default function Home() {
   }, [reviews.length]);
 
   const handleGetStarted = () => {
-    setShowSignupForm(true);
+    setShowBusinessSignupForm(true);
   };
 
-  const handleSignupSubmit = async (data: SignupData) => {
+  const handleBusinessSignupSubmit = async (data: BusinessSignupData) => {
     try {
-      const response = await fetch('/api/signup', {
+      const response = await fetch('/api/business-signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -83,23 +84,23 @@ export default function Home() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to submit signup');
+        throw new Error('Failed to submit business signup');
       }
 
-      setShowSignupForm(false);
-      setShowSignupSuccess(true);
+      setShowBusinessSignupForm(false);
+      setShowBusinessSignupSuccess(true);
     } catch (error) {
-      console.error('Error submitting signup:', error);
-      alert('Failed to submit signup. Please try again.');
+      console.error('Error submitting business signup:', error);
+      alert('Failed to submit business signup. Please try again.');
     }
   };
 
-  const handleCloseSignupForm = () => {
-    setShowSignupForm(false);
+  const handleCloseBusinessSignupForm = () => {
+    setShowBusinessSignupForm(false);
   };
 
-  const handleCloseSignupSuccess = () => {
-    setShowSignupSuccess(false);
+  const handleCloseBusinessSignupSuccess = () => {
+    setShowBusinessSignupSuccess(false);
   };
 
   const handleEnterZipCode = (e: React.FormEvent) => {
@@ -152,11 +153,27 @@ export default function Home() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(34,197,94,0.05),transparent_50%)]"></div>
       </div>
 
-      {/* Header with Logo */}
+      {/* Header with Logo and Login */}
       <div className={`transition-all duration-1000 ease-out ${
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
       }`}>
-        <LogoVideo />
+        <div className="flex justify-between items-center p-4">
+          <LogoVideo />
+          <div className="flex items-center space-x-4">
+            <Link 
+              href="/business/login"
+              className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
+            >
+              Business Login
+            </Link>
+            <Link 
+              href="/business/signup"
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors font-medium"
+            >
+              Get Started
+            </Link>
+          </div>
+        </div>
       </div>
       
       {/* Hero Section */}
@@ -166,47 +183,47 @@ export default function Home() {
           <div className={`transition-all duration-1000 delay-300 ease-out ${
             isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
           }`}>
-                         <h1 className="text-6xl md:text-8xl font-light text-gray-900 mb-6 tracking-tight">
-               QR Rewards
-             </h1>
-             <p className="text-2xl md:text-3xl text-gray-600 font-light mb-12 tracking-wide">
-               Designed for simplicity, built for your business
-             </p>
+            <h1 className="text-6xl md:text-8xl font-light text-gray-900 mb-6 tracking-tight">
+              Get more customers with rewards
+            </h1>
+            <p className="text-2xl md:text-3xl text-gray-600 font-light mb-12 tracking-wide">
+              Join thousands of businesses using QR Rewards to attract and retain customers
+            </p>
           </div>
 
           {/* Subtitle with fade-in */}
           <div className={`transition-all duration-1000 delay-600 ease-out ${
             isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           }`}>
-                         <p className="text-lg md:text-xl text-gray-700 mb-16 max-w-2xl mx-auto leading-relaxed">
-               Transform how customers find and engage with your business. 
-               One scan. Instant connection.
-             </p>
+            <p className="text-lg md:text-xl text-gray-700 mb-16 max-w-2xl mx-auto leading-relaxed">
+              Create instant rewards that customers can claim with a simple QR code scan. 
+              No apps, no complicated setup - just more customers walking through your door.
+            </p>
           </div>
 
           {/* Interactive demo section */}
           <div className={`transition-all duration-1000 delay-900 ease-out ${
             isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           }`}>
-                         <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 border border-gray-200 shadow-xl max-w-md mx-auto mb-16">
-               <p className="text-gray-800 mb-6 text-lg font-medium">Experience it yourself</p>
-               <form onSubmit={handleEnterZipCode} className="space-y-4">
-                 <input
-                   type="text"
-                   placeholder="Enter any zip code"
-                   value={zipCode}
-                   onChange={(e) => setZipCode(e.target.value)}
-                   className="w-full px-6 py-4 text-lg bg-white border border-gray-300 rounded-2xl text-gray-900 placeholder-gray-500 focus:border-green-500 focus:outline-none transition-all duration-300 shadow-sm"
-                   maxLength={10}
-                 />
-                 <button
-                   type="submit"
-                   className="w-full bg-green-600 hover:bg-green-700 text-white text-lg font-medium px-8 py-4 rounded-2xl transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg"
-                 >
-                   Try It Now
-                 </button>
-               </form>
-             </div>
+            <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 border border-gray-200 shadow-xl max-w-md mx-auto mb-16">
+              <p className="text-gray-800 mb-6 text-lg font-medium">See how it works</p>
+              <form onSubmit={handleEnterZipCode} className="space-y-4">
+                <input
+                  type="text"
+                  placeholder="Enter any zip code"
+                  value={zipCode}
+                  onChange={(e) => setZipCode(e.target.value)}
+                  className="w-full px-6 py-4 text-lg bg-white border border-gray-300 rounded-2xl text-gray-900 placeholder-gray-500 focus:border-green-500 focus:outline-none transition-all duration-300 shadow-sm"
+                  maxLength={10}
+                />
+                <button
+                  type="submit"
+                  className="w-full bg-green-600 hover:bg-green-700 text-white text-lg font-medium px-8 py-4 rounded-2xl transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg"
+                >
+                  Try It Now
+                </button>
+              </form>
+            </div>
           </div>
         </div>
 
@@ -222,16 +239,16 @@ export default function Home() {
             {/* Section indicators */}
             <div className="flex justify-center mb-12">
               <div className="flex space-x-3">
-                                 {sections.map((_, index) => (
-                   <div
-                     key={index}
-                     className={`w-3 h-3 rounded-full transition-all duration-500 ${
-                       currentSection === index 
-                         ? 'bg-green-500 scale-125' 
-                         : 'bg-gray-300'
-                     }`}
-                   />
-                 ))}
+                {sections.map((_, index) => (
+                  <div
+                    key={index}
+                    className={`w-3 h-3 rounded-full transition-all duration-500 ${
+                      currentSection === index 
+                        ? 'bg-green-500 scale-125' 
+                        : 'bg-gray-300'
+                    }`}
+                  />
+                ))}
               </div>
             </div>
 
@@ -256,9 +273,9 @@ export default function Home() {
                     <p className="text-xl text-green-500 mb-3 font-medium">
                       {section.subtitle}
                     </p>
-                                         <p className="text-lg text-gray-600 max-w-md mx-auto">
-                       {section.description}
-                     </p>
+                    <p className="text-lg text-gray-600 max-w-md mx-auto">
+                      {section.description}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -266,142 +283,142 @@ export default function Home() {
           </div>
         </div>
 
-                 {/* Benefits section - Clean grid */}
-         <div className={`transition-all duration-1000 delay-1500 ease-out ${
-           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-         }`}>
-           <div className="grid md:grid-cols-3 gap-8 mb-20">
-             <div className="text-center p-8">
-               <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                 <span className="text-2xl">⚡</span>
-               </div>
-               <h3 className="text-xl font-medium mb-4">Instant</h3>
-               <p className="text-gray-600 leading-relaxed">
-                 No waiting, no forms. Customers get their reward immediately.
-               </p>
-             </div>
-             
-             <div className="text-center p-8">
-               <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                 <span className="text-2xl">🎯</span>
-               </div>
-               <h3 className="text-xl font-medium mb-4">Local</h3>
-               <p className="text-gray-600 leading-relaxed">
-                 Perfect for attracting nearby customers already in your area.
-               </p>
-             </div>
-             
-             <div className="text-center p-8">
-               <div className="w-16 h-16 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                 <span className="text-2xl">🚀</span>
-               </div>
-               <h3 className="text-xl font-medium mb-4">No Integration</h3>
-               <p className="text-gray-600 leading-relaxed">
-                 No complicated software or technical setup required. Advertise in real time from your mobile device.
-               </p>
-             </div>
-           </div>
-         </div>
+        {/* Benefits section - Clean grid */}
+        <div className={`transition-all duration-1000 delay-1500 ease-out ${
+          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+        }`}>
+          <div className="grid md:grid-cols-3 gap-8 mb-20">
+            <div className="text-center p-8">
+              <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <span className="text-2xl">⚡</span>
+              </div>
+              <h3 className="text-xl font-medium mb-4">Instant Setup</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Get your first reward live in under 2 minutes. No technical skills required.
+              </p>
+            </div>
+            
+            <div className="text-center p-8">
+              <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <span className="text-2xl">🎯</span>
+              </div>
+              <h3 className="text-xl font-medium mb-4">Local Customers</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Attract customers already in your area with location-based rewards.
+              </p>
+            </div>
+            
+            <div className="text-center p-8">
+              <div className="w-16 h-16 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <span className="text-2xl">📊</span>
+              </div>
+              <h3 className="text-xl font-medium mb-4">Track Results</h3>
+              <p className="text-gray-600 leading-relaxed">
+                See exactly how many customers your rewards are bringing in with real-time analytics.
+              </p>
+            </div>
+          </div>
+        </div>
 
-         {/* Reviews section - Carousel */}
-         <div className={`transition-all duration-1000 delay-1800 ease-out ${
-           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-         }`}>
-           <div className="text-center mb-16">
-             <h2 className="text-4xl md:text-5xl font-light mb-8 tracking-tight">
-               Loved by businesses
-             </h2>
-             <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto">
-               See what local business owners are saying about QR Rewards
-             </p>
-           </div>
-           
-           {/* Carousel container */}
-           <div className="relative max-w-4xl mx-auto mb-12">
-             {/* Review cards */}
-             <div className="relative h-80 overflow-hidden">
-               {reviews.map((review, index) => (
-                 <div
-                   key={index}
-                   className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
-                     currentReview === index
-                       ? 'opacity-100 translate-x-0'
-                       : 'opacity-0 translate-x-full'
-                   }`}
-                 >
-                   <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 h-full flex flex-col justify-center">
-                     <div className="text-center mb-6">
-                       <h4 className="font-semibold text-gray-900 text-xl mb-2">{review.name}</h4>
-                       <p className="text-sm text-gray-600">{review.role}</p>
-                     </div>
-                     <div className="flex justify-center mb-6">
-                       {[...Array(5)].map((_, i) => (
-                         <svg key={i} className="w-6 h-6 text-yellow-400 fill-current" viewBox="0 0 20 20">
-                           <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                         </svg>
-                       ))}
-                     </div>
-                     <p className="text-gray-700 leading-relaxed text-lg italic text-center">
-                       &ldquo;{review.text}&rdquo;
-                     </p>
-                   </div>
-                 </div>
-               ))}
-             </div>
+        {/* Reviews section - Carousel */}
+        <div className={`transition-all duration-1000 delay-1800 ease-out ${
+          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+        }`}>
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-light mb-8 tracking-tight">
+              Loved by businesses
+            </h2>
+            <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto">
+              See what local business owners are saying about QR Rewards
+            </p>
+          </div>
+          
+          {/* Carousel container */}
+          <div className="relative max-w-4xl mx-auto mb-12">
+            {/* Review cards */}
+            <div className="relative h-80 overflow-hidden">
+              {reviews.map((review, index) => (
+                <div
+                  key={index}
+                  className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
+                    currentReview === index
+                      ? 'opacity-100 translate-x-0'
+                      : 'opacity-0 translate-x-full'
+                  }`}
+                >
+                  <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 h-full flex flex-col justify-center">
+                    <div className="text-center mb-6">
+                      <h4 className="font-semibold text-gray-900 text-xl mb-2">{review.name}</h4>
+                      <p className="text-sm text-gray-600">{review.role}</p>
+                    </div>
+                    <div className="flex justify-center mb-6">
+                      {[...Array(5)].map((_, i) => (
+                        <svg key={i} className="w-6 h-6 text-yellow-400 fill-current" viewBox="0 0 20 20">
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                      ))}
+                    </div>
+                    <p className="text-gray-700 leading-relaxed text-lg italic text-center">
+                      &ldquo;{review.text}&rdquo;
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
 
-             {/* Navigation dots */}
-             <div className="flex justify-center mt-8">
-               <div className="flex space-x-3">
-                 {reviews.map((_, index) => (
-                   <button
-                     key={index}
-                     onClick={() => setCurrentReview(index)}
-                     className={`w-3 h-3 rounded-full transition-all duration-500 ${
-                       currentReview === index 
-                         ? 'bg-green-500 scale-125' 
-                         : 'bg-gray-300 hover:bg-gray-400'
-                     }`}
-                   />
-                 ))}
-               </div>
-             </div>
+            {/* Navigation dots */}
+            <div className="flex justify-center mt-8">
+              <div className="flex space-x-3">
+                {reviews.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentReview(index)}
+                    className={`w-3 h-3 rounded-full transition-all duration-500 ${
+                      currentReview === index 
+                        ? 'bg-green-500 scale-125' 
+                        : 'bg-gray-300 hover:bg-gray-400'
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
 
-             {/* Navigation arrows */}
-             <button
-               onClick={() => setCurrentReview((prev) => (prev - 1 + reviews.length) % reviews.length)}
-               className="absolute left-4 top-1/2 transform -translate-y-1/2 w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center hover:shadow-xl transition-all duration-300"
-             >
-               <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-               </svg>
-             </button>
-             <button
-               onClick={() => setCurrentReview((prev) => (prev + 1) % reviews.length)}
-               className="absolute right-4 top-1/2 transform -translate-y-1/2 w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center hover:shadow-xl transition-all duration-300"
-             >
-               <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-               </svg>
-             </button>
-           </div>
-         </div>
+            {/* Navigation arrows */}
+            <button
+              onClick={() => setCurrentReview((prev) => (prev - 1 + reviews.length) % reviews.length)}
+              className="absolute left-4 top-1/2 transform -translate-y-1/2 w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center hover:shadow-xl transition-all duration-300"
+            >
+              <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button
+              onClick={() => setCurrentReview((prev) => (prev + 1) % reviews.length)}
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center hover:shadow-xl transition-all duration-300"
+            >
+              <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        </div>
 
-                 {/* Final CTA - Minimalist */}
-         <div className={`transition-all duration-1000 delay-2100 ease-out ${
-           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-         }`}>
+        {/* Final CTA - Minimalist */}
+        <div className={`transition-all duration-1000 delay-2100 ease-out ${
+          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+        }`}>
           <div className="text-center">
             <h2 className="text-4xl md:text-5xl font-light mb-8 tracking-tight">
-              Ready to begin?
+              Ready to get more customers?
             </h2>
-                         <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto">
-               Join thousands of businesses already using QR rewards to connect with their community.
-             </p>
+            <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto">
+              Join thousands of businesses already using QR rewards to connect with their community.
+            </p>
             <button
               onClick={handleGetStarted}
               className="bg-green-600 hover:bg-green-700 text-white text-xl font-medium px-12 py-5 rounded-2xl transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-2xl"
             >
-              Get Started
+              Claim Your Business
             </button>
             <p className="text-sm text-gray-500 mt-6">
               Free to start • No setup fees • Cancel anytime
@@ -410,27 +427,27 @@ export default function Home() {
         </div>
       </div>
 
-                    {/* Subtle footer */}
-       <footer className="relative z-10 border-t border-gray-200 py-8 mt-20">
-         <div className="container mx-auto px-6 text-center">
-           <p className="text-gray-500 text-sm">
-             © 2024 QR Rewards. Connecting businesses with communities.
-           </p>
-         </div>
-       </footer>
+      {/* Subtle footer */}
+      <footer className="relative z-10 border-t border-gray-200 py-8 mt-20">
+        <div className="container mx-auto px-6 text-center">
+          <p className="text-gray-500 text-sm">
+            © 2024 QR Rewards. Connecting businesses with communities.
+          </p>
+        </div>
+      </footer>
 
-       {/* Signup Form Modal */}
-       <SignupForm
-         isOpen={showSignupForm}
-         onClose={handleCloseSignupForm}
-         onSubmit={handleSignupSubmit}
-       />
+      {/* Business Signup Form Modal */}
+      <BusinessSignupForm
+        isOpen={showBusinessSignupForm}
+        onClose={handleCloseBusinessSignupForm}
+        onSubmit={handleBusinessSignupSubmit}
+      />
 
-       {/* Signup Success Modal */}
-       <SignupSuccess
-         isOpen={showSignupSuccess}
-         onClose={handleCloseSignupSuccess}
-       />
-     </main>
-   );
- }
+      {/* Business Signup Success Modal */}
+      <BusinessSignupSuccess
+        isOpen={showBusinessSignupSuccess}
+        onClose={handleCloseBusinessSignupSuccess}
+      />
+    </main>
+  );
+}
