@@ -42,7 +42,7 @@ export async function POST(req: Request) {
     }
 
     // ✅ 1. Get current card and decrement quantity (skip for demo)
-    let card: { quantity: number; businessId?: string } | null = null;
+    let card: { quantity: number; businessId?: string | null } | null = null;
     if (!isDemo) {
       try {
         console.log("🔍 Attempting to get card with cardid:", cardid);

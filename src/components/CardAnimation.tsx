@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { generateGoogleMapsUrl } from "@/lib/utils";
 
 interface CardProps {
   cardid?: string | number;
@@ -54,9 +55,18 @@ export default function CardAnimation({ card, playbackRate = 1 }: { card: CardPr
       : `https://qrewards-media6367c-dev.s3.us-west-1.amazonaws.com${cardData.logokey.startsWith("/") ? cardData.logokey : `/${cardData.logokey}`}`
     : null;
 
-  // Debug: Log logo URL construction
+  // Debug: Log card data
+  console.log('CardAnimation - card prop:', card);
+  console.log('CardAnimation - cardData:', cardData);
   console.log('CardAnimation - logokey:', cardData?.logokey);
   console.log('CardAnimation - constructed logoUrl:', logoUrl);
+  console.log('CardAnimation - addresstext:', cardData?.addresstext);
+  console.log('CardAnimation - addressurl:', cardData?.addressurl);
+
+  // Debug when card prop changes
+  useEffect(() => {
+    console.log('CardAnimation - card prop changed:', card);
+  }, [card]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -168,7 +178,9 @@ export default function CardAnimation({ card, playbackRate = 1 }: { card: CardPr
                   {cardData?.header}
                 </p>
                 <a
-                  href={cardData?.addressurl}
+                  href={generateGoogleMapsUrl(
+                    (cardData?.header ? cardData.header + ' ' : '') + (cardData?.addresstext || '')
+                  )}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-xs font-light leading-tight underline hover:text-blue-600 block"

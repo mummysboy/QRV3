@@ -104,12 +104,18 @@ export default function ClaimRewardPage() {
 
           console.log("✅ Claimed reward data:", data);
         } else {
-          console.log("🔍 Fetching random card");
-          const res = await fetch("/api/get-random-card");
-          if (!res.ok) throw new Error("Failed to fetch random card");
-          data = await res.json();
-          console.log("✅ Random card data:", data);
-          console.log("✅ Random card data structure:", {
+          console.log("🔍 Fetching card for zip code:", zipCode);
+          const res = await fetch(`/api/get-card-by-zip?zip=${zipCode}`);
+          if (!res.ok) {
+            console.log("❌ Failed to fetch card by zip, falling back to random card");
+            const randomRes = await fetch("/api/get-random-card");
+            if (!randomRes.ok) throw new Error("Failed to fetch card");
+            data = await randomRes.json();
+          } else {
+            data = await res.json();
+          }
+          console.log("✅ Card data:", data);
+          console.log("✅ Card data structure:", {
             cardid: data?.cardid,
             header: data?.header,
             logokey: data?.logokey,
