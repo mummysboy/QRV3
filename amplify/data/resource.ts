@@ -43,6 +43,24 @@ const schema = a.schema({
     })
     .identifier(["id"])
     .authorization((allow) => [allow.publicApiKey()]),
+
+  Signup: a
+    .model({
+      id: a.id().required(),
+      firstName: a.string().required(),
+      lastName: a.string().required(),
+      email: a.string().required(),
+      phone: a.string(),
+      businessName: a.string().required(),
+      businessAddress: a.string().required(),
+      businessCity: a.string().required(),
+      businessState: a.string().required(),
+      businessZip: a.string().required(),
+      status: a.string().default("pending"),
+      createdAt: a.string(),
+    })
+    .identifier(["id"])
+    .authorization((allow) => [allow.publicApiKey()]),
 });
 
 export type Schema = ClientSchema<typeof schema>;
