@@ -10,179 +10,111 @@ const sesClient = new SESClient({
 
 export async function POST(req: Request) {
   try {
-    const { type, id, status } = await req.json();
+    const { businessId, testEmail } = await req.json();
     
-    if (!type || !id || !status) {
-      return NextResponse.json(
-        { error: "Missing required fields: type, id, status" },
-        { status: 400 }
-      );
-    }
+    console.log("🧪 Testing approval email for business:", businessId);
+    console.log("🧪 Test email address:", testEmail);
 
     const client = generateClient();
-    let result;
 
-    if (type === 'signup') {
-      // Update Signup model
-      const updateResult = await client.graphql({
-        query: `
-          mutation UpdateSignupStatus($input: UpdateSignupInput!) {
-            updateSignup(input: $input) {
-              id
-              status
-              updatedAt
-            }
-          }
-        `,
-        variables: {
-          input: {
-            id: id,
-            status: status,
-          },
-        },
-      });
-
-      result = (updateResult as { data: { updateSignup: { 
-        id: string; 
-        status: string; 
-        updatedAt: string; 
-      } } }).data.updateSignup;
-
-    } else if (type === 'business') {
-      // Get business details first
-      const businessResult = await client.graphql({
-        query: `
-          query GetBusiness($id: ID!) {
-            getBusiness(id: $id) {
-              id
-              name
-              email
-              phone
-              status
-            }
-          }
-        `,
-        variables: { id },
-      });
-
-      const business = (businessResult as { data: { getBusiness: {
-        id: string;
-        name: string;
-        email: string;
-        phone: string;
-        status: string;
-      } } }).data.getBusiness;
-      
-      if (!business) {
-        return NextResponse.json(
-          { error: "Business not found" },
-          { status: 404 }
-        );
-      }
-
-      // Update Business model
-      const updateData: {
-        id: string;
-        status: string;
-        updatedAt: string;
-        approvedAt?: string;
-        approvedBy?: string;
-      } = {
-        id: id,
-        status: status,
-        updatedAt: new Date().toISOString(),
-      };
-
-      // If approving, add approval timestamp and admin info
-      if (status === 'approved') {
-        updateData.approvedAt = new Date().toISOString();
-        updateData.approvedBy = 'admin'; // You can pass actual admin ID here
-      }
-
-      const updateResult = await client.graphql({
-        query: `
-          mutation UpdateBusinessStatus($input: UpdateBusinessInput!) {
-            updateBusiness(input: $input) {
-              id
-              status
-              updatedAt
-              approvedAt
-              approvedBy
-            }
-          }
-        `,
-        variables: {
-          input: updateData,
-        },
-      });
-
-      result = (updateResult as { data: { updateBusiness: { 
-        id: string; 
-        status: string; 
-        updatedAt: string; 
-        approvedAt: string; 
-        approvedBy: string; 
-      } } }).data.updateBusiness;
-
-      // Send approval email if business is approved
-      if (status === 'approved') {
-        // Fetch business users separately
-        let userEmail = null;
-        try {
-          const usersResult = await client.graphql({
-            query: `
-              query ListBusinessUsers($businessId: String!) {
-                listBusinessUsers(filter: { businessId: { eq: $businessId } }) {
-                  items {
-                    id
-                    email
-                    firstName
-                    lastName
-                  }
-                }
+    // Get business details
+    const businessResult = await client.graphql({
+      query: `
+        query GetBusiness($id: ID!) {
+          getBusiness(id: $id) {
+            id
+            name
+            email
+            phone
+            status
+            businessUsers {
+              items {
+                id
+                email
+                firstName
+                lastName
               }
-            `,
-            variables: { businessId: business.id },
-          });
-          const users = (usersResult as { data: { listBusinessUsers: { items: Array<{ id: string; email: string; firstName: string; lastName: string }> } } }).data.listBusinessUsers.items;
-          if (users && users.length > 0) {
-            userEmail = users[0].email;
+            }
           }
-        } catch (userErr) {
-          console.error("Failed to fetch business users for approval email:", userErr);
         }
-        if (userEmail) {
-          try {
-            await sendApprovalEmail({
-              businessName: business.name,
-              userEmail: userEmail,
-              loginUrl: 'https://www.qrewards.net/business/login',
-            });
-          } catch (emailError) {
-            console.error("Failed to send approval email:", emailError);
-            // Don't fail the entire request if email fails
-          }
-        } else {
-          console.warn("No business user found to send approval email.");
-        }
-      }
-    } else {
+      `,
+      variables: { id: businessId },
+    });
+
+    const business = (businessResult as { data: { getBusiness: {
+      id: string;
+      name: string;
+      email: string;
+      phone: string;
+      status: string;
+      businessUsers?: {
+        items: Array<{
+          id: string;
+          email: string;
+          firstName: string;
+          lastName: string;
+        }>;
+      };
+    } | null } }).data.getBusiness;
+
+    if (!business) {
       return NextResponse.json(
-        { error: "Invalid type. Must be 'signup' or 'business'" },
-        { status: 400 }
+        { error: "Business not found" },
+        { status: 404 }
       );
     }
 
-    return NextResponse.json({
-      success: true,
-      message: `${type} status updated successfully`,
-      data: result,
-    }, { status: 200 });
+    console.log("🏢 Business found:", {
+      id: business.id,
+      name: business.name,
+      status: business.status,
+      userCount: business.businessUsers?.items?.length || 0
+    });
+
+    if (!business.businessUsers?.items || business.businessUsers.items.length === 0) {
+      return NextResponse.json(
+        { error: "No business users found for this business" },
+        { status: 404 }
+      );
+    }
+
+    const primaryUser = business.businessUsers.items[0];
+    const targetEmail = testEmail || primaryUser.email;
+
+    console.log("👤 Sending approval email to:", targetEmail);
+
+    // Send the approval email
+    try {
+      await sendApprovalEmail({
+        businessName: business.name,
+        userEmail: targetEmail,
+        loginUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://www.qrewards.net'}/business/login`,
+      });
+
+      console.log("✅ Approval email sent successfully");
+
+      return NextResponse.json({
+        success: true,
+        message: "Approval email sent successfully",
+        data: {
+          businessName: business.name,
+          sentTo: targetEmail,
+          loginUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://www.qrewards.net'}/business/login`,
+        }
+      });
+
+    } catch (emailError) {
+      console.error("❌ Failed to send approval email:", emailError);
+      return NextResponse.json(
+        { error: "Failed to send approval email", details: emailError instanceof Error ? emailError.message : "Unknown error" },
+        { status: 500 }
+      );
+    }
 
   } catch (error) {
-    console.error("Error updating signup status:", error);
+    console.error("❌ Error in test approval email:", error);
     return NextResponse.json(
-      { error: "Failed to update signup status" },
+      { error: "An error occurred while testing approval email" },
       { status: 500 }
     );
   }

@@ -5,6 +5,7 @@ import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
 
 const sesClient = new SESClient({
   region: "us-west-1", // or hardcode the verified SES region
+  // Use default credential provider chain
 });
 
 
