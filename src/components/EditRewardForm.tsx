@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import CardAnimation from "@/components/CardAnimation";
 
 interface Card {
   cardid: string;
@@ -28,7 +27,7 @@ export default function EditRewardForm({ card, onClose, onSuccess }: EditRewardF
     expires: card.expires || "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
+
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedHour, setSelectedHour] = useState(12);
@@ -366,15 +365,7 @@ export default function EditRewardForm({ card, onClose, onSuccess }: EditRewardF
                   </div>
                 </div>
 
-                <div className="pt-4 sm:pt-6 space-y-3">
-                  <button
-                    type="button"
-                    onClick={() => setShowPreview(true)}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 sm:py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 active:scale-95 text-base"
-                  >
-                    Preview Reward
-                  </button>
-                  
+                <div className="pt-4 sm:pt-6">
                   <button
                     type="submit"
                     disabled={isSubmitting || !formData.subheader.trim()}
@@ -386,63 +377,12 @@ export default function EditRewardForm({ card, onClose, onSuccess }: EditRewardF
               </form>
             </div>
 
-            {/* Preview Section */}
-            <div className="hidden lg:block">
-              <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4">Preview</h3>
-              <div className="bg-gray-50 rounded-lg p-6">
-                <CardAnimation 
-                  card={{
-                    cardid: "preview",
-                    header: businessInfo.name,
-                    logokey: businessInfo.logo,
-                    addresstext: businessInfo.address,
-                    addressurl: "",
-                    subheader: formData.subheader || "Reward description will appear here",
-                    expires: formData.expires ? new Date(formData.expires).toISOString() : "Demo Reward Not Valid",
-                    quantity: formData.quantity
-                  }}
-                  playbackRate={1}
-                />
-              </div>
-            </div>
+
           </div>
         </div>
       </div>
 
-      {/* Mobile Preview Modal */}
-      {showPreview && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-60 p-4">
-          <div className="bg-white rounded-lg p-6 max-w-sm w-full">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Reward Preview</h3>
-              <button
-                onClick={() => setShowPreview(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            
-            <div className="bg-gray-50 rounded-lg p-4">
-              <CardAnimation 
-                card={{
-                  cardid: "preview",
-                  header: businessInfo.name,
-                  logokey: businessInfo.logo,
-                  addresstext: businessInfo.address,
-                  addressurl: "",
-                  subheader: formData.subheader || "Reward description will appear here",
-                  expires: formData.expires ? new Date(formData.expires).toISOString() : "Demo Reward Not Valid",
-                  quantity: formData.quantity
-                }}
-                playbackRate={1}
-              />
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {/* Scrollable Date Picker Modal */}
       {showDatePicker && (
