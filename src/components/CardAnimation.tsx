@@ -158,9 +158,9 @@ export default function CardAnimation({ card, playbackRate = 1 }: { card: CardPr
           showOverlay ? "opacity-100" : "opacity-0"
         }`}
       >
-        <div className="bg-white bg-opacity-90 text-black text-center px-2 py-2 rounded-lg max-w-[170px] w-full flex flex-col justify-center transition-all duration-500 shadow-lg min-h-[140px]">
+        <div className="bg-white text-black text-center px-1 py-1 rounded-lg max-w-[160px] w-full flex flex-col justify-center transition-all duration-500 min-h-[130px]">
           {!card ? (
-            <p className="text-sm font-semibold text-gray-700 px-1 leading-tight">
+            <p className="text-xs font-semibold text-gray-700 px-1 leading-tight">
               Sorry, there are no rewards available at the moment. Please try
               again later.
             </p>
@@ -177,8 +177,8 @@ export default function CardAnimation({ card, playbackRate = 1 }: { card: CardPr
                         // Replace with a fallback div instead of hiding
                         const fallbackDiv = document.createElement('div');
                         fallbackDiv.className = 'mx-auto bg-gray-200 rounded-lg flex items-center justify-center';
-                        fallbackDiv.style.cssText = 'width: 80px !important; height: 50px !important; min-width: 60px; min-height: 40px; max-width: 100px; max-height: 60px;';
-                        fallbackDiv.innerHTML = '<span class="text-gray-500 text-lg">🏢</span>';
+                        fallbackDiv.style.cssText = 'width: 70px !important; height: 45px !important; min-width: 50px; min-height: 35px; max-width: 90px; max-height: 50px;';
+                        fallbackDiv.innerHTML = '<span class="text-gray-500 text-base">🏢</span>';
                         e.currentTarget.parentNode?.replaceChild(fallbackDiv, e.currentTarget);
                       }}
                       onLoad={() => {
@@ -188,10 +188,10 @@ export default function CardAnimation({ card, playbackRate = 1 }: { card: CardPr
                       style={{ 
                         width: 'auto', 
                         height: 'auto', 
-                        minWidth: '60px', 
-                        minHeight: '40px', 
-                        maxWidth: '100px', 
-                        maxHeight: '60px',
+                        minWidth: '50px', 
+                        minHeight: '35px', 
+                        maxWidth: '90px', 
+                        maxHeight: '50px',
                         objectFit: 'contain'
                       }}
                     />
@@ -200,15 +200,15 @@ export default function CardAnimation({ card, playbackRate = 1 }: { card: CardPr
                   <div 
                     className="mx-auto bg-gray-200 rounded-lg flex items-center justify-center mb-1"
                     style={{ 
-                      width: '80px', 
-                      height: '50px', 
-                      minWidth: '60px', 
-                      minHeight: '40px', 
-                      maxWidth: '100px', 
-                      maxHeight: '60px'
+                      width: '70px', 
+                      height: '45px', 
+                      minWidth: '50px', 
+                      minHeight: '35px', 
+                      maxWidth: '90px', 
+                      maxHeight: '50px'
                     }}
                   >
-                    <span className="text-gray-500 text-lg">🏢</span>
+                    <span className="text-gray-500 text-base">🏢</span>
                   </div>
                 )}
                 <p className="text-sm font-bold leading-tight break-words px-1 overflow-hidden text-ellipsis">
