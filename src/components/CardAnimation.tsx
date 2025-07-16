@@ -52,7 +52,9 @@ export default function CardAnimation({ card, playbackRate = 1 }: { card: CardPr
   const logoUrl = cardData?.logokey
     ? cardData.logokey.startsWith("data:") || cardData.logokey.startsWith("http")
       ? cardData.logokey
-      : `https://qrewards-media6367c-dev.s3.us-west-1.amazonaws.com${cardData.logokey.startsWith("/") ? cardData.logokey : `/${cardData.logokey}`}`
+      : cardData.logokey.startsWith("/")
+        ? `https://qrewards-media6367c-dev.s3.us-west-1.amazonaws.com${cardData.logokey}`
+        : `https://qrewards-media6367c-dev.s3.us-west-1.amazonaws.com/${cardData.logokey}`
     : null;
 
   // Debug: Log card data
@@ -66,7 +68,9 @@ export default function CardAnimation({ card, playbackRate = 1 }: { card: CardPr
   // Debug when card prop changes
   useEffect(() => {
     console.log('CardAnimation - card prop changed:', card);
-  }, [card]);
+    console.log('CardAnimation - cardData after change:', cardData);
+    console.log('CardAnimation - logoUrl after change:', logoUrl);
+  }, [card, cardData, logoUrl]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -163,16 +167,32 @@ export default function CardAnimation({ card, playbackRate = 1 }: { card: CardPr
           ) : (
             <>
               <div className="space-y-[2px]">
-                {logoUrl && (
+                {logoUrl ? (
                   <img
                     src={logoUrl}
                     alt="Business Logo"
                     onError={(e) => {
-                      e.currentTarget.style.display = "none";
+                      console.error('Logo failed to load:', logoUrl);
+                      // Replace with a fallback div instead of hiding
+                      const fallbackDiv = document.createElement('div');
+                      fallbackDiv.className = 'mx-auto mb-0 bg-gray-200 rounded-lg flex items-center justify-center';
+                      fallbackDiv.style.cssText = 'width: 109px !important; height: 68px !important; min-width: 109px; min-height: 68px; max-height: 130px;';
+                      fallbackDiv.innerHTML = '<span class="text-gray-500 text-2xl">🏢</span>';
+                      e.currentTarget.parentNode?.replaceChild(fallbackDiv, e.currentTarget);
+                    }}
+                    onLoad={() => {
+                      console.log('Logo loaded successfully:', logoUrl);
                     }}
                     className="mx-auto mb-0 object-contain rounded-lg"
                     style={{ width: '109px !important', height: '68px !important', minWidth: '109px', minHeight: '68px', maxHeight: '130px', }}
                   />
+                ) : (
+                  <div 
+                    className="mx-auto mb-0 bg-gray-200 rounded-lg flex items-center justify-center"
+                    style={{ width: '109px !important', height: '68px !important', minWidth: '109px', minHeight: '68px', maxHeight: '130px', }}
+                  >
+                    <span className="text-gray-500 text-2xl">🏢</span>
+                  </div>
                 )}
                 <p className="text-lg font-bold leading-snug break-words -mt-5">
                   {cardData?.header}
