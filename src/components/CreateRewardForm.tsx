@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import CardAnimation from "@/components/CardAnimation";
 
 interface CreateRewardFormProps {
   isOpen: boolean;
@@ -435,52 +436,19 @@ export default function CreateRewardForm({
             <div className="hidden lg:block">
               <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4">Preview</h3>
               <div className="bg-gray-50 rounded-lg p-6">
-                <div className="bg-white rounded-lg shadow-md p-6 max-w-sm mx-auto">
-                  {/* Business Logo */}
-                  {formData.businessLogo ? (
-                    <div className="flex justify-center mb-4">
-                      <img 
-                        src={formData.businessLogo} 
-                        alt={`${formData.businessName} logo`}
-                        className="h-16 w-16 object-contain"
-                      />
-                    </div>
-                  ) : (
-                    <div className="flex justify-center mb-4">
-                      <div className="h-16 w-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                        <span className="text-gray-500 text-2xl">🏢</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Business Info */}
-                  <div className="text-center mb-4">
-                    <h4 className="font-semibold text-gray-900">{formData.businessName}</h4>
-                    <p className="text-sm text-gray-600">{formData.businessCategory}</p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {formData.businessAddress}, {formData.businessCity}, {formData.businessState} {formData.businessZipCode}
-                    </p>
-                  </div>
-
-                  {/* Reward Info */}
-                  <div className="border-t pt-4">
-                    <h5 className="font-bold text-lg text-gray-900 mb-2">
-                      {formData.businessName}
-                    </h5>
-                    <p className="text-sm text-gray-600 mb-3">
-                      {formData.subheader || "Reward description will appear here"}
-                    </p>
-                    
-                    <div className="flex justify-between text-sm text-gray-500 mb-3">
-                      <span>Quantity: {formData.quantity}</span>
-                      <span>Expires: {formData.expires ? formatExpirationDate(formData.expires) : "No expiration"}</span>
-                    </div>
-
-                    <button className="w-full bg-green-600 text-white py-2 rounded-lg font-medium">
-                      Claim Reward
-                    </button>
-                  </div>
-                </div>
+                <CardAnimation 
+                  card={{
+                    cardid: "preview",
+                    header: formData.businessName,
+                    logokey: formData.businessLogo,
+                    addresstext: `${formData.businessAddress}, ${formData.businessCity}, ${formData.businessState} ${formData.businessZipCode}`,
+                    addressurl: "",
+                    subheader: formData.subheader || "Reward description will appear here",
+                    expires: formData.expires ? new Date(formData.expires).toISOString() : "Demo Reward Not Valid",
+                    quantity: formData.quantity
+                  }}
+                  playbackRate={1}
+                />
               </div>
             </div>
           </div>
@@ -504,52 +472,19 @@ export default function CreateRewardForm({
             </div>
             
             <div className="bg-gray-50 rounded-lg p-4">
-              <div className="bg-white rounded-lg shadow-md p-4">
-                {/* Business Logo */}
-                {formData.businessLogo ? (
-                  <div className="flex justify-center mb-3">
-                    <img 
-                      src={formData.businessLogo} 
-                      alt={`${formData.businessName} logo`}
-                      className="h-12 w-12 object-contain"
-                    />
-                  </div>
-                ) : (
-                  <div className="flex justify-center mb-3">
-                    <div className="h-12 w-12 bg-gray-200 rounded-lg flex items-center justify-center">
-                      <span className="text-gray-500 text-xl">🏢</span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Business Info */}
-                <div className="text-center mb-3">
-                  <h4 className="font-semibold text-gray-900 text-sm">{formData.businessName}</h4>
-                  <p className="text-xs text-gray-600">{formData.businessCategory}</p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {formData.businessAddress}, {formData.businessCity}, {formData.businessState} {formData.businessZipCode}
-                  </p>
-                </div>
-
-                {/* Reward Info */}
-                <div className="border-t pt-3">
-                  <h5 className="font-bold text-base text-gray-900 mb-2">
-                    {formData.businessName}
-                  </h5>
-                  <p className="text-xs text-gray-600 mb-2">
-                    {formData.subheader || "Reward description will appear here"}
-                  </p>
-                  
-                  <div className="flex justify-between text-xs text-gray-500 mb-2">
-                    <span>Qty: {formData.quantity}</span>
-                    <span>Expires: {formData.expires ? formatExpirationDate(formData.expires) : "No expiration"}</span>
-                  </div>
-
-                  <button className="w-full bg-green-600 text-white py-2 rounded-lg font-medium text-sm">
-                    Claim Reward
-                  </button>
-                </div>
-              </div>
+              <CardAnimation 
+                card={{
+                  cardid: "preview",
+                  header: formData.businessName,
+                  logokey: formData.businessLogo,
+                  addresstext: `${formData.businessAddress}, ${formData.businessCity}, ${formData.businessState} ${formData.businessZipCode}`,
+                  addressurl: "",
+                  subheader: formData.subheader || "Reward description will appear here",
+                  expires: formData.expires ? new Date(formData.expires).toISOString() : "Demo Reward Not Valid",
+                  quantity: formData.quantity
+                }}
+                playbackRate={1}
+              />
             </div>
           </div>
         </div>
