@@ -55,6 +55,11 @@ export default function CreateRewardForm({
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedHour, setSelectedHour] = useState(12);
+  const [selectedMinute, setSelectedMinute] = useState(0);
+  const [selectedPeriod, setSelectedPeriod] = useState<'AM' | 'PM'>('PM');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,14 +111,80 @@ export default function CreateRewardForm({
     return date.toLocaleDateString() + " " + date.toLocaleTimeString();
   };
 
-  const getMinDateTime = () => {
+  const setQuickExpiration = (hours: number) => {
     const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
+    const expirationDate = new Date(now.getTime() + (hours * 60 * 60 * 1000));
+    const year = expirationDate.getFullYear();
+    const month = String(expirationDate.getMonth() + 1).padStart(2, '0');
+    const day = String(expirationDate.getDate()).padStart(2, '0');
+    const hoursStr = String(expirationDate.getHours()).padStart(2, '0');
+    const minutes = String(expirationDate.getMinutes()).padStart(2, '0');
+    const dateTimeString = `${year}-${month}-${day}T${hoursStr}:${minutes}`;
+    
+    setFormData(prev => ({
+      ...prev,
+      expires: dateTimeString
+    }));
+  };
+
+  const clearExpiration = () => {
+    setFormData(prev => ({
+      ...prev,
+      expires: ""
+    }));
+    setSelectedDate(null);
+    setSelectedHour(12);
+    setSelectedMinute(0);
+    setSelectedPeriod('PM');
+  };
+
+  const applyDateSelection = () => {
+    if (selectedDate) {
+      const date = new Date(selectedDate);
+      let hour = selectedHour;
+      if (selectedPeriod === 'PM' && hour !== 12) hour += 12;
+      if (selectedPeriod === 'AM' && hour === 12) hour = 0;
+      
+      date.setHours(hour, selectedMinute, 0, 0);
+      
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hoursStr = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const dateTimeString = `${year}-${month}-${day}T${hoursStr}:${minutes}`;
+      
+      setFormData(prev => ({
+        ...prev,
+        expires: dateTimeString
+      }));
+    }
+    setShowDatePicker(false);
+  };
+
+  const cancelDateSelection = () => {
+    setShowDatePicker(false);
+  };
+
+  const generateDateOptions = () => {
+    const options = [];
+    const today = new Date();
+    
+    for (let i = 0; i < 365; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      options.push(date);
+    }
+    
+    return options;
+  };
+
+  const generateHourOptions = () => {
+    return Array.from({ length: 12 }, (_, i) => i + 1);
+  };
+
+  const generateMinuteOptions = () => {
+    return Array.from({ length: 60 }, (_, i) => i);
   };
 
   if (!isOpen) return null;
@@ -232,28 +303,98 @@ export default function CreateRewardForm({
                   </div>
 
                   <div>
-                    <label htmlFor="expires" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="expires" className="block text-sm font-medium text-gray-700 mb-2">
                       Expiration Date & Time
                     </label>
+                    
+                    {/* Quick Preset Buttons */}
+                    <div className="mb-3">
+                      <p className="text-xs text-gray-600 mb-2">Quick options:</p>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setQuickExpiration(1)}
+                          className="px-3 py-2 text-xs sm:text-sm bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg border border-blue-200 transition-colors"
+                        >
+                          1 Hour
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setQuickExpiration(24)}
+                          className="px-3 py-2 text-xs sm:text-sm bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg border border-blue-200 transition-colors"
+                        >
+                          1 Day
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setQuickExpiration(168)}
+                          className="px-3 py-2 text-xs sm:text-sm bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg border border-blue-200 transition-colors"
+                        >
+                          1 Week
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setQuickExpiration(720)}
+                          className="px-3 py-2 text-xs sm:text-sm bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg border border-blue-200 transition-colors"
+                        >
+                          1 Month
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Custom Date/Time Picker Button */}
                     <div className="relative">
-                      <input
-                        type="datetime-local"
-                        id="expires"
-                        name="expires"
-                        value={formData.expires}
-                        onChange={handleInputChange}
-                        min={getMinDateTime()}
-                        className="w-full px-3 sm:px-4 py-3 border border-gray-300 rounded-xl focus:border-green-500 focus:outline-none transition-colors text-base"
-                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowDatePicker(true)}
+                        className="w-full px-3 sm:px-4 py-3 border border-gray-300 rounded-xl focus:border-green-500 focus:outline-none transition-colors text-base text-left bg-white hover:bg-gray-50"
+                      >
+                        {formData.expires ? (
+                          <span className="text-gray-900">{formatExpirationDate(formData.expires)}</span>
+                        ) : (
+                          <span className="text-gray-500">Select date and time</span>
+                        )}
+                      </button>
                       <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                         <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                       </div>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {formData.expires ? `Expires: ${formatExpirationDate(formData.expires)}` : "Leave empty for no expiration"}
-                    </p>
+
+                    {/* Clear Button */}
+                    {formData.expires && (
+                      <div className="mt-2">
+                        <button
+                          type="button"
+                          onClick={clearExpiration}
+                          className="text-xs text-red-600 hover:text-red-700 underline"
+                        >
+                          Clear expiration date
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Status Display */}
+                    <div className="mt-2 p-3 bg-gray-50 rounded-lg">
+                      <p className="text-xs text-gray-600">
+                        {formData.expires ? (
+                          <span className="flex items-center">
+                            <svg className="w-4 h-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Expires: {formatExpirationDate(formData.expires)}
+                          </span>
+                        ) : (
+                          <span className="flex items-center">
+                            <svg className="w-4 h-4 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            No expiration date set
+                          </span>
+                        )}
+                      </p>
+                    </div>
                   </div>
 
                   <div>
@@ -408,6 +549,137 @@ export default function CreateRewardForm({
                     Claim Reward
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Scrollable Date Picker Modal */}
+      {showDatePicker && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-60 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-semibold text-gray-900">Select Date & Time</h3>
+                <button
+                  onClick={cancelDateSelection}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Date Selection */}
+              <div className="mb-6">
+                <h4 className="text-sm font-medium text-gray-700 mb-3">Date</h4>
+                <div className="h-40 overflow-y-auto border border-gray-200 rounded-lg scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                  {generateDateOptions().map((date, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => setSelectedDate(date)}
+                      className={`w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex-shrink-0 ${
+                        selectedDate && selectedDate.toDateString() === date.toDateString()
+                          ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-500'
+                          : 'text-gray-700'
+                      }`}
+                    >
+                      <div className="font-medium">{date.toLocaleDateString('en-US', { weekday: 'short' })}</div>
+                      <div className="text-sm">{date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Time Selection */}
+              <div className="mb-6">
+                <h4 className="text-sm font-medium text-gray-700 mb-3">Time</h4>
+                <div className="grid grid-cols-3 gap-2">
+                  {/* Hour Selection */}
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-2">Hour</label>
+                    <div className="h-24 overflow-y-auto border border-gray-200 rounded-lg scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                      {generateHourOptions().map((hour) => (
+                        <button
+                          key={hour}
+                          type="button"
+                          onClick={() => setSelectedHour(hour)}
+                          className={`w-full px-3 py-2 text-center hover:bg-gray-50 transition-colors flex-shrink-0 ${
+                            selectedHour === hour
+                              ? 'bg-blue-50 text-blue-700'
+                              : 'text-gray-700'
+                          }`}
+                        >
+                          {hour}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Minute Selection */}
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-2">Minute</label>
+                    <div className="h-24 overflow-y-auto border border-gray-200 rounded-lg scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                      {generateMinuteOptions().map((minute) => (
+                        <button
+                          key={minute}
+                          type="button"
+                          onClick={() => setSelectedMinute(minute)}
+                          className={`w-full px-3 py-2 text-center hover:bg-gray-50 transition-colors flex-shrink-0 ${
+                            selectedMinute === minute
+                              ? 'bg-blue-50 text-blue-700'
+                              : 'text-gray-700'
+                          }`}
+                        >
+                          {minute.toString().padStart(2, '0')}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* AM/PM Selection */}
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-2">Period</label>
+                    <div className="h-24 overflow-y-auto border border-gray-200 rounded-lg scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                      {['AM', 'PM'].map((period) => (
+                        <button
+                          key={period}
+                          type="button"
+                          onClick={() => setSelectedPeriod(period as 'AM' | 'PM')}
+                          className={`w-full px-3 py-2 text-center hover:bg-gray-50 transition-colors flex-shrink-0 ${
+                            selectedPeriod === period
+                              ? 'bg-blue-50 text-blue-700'
+                              : 'text-gray-700'
+                          }`}
+                        >
+                          {period}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={cancelDateSelection}
+                  className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={applyDateSelection}
+                  disabled={!selectedDate}
+                  className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-500 transition-colors"
+                >
+                  Apply
+                </button>
               </div>
             </div>
           </div>
