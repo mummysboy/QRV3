@@ -31,6 +31,47 @@ interface CardProps {
   qty?: number;
 }
 
+// Countdown Timer Component
+function CountdownTimer({ expirationDate }: { expirationDate: string }) {
+  const [timeLeft, setTimeLeft] = useState<{
+    hours: number;
+    minutes: number;
+    seconds: number;
+  }>({ hours: 0, minutes: 0, seconds: 0 });
+
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      const now = new Date().getTime();
+      const expiration = new Date(expirationDate).getTime();
+      const difference = expiration - now;
+
+      if (difference > 0) {
+        const hours = Math.floor(difference / (1000 * 60 * 60));
+        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+        
+        setTimeLeft({ hours, minutes, seconds });
+      } else {
+        setTimeLeft({ hours: 0, minutes: 0, seconds: 0 });
+      }
+    };
+
+    calculateTimeLeft();
+    const timer = setInterval(calculateTimeLeft, 1000);
+
+    return () => clearInterval(timer);
+  }, [expirationDate]);
+
+  return (
+    <div className="text-xs font-light leading-tight px-1">
+      <span className="text-red-600 font-medium">Expires in: </span>
+      <span className="font-semibold">
+        {String(timeLeft.hours).padStart(2, '0')}:{String(timeLeft.minutes).padStart(2, '0')}:{String(timeLeft.seconds).padStart(2, '0')}
+      </span>
+    </div>
+  );
+}
+
 export default function CardAnimation({ card, playbackRate = 1 }: { card: CardProps | null, playbackRate?: number }) {
   const [showOverlay, setShowOverlay] = useState(false);
   const [hasTriggered, setHasTriggered] = useState(false);
@@ -47,6 +88,18 @@ export default function CardAnimation({ card, playbackRate = 1 }: { card: CardPr
     expires: card.expires || card.expiry || card.expiration_date,
     quantity: card.quantity || card.qty
   } : null;
+
+  // Helper function to check if expiration is less than 24 hours
+  const isExpiringSoon = (expirationDate: string | Date) => {
+    if (!expirationDate || expirationDate === "Demo Reward Not Valid") return false;
+    
+    const now = new Date().getTime();
+    const expiration = new Date(expirationDate).getTime();
+    const difference = expiration - now;
+    const twentyFourHours = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+    
+    return difference > 0 && difference <= twentyFourHours;
+  };
 
   // Construct the logo URL using the public S3 path and normalize slashes
   const logoUrl = cardData?.logokey
@@ -231,13 +284,19 @@ export default function CardAnimation({ card, playbackRate = 1 }: { card: CardPr
                 </p>
               </div>
               <div className="mt-1">
-                <p className="text-xs font-light leading-tight px-1">
-                  Expires: {cardData?.expires ? 
-                    (cardData.expires === "Demo Reward Not Valid" ? 
-                      cardData.expires : 
-                      new Date(cardData.expires).toLocaleDateString()
-                    ) : 'N/A'}
-                </p>
+                {cardData?.expires && cardData.expires !== "Demo Reward Not Valid" ? (
+                  isExpiringSoon(cardData.expires) ? (
+                    <CountdownTimer expirationDate={String(cardData.expires)} />
+                  ) : (
+                    <p className="text-xs font-light leading-tight px-1">
+                      Expires: {new Date(cardData.expires).toLocaleDateString()}
+                    </p>
+                  )
+                ) : (
+                  <p className="text-xs font-light leading-tight px-1">
+                    Expires: {String(cardData?.expires || 'N/A')}
+                  </p>
+                )}
               </div>
             </>
           )}

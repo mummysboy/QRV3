@@ -8,6 +8,44 @@ import CreateRewardForm from "@/components/CreateRewardForm";
 import EditRewardForm from "@/components/EditRewardForm";
 import LogoUpload from "@/components/LogoUpload";
 
+// Countdown Timer Component for Dashboard
+function DashboardCountdownTimer({ expirationDate }: { expirationDate: string }) {
+  const [timeLeft, setTimeLeft] = useState<{
+    hours: number;
+    minutes: number;
+    seconds: number;
+  }>({ hours: 0, minutes: 0, seconds: 0 });
+
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      const now = new Date().getTime();
+      const expiration = new Date(expirationDate).getTime();
+      const difference = expiration - now;
+
+      if (difference > 0) {
+        const hours = Math.floor(difference / (1000 * 60 * 60));
+        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+        
+        setTimeLeft({ hours, minutes, seconds });
+      } else {
+        setTimeLeft({ hours: 0, minutes: 0, seconds: 0 });
+      }
+    };
+
+    calculateTimeLeft();
+    const timer = setInterval(calculateTimeLeft, 1000);
+
+    return () => clearInterval(timer);
+  }, [expirationDate]);
+
+  return (
+    <span className="text-red-600 font-medium">
+      {String(timeLeft.hours).padStart(2, '0')}:{String(timeLeft.minutes).padStart(2, '0')}:{String(timeLeft.seconds).padStart(2, '0')}
+    </span>
+  );
+}
+
 interface BusinessUser {
   id: string;
   email: string;
@@ -108,6 +146,18 @@ export default function BusinessDashboard() {
     primaryContactPhone: "",
   });
   const router = useRouter();
+
+  // Helper function to check if expiration is less than 24 hours
+  const isExpiringSoon = (expirationDate: string) => {
+    if (!expirationDate) return false;
+    
+    const now = new Date().getTime();
+    const expiration = new Date(expirationDate).getTime();
+    const difference = expiration - now;
+    const twentyFourHours = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+    
+    return difference > 0 && difference <= twentyFourHours;
+  };
 
   useEffect(() => {
     // Check if user is logged in
@@ -650,7 +700,12 @@ export default function BusinessDashboard() {
                             </p>
                             {card.expires && (
                               <p className="text-sm text-gray-600">
-                                <span className="font-medium">Expires:</span> {card.expires}
+                                <span className="font-medium">Expires:</span>{" "}
+                                {isExpiringSoon(card.expires) ? (
+                                  <DashboardCountdownTimer expirationDate={card.expires} />
+                                ) : (
+                                  new Date(card.expires).toLocaleDateString()
+                                )}
                               </p>
                             )}
                           </div>
