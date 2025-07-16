@@ -89,6 +89,7 @@ export async function GET(request: NextRequest) {
               header
               claimed_at
               delivery_method
+              businessId
             }
           }
         }

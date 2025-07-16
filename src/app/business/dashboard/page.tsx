@@ -602,30 +602,65 @@ export default function BusinessDashboard() {
                   <div className="mb-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <button
-                        onClick={() => setActiveTab("rewards")}
-                        className="bg-green-600 hover:bg-green-700 text-white p-4 rounded-lg text-left transition-colors"
-                      >
-                        <div className="flex items-center">
-                          <span className="text-2xl mr-3">➕</span>
-                          <div>
-                            <p className="font-medium">Create Your First Reward</p>
-                            <p className="text-sm opacity-90">Start attracting customers today</p>
+                      {!isLoadingData && analytics && analytics.totalRewards > 0 ? (
+                        // Show different content if rewards have been created
+                        <button
+                          onClick={() => setActiveTab("rewards")}
+                          className="bg-green-600 hover:bg-green-700 text-white p-4 rounded-lg text-left transition-colors"
+                        >
+                          <div className="flex items-center">
+                            <span className="text-2xl mr-3">🎉</span>
+                            <div>
+                              <p className="font-medium">Create Another Reward</p>
+                              <p className="text-sm opacity-90">Keep the momentum going!</p>
+                            </div>
                           </div>
-                        </div>
-                      </button>
-                      <button
-                        onClick={() => setActiveTab("business-info")}
-                        className="bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-lg text-left transition-colors"
-                      >
-                        <div className="flex items-center">
-                          <span className="text-2xl mr-3">✏️</span>
-                          <div>
-                            <p className="font-medium">Complete Business Profile</p>
-                            <p className="text-sm opacity-90">Add photos and details</p>
+                        </button>
+                      ) : (
+                        // Show original content if no rewards created yet
+                        <button
+                          onClick={() => setActiveTab("rewards")}
+                          className="bg-green-600 hover:bg-green-700 text-white p-4 rounded-lg text-left transition-colors"
+                        >
+                          <div className="flex items-center">
+                            <span className="text-2xl mr-3">➕</span>
+                            <div>
+                              <p className="font-medium">Create Your First Reward</p>
+                              <p className="text-sm opacity-90">Start attracting customers today</p>
+                            </div>
                           </div>
-                        </div>
-                      </button>
+                        </button>
+                      )}
+                      
+                      {isProfileComplete ? (
+                        // Show different content if business profile is complete
+                        <button
+                          onClick={() => setActiveTab("analytics")}
+                          className="bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-lg text-left transition-colors"
+                        >
+                          <div className="flex items-center">
+                            <span className="text-2xl mr-3">📊</span>
+                            <div>
+                              <p className="font-medium">View Analytics</p>
+                              <p className="text-sm opacity-90">See how your rewards are performing</p>
+                            </div>
+                          </div>
+                        </button>
+                      ) : (
+                        // Show original content if business profile is incomplete
+                        <button
+                          onClick={() => setActiveTab("business-info")}
+                          className="bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-lg text-left transition-colors"
+                        >
+                          <div className="flex items-center">
+                            <span className="text-2xl mr-3">✏️</span>
+                            <div>
+                              <p className="font-medium">Complete Business Profile</p>
+                              <p className="text-sm opacity-90">Add photos and details</p>
+                            </div>
+                          </div>
+                        </button>
+                      )}
                     </div>
                   </div>
 
