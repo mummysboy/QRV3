@@ -72,7 +72,7 @@ function CountdownTimer({ expirationDate }: { expirationDate: string }) {
   );
 }
 
-export default function CardAnimation({ card, playbackRate = 1 }: { card: CardProps | null, playbackRate?: number }) {
+export default function CardAnimation({ card, playbackRate = 1, isPreview = false }: { card: CardProps | null, playbackRate?: number, isPreview?: boolean }) {
   const [showOverlay, setShowOverlay] = useState(false);
   const [hasTriggered, setHasTriggered] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -190,28 +190,30 @@ export default function CardAnimation({ card, playbackRate = 1 }: { card: CardPr
   }, [showOverlay, hasTriggered, playbackRate]);
 
   return (
-    <div className="relative w-full max-w-sm mx-auto overflow-hidden h-[60vh] rounded-lg">
-      <video
-        ref={videoRef}
-        src="/assets/videos/Comp%201.mp4"
-        muted
-        playsInline
-        autoPlay
-        webkit-playsinline="true"
-        className="absolute top-0 left-0 w-full h-full object-cover rounded-lg"
-        style={{
-          objectPosition: "center",
-          boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-        }}
-        preload="metadata"
-      />
+    <div className={`relative w-full max-w-sm mx-auto overflow-hidden ${isPreview ? 'h-auto min-h-[200px] flex items-center justify-center' : 'h-[60vh] sm:h-[60vh]'} rounded-lg`}>
+      {!isPreview && (
+        <video
+          ref={videoRef}
+          src="/assets/videos/Comp%201.mp4"
+          muted
+          playsInline
+          autoPlay
+          webkit-playsinline="true"
+          className="absolute top-0 left-0 w-full h-full object-cover rounded-lg"
+          style={{
+            objectPosition: "center",
+            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+          }}
+          preload="metadata"
+        />
+      )}
 
       <div
-        className={`absolute inset-0 flex items-center justify-center transition-opacity duration-[2500ms] ease-in-out ${
-          showOverlay ? "opacity-100" : "opacity-0"
+        className={`${isPreview ? 'relative w-full' : 'absolute inset-0'} flex items-center justify-center transition-opacity duration-[2500ms] ease-in-out ${
+          isPreview ? 'opacity-100' : (showOverlay ? "opacity-100" : "opacity-0")
         }`}
       >
-        <div className="bg-white text-black text-center px-1 py-1 rounded-lg max-w-[160px] w-full flex flex-col justify-center transition-all duration-500 min-h-[130px]">
+        <div className={`bg-white text-black text-center px-3 py-3 rounded-lg ${isPreview ? 'max-w-[180px] w-full' : 'max-w-[160px] w-full'} flex flex-col justify-center transition-all duration-500 ${isPreview ? 'min-h-[160px]' : 'min-h-[130px]'}`}>
           {!card ? (
             <p className="text-xs font-semibold text-gray-700 px-1 leading-tight">
               Sorry, there are no rewards available at the moment. Please try
@@ -219,9 +221,9 @@ export default function CardAnimation({ card, playbackRate = 1 }: { card: CardPr
             </p>
           ) : (
             <>
-              <div className="space-y-1 flex flex-col items-center w-full">
+              <div className={`space-y-2 flex flex-col items-center w-full ${isPreview ? 'px-2' : 'px-1'}`}>
                 {logoUrl ? (
-                  <div className="relative w-full flex justify-center mb-1">
+                  <div className="relative w-full flex justify-center mb-2">
                     <img
                       src={logoUrl}
                       alt="Business Logo"
@@ -251,7 +253,7 @@ export default function CardAnimation({ card, playbackRate = 1 }: { card: CardPr
                   </div>
                 ) : (
                   <div 
-                    className="mx-auto bg-gray-200 rounded-lg flex items-center justify-center mb-1"
+                    className="mx-auto bg-gray-200 rounded-lg flex items-center justify-center mb-2"
                     style={{ 
                       width: '70px', 
                       height: '45px', 
@@ -264,7 +266,7 @@ export default function CardAnimation({ card, playbackRate = 1 }: { card: CardPr
                     <span className="text-gray-500 text-base">🏢</span>
                   </div>
                 )}
-                <p className="text-sm font-bold leading-tight break-words px-1 overflow-hidden text-ellipsis">
+                <p className={`${isPreview ? 'text-sm' : 'text-sm'} font-bold leading-tight break-words overflow-hidden text-ellipsis`}>
                   {cardData?.header}
                 </p>
                 <a
@@ -273,27 +275,27 @@ export default function CardAnimation({ card, playbackRate = 1 }: { card: CardPr
                   )}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs font-light leading-tight underline hover:text-blue-600 block px-1"
+                  className={`${isPreview ? 'text-xs' : 'text-xs'} font-light leading-tight underline hover:text-blue-600 block`}
                 >
                   {cardData?.addresstext}
                 </a>
               </div>
-              <div className="mt-1">
-                <p className="text-xs italic leading-tight break-words px-1 overflow-hidden text-ellipsis">
+              <div className={`mt-2 ${isPreview ? 'px-2' : 'px-1'}`}>
+                <p className={`${isPreview ? 'text-xs' : 'text-xs'} italic leading-tight break-words overflow-hidden text-ellipsis`}>
                   {cardData?.subheader}
                 </p>
               </div>
-              <div className="mt-1">
+              <div className={`mt-2 ${isPreview ? 'px-2' : 'px-1'}`}>
                 {cardData?.expires && cardData.expires !== "Demo Reward Not Valid" ? (
                   isExpiringSoon(cardData.expires) ? (
                     <CountdownTimer expirationDate={String(cardData.expires)} />
                   ) : (
-                    <p className="text-xs font-light leading-tight px-1">
+                    <p className={`${isPreview ? 'text-xs' : 'text-xs'} font-light leading-tight`}>
                       Expires: {new Date(cardData.expires).toLocaleDateString()}
                     </p>
                   )
                 ) : (
-                  <p className="text-xs font-light leading-tight px-1">
+                  <p className={`${isPreview ? 'text-xs' : 'text-xs'} font-light leading-tight`}>
                     Expires: {String(cardData?.expires || 'N/A')}
                   </p>
                 )}
