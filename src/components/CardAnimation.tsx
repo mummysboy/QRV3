@@ -137,7 +137,7 @@ export default function CardAnimation({ card, playbackRate = 1 }: { card: CardPr
   }, [showOverlay, hasTriggered, playbackRate]);
 
   return (
-    <div className="relative w-full max-w-md mx-auto overflow-hidden h-[60vh] rounded-lg">
+    <div className="relative w-full max-w-sm mx-auto overflow-hidden h-[60vh] rounded-lg">
       <video
         ref={videoRef}
         src="/assets/videos/Comp%201.mp4"
@@ -158,43 +158,60 @@ export default function CardAnimation({ card, playbackRate = 1 }: { card: CardPr
           showOverlay ? "opacity-100" : "opacity-0"
         }`}
       >
-        <div className="bg-white bg-opacity-90 text-black text-center px-3 py-2 rounded-lg max-w-[160px] flex flex-col justify-center transition-all duration-500">
+        <div className="bg-white bg-opacity-90 text-black text-center px-2 py-2 rounded-lg max-w-[170px] w-full flex flex-col justify-center transition-all duration-500 shadow-lg min-h-[140px]">
           {!card ? (
-            <p className="text-base font-semibold text-gray-700">
+            <p className="text-sm font-semibold text-gray-700 px-1 leading-tight">
               Sorry, there are no rewards available at the moment. Please try
               again later.
             </p>
           ) : (
             <>
-              <div className="space-y-[2px]">
+              <div className="space-y-1 flex flex-col items-center w-full">
                 {logoUrl ? (
-                  <img
-                    src={logoUrl}
-                    alt="Business Logo"
-                    onError={(e) => {
-                      console.error('Logo failed to load:', logoUrl);
-                      // Replace with a fallback div instead of hiding
-                      const fallbackDiv = document.createElement('div');
-                      fallbackDiv.className = 'mx-auto mb-0 bg-gray-200 rounded-lg flex items-center justify-center';
-                      fallbackDiv.style.cssText = 'width: 109px !important; height: 68px !important; min-width: 109px; min-height: 68px; max-height: 130px;';
-                      fallbackDiv.innerHTML = '<span class="text-gray-500 text-2xl">🏢</span>';
-                      e.currentTarget.parentNode?.replaceChild(fallbackDiv, e.currentTarget);
-                    }}
-                    onLoad={() => {
-                      console.log('Logo loaded successfully:', logoUrl);
-                    }}
-                    className="mx-auto mb-0 object-contain rounded-lg"
-                    style={{ width: '109px !important', height: '68px !important', minWidth: '109px', minHeight: '68px', maxHeight: '130px', }}
-                  />
+                  <div className="relative w-full flex justify-center mb-1">
+                    <img
+                      src={logoUrl}
+                      alt="Business Logo"
+                      onError={(e) => {
+                        console.error('Logo failed to load:', logoUrl);
+                        // Replace with a fallback div instead of hiding
+                        const fallbackDiv = document.createElement('div');
+                        fallbackDiv.className = 'mx-auto bg-gray-200 rounded-lg flex items-center justify-center';
+                        fallbackDiv.style.cssText = 'width: 80px !important; height: 50px !important; min-width: 60px; min-height: 40px; max-width: 100px; max-height: 60px;';
+                        fallbackDiv.innerHTML = '<span class="text-gray-500 text-lg">🏢</span>';
+                        e.currentTarget.parentNode?.replaceChild(fallbackDiv, e.currentTarget);
+                      }}
+                      onLoad={() => {
+                        console.log('Logo loaded successfully:', logoUrl);
+                      }}
+                      className="mx-auto object-contain rounded-lg"
+                      style={{ 
+                        width: 'auto', 
+                        height: 'auto', 
+                        minWidth: '60px', 
+                        minHeight: '40px', 
+                        maxWidth: '100px', 
+                        maxHeight: '60px',
+                        objectFit: 'contain'
+                      }}
+                    />
+                  </div>
                 ) : (
                   <div 
-                    className="mx-auto mb-0 bg-gray-200 rounded-lg flex items-center justify-center"
-                    style={{ width: '109px !important', height: '68px !important', minWidth: '109px', minHeight: '68px', maxHeight: '130px', }}
+                    className="mx-auto bg-gray-200 rounded-lg flex items-center justify-center mb-1"
+                    style={{ 
+                      width: '80px', 
+                      height: '50px', 
+                      minWidth: '60px', 
+                      minHeight: '40px', 
+                      maxWidth: '100px', 
+                      maxHeight: '60px'
+                    }}
                   >
-                    <span className="text-gray-500 text-2xl">🏢</span>
+                    <span className="text-gray-500 text-lg">🏢</span>
                   </div>
                 )}
-                <p className="text-lg font-bold leading-snug break-words -mt-5">
+                <p className="text-sm font-bold leading-tight break-words px-1 overflow-hidden text-ellipsis">
                   {cardData?.header}
                 </p>
                 <a
@@ -203,18 +220,18 @@ export default function CardAnimation({ card, playbackRate = 1 }: { card: CardPr
                   )}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs font-light leading-tight underline hover:text-blue-600 block"
+                  className="text-xs font-light leading-tight underline hover:text-blue-600 block px-1"
                 >
                   {cardData?.addresstext}
                 </a>
               </div>
-              <div className="mt-2">
-                <p className="text-sm italic leading-snug break-words">
+              <div className="mt-1">
+                <p className="text-xs italic leading-tight break-words px-1 overflow-hidden text-ellipsis">
                   {cardData?.subheader}
                 </p>
               </div>
-              <div className="mt-2">
-                <p className="text-xs font-light leading-snug">
+              <div className="mt-1">
+                <p className="text-xs font-light leading-tight px-1">
                   Expires: {cardData?.expires ? 
                     (cardData.expires === "Demo Reward Not Valid" ? 
                       cardData.expires : 
