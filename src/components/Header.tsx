@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import Link from "next/link";
 
 export default function Header({
   onContactClick,
@@ -48,6 +49,20 @@ export default function Header({
 
         {isMenuOpen && (
           <div className="absolute right-0 mt-2 w-48 bg-white text-black shadow-lg rounded z-50">
+            <Link
+              href="/business/login"
+              onClick={() => setIsMenuOpen(false)}
+              className="block w-full text-left px-4 py-2 hover:bg-gray-100 border-b border-gray-100"
+            >
+              Business Login
+            </Link>
+            <Link
+              href="/business/signup"
+              onClick={() => setIsMenuOpen(false)}
+              className="block w-full text-left px-4 py-2 hover:bg-gray-100 border-b border-gray-100"
+            >
+              Business Signup
+            </Link>
             <button
               onClick={() => {
                 setIsMenuOpen(false);

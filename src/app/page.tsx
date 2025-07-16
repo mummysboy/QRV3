@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import LogoVideo from "@/components/LogoVideo";
 import BusinessSignupForm, { BusinessSignupData } from "@/components/BusinessSignupForm";
 import BusinessSignupSuccess from "@/components/BusinessSignupSuccess";
-import Link from "next/link";
 
 export default function Home() {
   const [zipCode, setZipCode] = useState("");
@@ -13,6 +12,9 @@ export default function Home() {
   const [currentReview, setCurrentReview] = useState(0);
   const [showBusinessSignupForm, setShowBusinessSignupForm] = useState(false);
   const [showBusinessSignupSuccess, setShowBusinessSignupSuccess] = useState(false);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [isHowItWorksVisible, setIsHowItWorksVisible] = useState(false);
 
   const reviews = [
     {
@@ -53,19 +55,46 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Auto-advance sections for demo effect
+  // Intersection Observer for "How it works" section
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentSection((prev) => (prev + 1) % 4);
-    }, 4000);
-    return () => clearInterval(interval);
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsHowItWorksVisible(true);
+        } else {
+          setIsHowItWorksVisible(false);
+        }
+      },
+      { threshold: 0.3 } // Trigger when 30% of the section is visible
+    );
+
+    const howItWorksSection = document.getElementById('how-it-works-section');
+    if (howItWorksSection) {
+      observer.observe(howItWorksSection);
+    }
+
+    return () => {
+      if (howItWorksSection) {
+        observer.unobserve(howItWorksSection);
+      }
+    };
   }, []);
 
-  // Auto-advance reviews for demo effect
+  // Auto-advance sections for demo effect - only when visible
+  useEffect(() => {
+    if (!isHowItWorksVisible) return;
+    
+    const interval = setInterval(() => {
+      setCurrentSection((prev) => (prev + 1) % 4);
+    }, 6000); // Slower timing - increased from 4000ms to 6000ms
+    return () => clearInterval(interval);
+  }, [isHowItWorksVisible]);
+
+  // Auto-advance reviews for demo effect - slower timing
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentReview((prev) => (prev + 1) % reviews.length);
-    }, 8000);
+    }, 12000); // Increased from 8000ms to 12000ms
     return () => clearInterval(interval);
   }, [reviews.length]);
 
@@ -119,6 +148,31 @@ export default function Home() {
     }
   };
 
+  // Swipe handlers for reviews carousel
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe) {
+      setCurrentReview((prev) => (prev + 1) % reviews.length);
+    }
+    if (isRightSwipe) {
+      setCurrentReview((prev) => (prev - 1 + reviews.length) % reviews.length);
+    }
+  };
+
   const sections = [
     {
       title: "Scan",
@@ -153,26 +207,12 @@ export default function Home() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(34,197,94,0.05),transparent_50%)]"></div>
       </div>
 
-      {/* Header with Logo and Login */}
+      {/* Header with Logo */}
       <div className={`transition-all duration-1000 ease-out ${
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
       }`}>
         <div className="flex justify-between items-center p-4">
           <LogoVideo />
-          <div className="flex items-center space-x-4">
-            <Link 
-              href="/business/login"
-              className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
-            >
-              Business Login
-            </Link>
-            <Link 
-              href="/business/signup"
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors font-medium"
-            >
-              Get Started
-            </Link>
-          </div>
         </div>
       </div>
       
@@ -241,9 +281,12 @@ export default function Home() {
         </div>
 
         {/* How it works - Minimalist carousel */}
-        <div className={`transition-all duration-1000 delay-1200 ease-out ${
-          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-        }`}>
+        <div 
+          id="how-it-works-section"
+          className={`transition-all duration-1000 delay-1200 ease-out ${
+            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          }`}
+        >
           <div className="text-center mb-20">
             <h2 className="text-4xl md:text-5xl font-light mb-16 tracking-tight">
               How it works
@@ -255,7 +298,7 @@ export default function Home() {
                 {sections.map((_, index) => (
                   <div
                     key={index}
-                    className={`w-3 h-3 rounded-full transition-all duration-500 ${
+                    className={`w-3 h-3 rounded-full transition-all duration-700 ${
                       currentSection === index 
                         ? 'bg-green-500 scale-125' 
                         : 'bg-gray-300'
@@ -270,7 +313,7 @@ export default function Home() {
               {sections.map((section, index) => (
                 <div
                   key={index}
-                  className={`absolute inset-0 transition-all duration-700 ease-out ${
+                  className={`absolute inset-0 transition-all duration-2000 ease-in-out ${
                     currentSection === index
                       ? 'opacity-100 translate-y-0'
                       : 'opacity-0 translate-y-8'
@@ -348,12 +391,17 @@ export default function Home() {
           
           {/* Carousel container */}
           <div className="relative max-w-4xl mx-auto mb-12">
-            {/* Review cards */}
-            <div className="relative h-80 overflow-hidden">
+            {/* Review cards with swipe functionality */}
+            <div 
+              className="relative h-80 overflow-hidden cursor-grab active:cursor-grabbing"
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+            >
               {reviews.map((review, index) => (
                 <div
                   key={index}
-                  className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
+                  className={`absolute inset-0 transition-all duration-1500 ease-out ${
                     currentReview === index
                       ? 'opacity-100 translate-x-0'
                       : 'opacity-0 translate-x-full'
@@ -386,7 +434,7 @@ export default function Home() {
                   <button
                     key={index}
                     onClick={() => setCurrentReview(index)}
-                    className={`w-3 h-3 rounded-full transition-all duration-500 ${
+                    className={`w-3 h-3 rounded-full transition-all duration-700 ${
                       currentReview === index 
                         ? 'bg-green-500 scale-125' 
                         : 'bg-gray-300 hover:bg-gray-400'
@@ -395,24 +443,6 @@ export default function Home() {
                 ))}
               </div>
             </div>
-
-            {/* Navigation arrows */}
-            <button
-              onClick={() => setCurrentReview((prev) => (prev - 1 + reviews.length) % reviews.length)}
-              className="absolute left-4 top-1/2 transform -translate-y-1/2 w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center hover:shadow-xl transition-all duration-300"
-            >
-              <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <button
-              onClick={() => setCurrentReview((prev) => (prev + 1) % reviews.length)}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center hover:shadow-xl transition-all duration-300"
-            >
-              <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
           </div>
         </div>
 
@@ -431,7 +461,7 @@ export default function Home() {
               onClick={handleGetStarted}
               className="bg-green-600 hover:bg-green-700 text-white text-xl font-medium px-12 py-5 rounded-2xl transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-2xl"
             >
-              Claim Your Business
+              Start Your Free Trial
             </button>
             <p className="text-sm text-gray-500 mt-6">
               Free to start • No setup fees • Cancel anytime
