@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import CardAnimation from "@/components/CardAnimation";
 
 interface CreateRewardFormProps {
   isOpen: boolean;
@@ -423,7 +424,25 @@ export default function CreateRewardForm({
               </form>
             </div>
 
-
+            {/* Preview Section */}
+            <div className="hidden lg:block">
+              <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4">Preview</h3>
+              <div className="bg-gray-50 rounded-lg p-6">
+                <CardAnimation 
+                  card={{
+                    cardid: "preview",
+                    header: formData.businessName,
+                    logokey: formData.businessLogo,
+                    addresstext: `${formData.businessAddress}, ${formData.businessCity}, ${formData.businessState} ${formData.businessZipCode}`,
+                    addressurl: "",
+                    subheader: formData.subheader || "Reward description will appear here",
+                    expires: formData.expires ? new Date(formData.expires).toISOString() : "Demo Reward Not Valid",
+                    quantity: formData.quantity
+                  }}
+                  playbackRate={1}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import CardAnimation from "@/components/CardAnimation";
 
 interface Card {
   cardid: string;
@@ -377,7 +378,25 @@ export default function EditRewardForm({ card, onClose, onSuccess }: EditRewardF
               </form>
             </div>
 
-
+            {/* Preview Section */}
+            <div className="hidden lg:block">
+              <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4">Preview</h3>
+              <div className="bg-gray-50 rounded-lg p-6">
+                <CardAnimation 
+                  card={{
+                    cardid: "preview",
+                    header: businessInfo.name,
+                    logokey: businessInfo.logo,
+                    addresstext: businessInfo.address,
+                    addressurl: "",
+                    subheader: formData.subheader || "Reward description will appear here",
+                    expires: formData.expires ? new Date(formData.expires).toISOString() : "Demo Reward Not Valid",
+                    quantity: formData.quantity
+                  }}
+                  playbackRate={1}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
