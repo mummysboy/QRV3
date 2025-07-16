@@ -8,7 +8,7 @@ import CardAnimation from "@/components/CardAnimation";
 export default function DemoDashboard() {
   const [isVisible, setIsVisible] = useState(false);
 
-  // Demo business info
+  // Demo business info - Updated for deployment trigger
   const demoBusiness = {
     id: "demo-business-1",
     name: "Demo Coffee Shop",
