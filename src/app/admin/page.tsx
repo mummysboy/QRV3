@@ -5,7 +5,22 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import LogoVideo from "@/components/LogoVideo";
 
-interface PendingBusiness {
+interface Signup {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  businessName: string;
+  businessAddress: string;
+  businessCity: string;
+  businessState: string;
+  businessZip: string;
+  status: string;
+  createdAt: string;
+}
+
+interface Business {
   id: string;
   name: string;
   phone: string;
@@ -16,21 +31,38 @@ interface PendingBusiness {
   address: string;
   city: string;
   state: string;
+  website: string;
+  description: string;
   createdAt: string;
+  updatedAt: string;
+  approvedAt: string;
+  approvedBy: string;
   businessUsers: Array<{
     id: string;
     firstName: string;
     lastName: string;
     email: string;
+    role: string;
+    status: string;
   }>;
 }
 
+type TabType = 'signups' | 'businesses';
+
+interface SelectedItem {
+  type: 'signup' | 'business';
+  data: Signup | Business;
+}
+
 export default function AdminDashboard() {
-  const [pendingBusinesses, setPendingBusinesses] = useState<PendingBusiness[]>([]);
+  const [signups, setSignups] = useState<Signup[]>([]);
+  const [businesses, setBusinesses] = useState<Business[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedBusiness, setSelectedBusiness] = useState<PendingBusiness | null>(null);
-  const [showApprovalModal, setShowApprovalModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabType>('signups');
+  const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(null);
+  const [showActionModal, setShowActionModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const router = useRouter();
 
   useEffect(() => {
@@ -41,91 +73,128 @@ export default function AdminDashboard() {
       return;
     }
     
-    fetchPendingBusinesses();
+    fetchAllSignups();
   }, [router]);
 
-  const fetchPendingBusinesses = async () => {
+  const fetchAllSignups = async () => {
     try {
-      const response = await fetch('/api/admin/pending-businesses');
+      const response = await fetch('/api/admin/all-signups-simple');
       if (response.ok) {
         const data = await response.json();
-        setPendingBusinesses(data.businesses);
+        setSignups(data.signups || []);
+        setBusinesses(data.businesses || []);
       } else {
-        console.error('Failed to fetch pending businesses');
+        console.error('Failed to fetch signups');
       }
     } catch (error) {
-      console.error('Error fetching pending businesses:', error);
+      console.error('Error fetching signups:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleApprove = async (businessId: string) => {
+  const handleStatusUpdate = async (type: 'signup' | 'business', id: string, status: string) => {
     setIsProcessing(true);
     try {
-      const response = await fetch('/api/admin/approve-business', {
+      const response = await fetch('/api/admin/update-signup-status', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ businessId }),
+        body: JSON.stringify({ type, id, status }),
       });
 
       if (response.ok) {
-        // Remove from pending list
-        setPendingBusinesses(prev => prev.filter(b => b.id !== businessId));
-        setShowApprovalModal(false);
-        setSelectedBusiness(null);
-        alert('Business approved successfully!');
+        // Refresh the data
+        await fetchAllSignups();
+        setShowActionModal(false);
+        setSelectedItem(null);
+        alert(`${type} status updated to ${status} successfully!`);
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to approve business');
+        alert(errorData.error || `Failed to update ${type} status`);
       }
     } catch (error) {
-      console.error('Error approving business:', error);
-      alert('Failed to approve business');
+      console.error(`Error updating ${type} status:`, error);
+      alert(`Failed to update ${type} status`);
     } finally {
       setIsProcessing(false);
     }
   };
 
-  const handleReject = async (businessId: string) => {
+  const handleDelete = async (type: 'signup' | 'business', id: string) => {
+    if (!confirm(`Are you sure you want to delete this ${type}? This action cannot be undone.`)) {
+      return;
+    }
+
     setIsProcessing(true);
     try {
-      const response = await fetch('/api/admin/reject-business', {
+      const response = await fetch('/api/admin/delete-signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ businessId }),
+        body: JSON.stringify({ type, id }),
       });
 
       if (response.ok) {
-        // Remove from pending list
-        setPendingBusinesses(prev => prev.filter(b => b.id !== businessId));
-        setShowApprovalModal(false);
-        setSelectedBusiness(null);
-        alert('Business rejected successfully!');
+        // Refresh the data
+        await fetchAllSignups();
+        setShowActionModal(false);
+        setSelectedItem(null);
+        alert(`${type} deleted successfully!`);
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to reject business');
+        alert(errorData.error || `Failed to delete ${type}`);
       }
     } catch (error) {
-      console.error('Error rejecting business:', error);
-      alert('Failed to reject business');
+      console.error(`Error deleting ${type}:`, error);
+      alert(`Failed to delete ${type}`);
     } finally {
       setIsProcessing(false);
     }
   };
 
-  const openApprovalModal = (business: PendingBusiness) => {
-    setSelectedBusiness(business);
-    setShowApprovalModal(true);
+  const openActionModal = (item: Signup | Business, type: 'signup' | 'business') => {
+    setSelectedItem({ type, data: item });
+    setShowActionModal(true);
   };
 
   const handleLogout = () => {
     sessionStorage.removeItem('adminLoggedIn');
     router.push('/admin/login');
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'approved':
+        return 'bg-green-100 text-green-800';
+      case 'rejected':
+        return 'bg-red-100 text-red-800';
+      case 'pending':
+      case 'pending_approval':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'paused':
+        return 'bg-gray-100 text-gray-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getFilteredItems = () => {
+    const items = activeTab === 'signups' ? signups : businesses;
+    if (statusFilter === 'all') return items;
+    return items.filter(item => item.status === statusFilter);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   if (isLoading) {
@@ -151,7 +220,7 @@ export default function AdminDashboard() {
               </Link>
               <div>
                 <h1 className="text-lg font-semibold text-gray-900">Admin Dashboard</h1>
-                <p className="text-sm text-gray-600">Business Approval System</p>
+                <p className="text-sm text-gray-600">Signup Management System</p>
               </div>
             </div>
             <button
@@ -165,21 +234,74 @@ export default function AdminDashboard() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Tabs */}
+        <div className="bg-white rounded-lg shadow-sm mb-6">
+          <div className="border-b border-gray-200">
+            <nav className="-mb-px flex space-x-8 px-6">
+              <button
+                onClick={() => setActiveTab('signups')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'signups'
+                    ? 'border-green-500 text-green-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Signups ({signups.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('businesses')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'businesses'
+                    ? 'border-green-500 text-green-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Businesses ({businesses.length})
+              </button>
+            </nav>
+          </div>
+
+          {/* Status Filter */}
+          <div className="px-6 py-4 border-b border-gray-200">
+            <div className="flex items-center space-x-4">
+              <label className="text-sm font-medium text-gray-700">Filter by status:</label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              >
+                <option value="all">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="pending_approval">Pending Approval</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+                <option value="paused">Paused</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Content */}
         <div className="bg-white rounded-lg shadow-sm">
           <div className="px-6 py-4 border-b border-gray-200">
             <h2 className="text-xl font-semibold text-gray-900">
-              Pending Business Approvals ({pendingBusinesses.length})
+              {activeTab === 'signups' ? 'All Signups' : 'All Businesses'} ({getFilteredItems().length})
             </h2>
             <p className="text-sm text-gray-600 mt-1">
-              Review and approve new business applications
+              Manage and review all {activeTab}
             </p>
           </div>
 
-          {pendingBusinesses.length === 0 ? (
+          {getFilteredItems().length === 0 ? (
             <div className="p-8 text-center">
-              <span className="text-4xl mb-4 block">✅</span>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No pending approvals</h3>
-              <p className="text-gray-600">All business applications have been reviewed.</p>
+              <span className="text-4xl mb-4 block">📋</span>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No {activeTab} found</h3>
+              <p className="text-gray-600">
+                {statusFilter === 'all' 
+                  ? `No ${activeTab} have been created yet.`
+                  : `No ${activeTab} with status "${statusFilter}" found.`
+                }
+              </p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -187,16 +309,16 @@ export default function AdminDashboard() {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Business
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Contact
+                      {activeTab === 'signups' ? 'Contact' : 'Business'}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Location
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Applied
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Created
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
@@ -204,34 +326,59 @@ export default function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {pendingBusinesses.map((business) => (
-                    <tr key={business.id} className="hover:bg-gray-50">
+                  {getFilteredItems().map((item) => (
+                    <tr key={item.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">{business.name}</div>
-                          <div className="text-sm text-gray-500">{business.category}</div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm text-gray-900">{business.email}</div>
-                          <div className="text-sm text-gray-500">{business.phone}</div>
+                        <div className="flex flex-col">
+                          <div className="text-sm font-medium text-gray-900">
+                            {activeTab === 'signups' 
+                              ? `${(item as Signup).firstName} ${(item as Signup).lastName}`
+                              : (item as Business).name
+                            }
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {item.email}
+                          </div>
+                          {activeTab === 'signups' && (item as Signup).phone && (
+                            <div className="text-sm text-gray-500">
+                              {(item as Signup).phone}
+                            </div>
+                          )}
+                          {activeTab === 'businesses' && (item as Business).phone && (
+                            <div className="text-sm text-gray-500">
+                              {(item as Business).phone}
+                            </div>
+                          )}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">
-                          {business.city}, {business.state} {business.zipCode}
+                          {activeTab === 'signups' 
+                            ? `${(item as Signup).businessCity}, ${(item as Signup).businessState}`
+                            : `${(item as Business).city}, ${(item as Business).state}`
+                          }
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {activeTab === 'signups' 
+                            ? (item as Signup).businessAddress
+                            : (item as Business).address
+                          }
                         </div>
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(item.status)}`}>
+                          {item.status.replace('_', ' ')}
+                        </span>
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(business.createdAt).toLocaleDateString()}
+                        {formatDate(item.createdAt)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button
-                          onClick={() => openApprovalModal(business)}
-                          className="text-green-600 hover:text-green-900 font-medium"
+                          onClick={() => openActionModal(item, activeTab === 'signups' ? 'signup' : 'business')}
+                          className="text-green-600 hover:text-green-900 mr-3"
                         >
-                          Review
+                          Actions
                         </button>
                       </td>
                     </tr>
@@ -243,110 +390,69 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Approval Modal */}
-      {showApprovalModal && selectedBusiness && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Review Business Application
-                </h3>
-                <button
-                  onClick={() => setShowApprovalModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            <div className="px-6 py-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-3">Business Information</h4>
-                  <div className="space-y-2 text-sm">
-                    <div>
-                      <span className="font-medium">Name:</span> {selectedBusiness.name}
-                    </div>
-                    <div>
-                      <span className="font-medium">Category:</span> {selectedBusiness.category}
-                    </div>
-                    <div>
-                      <span className="font-medium">Phone:</span> {selectedBusiness.phone}
-                    </div>
-                    <div>
-                      <span className="font-medium">Email:</span> {selectedBusiness.email}
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-3">Location</h4>
-                  <div className="space-y-2 text-sm">
-                    <div>
-                      <span className="font-medium">Address:</span> {selectedBusiness.address || "Not provided"}
-                    </div>
-                    <div>
-                      <span className="font-medium">City:</span> {selectedBusiness.city || "Not provided"}
-                    </div>
-                    <div>
-                      <span className="font-medium">State:</span> {selectedBusiness.state || "Not provided"}
-                    </div>
-                    <div>
-                      <span className="font-medium">ZIP:</span> {selectedBusiness.zipCode}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6">
-                <h4 className="font-medium text-gray-900 mb-3">Business Owner</h4>
-                {selectedBusiness.businessUsers.map((user) => (
-                  <div key={user.id} className="text-sm">
-                    <div>
-                      <span className="font-medium">Name:</span> {user.firstName} {user.lastName}
-                    </div>
-                    <div>
-                      <span className="font-medium">Email:</span> {user.email}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-6">
-                <h4 className="font-medium text-gray-900 mb-3">Application Details</h4>
-                <div className="text-sm text-gray-600">
-                  <div>
-                    <span className="font-medium">Submitted:</span> {new Date(selectedBusiness.createdAt).toLocaleString()}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+      {/* Action Modal */}
+      {showActionModal && selectedItem && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                Manage {selectedItem.type === 'signup' ? 'Signup' : 'Business'}
+              </h3>
+                             <div className="mb-4">
+                 <p className="text-sm text-gray-600">
+                   <strong>Name:</strong> {
+                     selectedItem.type === 'signup' 
+                       ? `${(selectedItem.data as Signup).firstName} ${(selectedItem.data as Signup).lastName}`
+                       : (selectedItem.data as Business).name
+                   }
+                 </p>
+                 <p className="text-sm text-gray-600">
+                   <strong>Email:</strong> {selectedItem.data.email}
+                 </p>
+                 <p className="text-sm text-gray-600">
+                   <strong>Status:</strong> {selectedItem.data.status}
+                 </p>
+               </div>
+               
+               <div className="grid grid-cols-2 gap-2 mb-4">
+                 <button
+                   onClick={() => handleStatusUpdate(selectedItem.type, selectedItem.data.id, 'approved')}
+                   disabled={isProcessing}
+                   className="bg-green-600 text-white px-3 py-2 rounded text-sm hover:bg-green-700 disabled:opacity-50"
+                 >
+                   Approve
+                 </button>
+                 <button
+                   onClick={() => handleStatusUpdate(selectedItem.type, selectedItem.data.id, 'rejected')}
+                   disabled={isProcessing}
+                   className="bg-red-600 text-white px-3 py-2 rounded text-sm hover:bg-red-700 disabled:opacity-50"
+                 >
+                   Reject
+                 </button>
+                 <button
+                   onClick={() => handleStatusUpdate(selectedItem.type, selectedItem.data.id, 'paused')}
+                   disabled={isProcessing}
+                   className="bg-yellow-600 text-white px-3 py-2 rounded text-sm hover:bg-yellow-700 disabled:opacity-50"
+                 >
+                   Pause
+                 </button>
+                 <button
+                   onClick={() => handleDelete(selectedItem.type, selectedItem.data.id)}
+                   disabled={isProcessing}
+                   className="bg-gray-600 text-white px-3 py-2 rounded text-sm hover:bg-gray-700 disabled:opacity-50"
+                 >
+                   Delete
+                 </button>
+               </div>
+              
               <button
-                onClick={() => setShowApprovalModal(false)}
-                disabled={isProcessing}
-                className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition-colors disabled:opacity-50"
+                onClick={() => {
+                  setShowActionModal(false);
+                  setSelectedItem(null);
+                }}
+                className="w-full bg-gray-300 text-gray-700 px-3 py-2 rounded text-sm hover:bg-gray-400"
               >
                 Cancel
-              </button>
-              <button
-                onClick={() => handleReject(selectedBusiness.id)}
-                disabled={isProcessing}
-                className="px-4 py-2 text-red-700 bg-red-100 hover:bg-red-200 rounded-lg font-medium transition-colors disabled:opacity-50"
-              >
-                {isProcessing ? "Rejecting..." : "Reject"}
-              </button>
-              <button
-                onClick={() => handleApprove(selectedBusiness.id)}
-                disabled={isProcessing}
-                className="px-4 py-2 text-white bg-green-600 hover:bg-green-700 rounded-lg font-medium transition-colors disabled:opacity-50"
-              >
-                {isProcessing ? "Approving..." : "Approve"}
               </button>
             </div>
           </div>
