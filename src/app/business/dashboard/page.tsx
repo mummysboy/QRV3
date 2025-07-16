@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import LogoVideo from "@/components/LogoVideo";
 import CreateRewardForm from "@/components/CreateRewardForm";
+import EditRewardForm from "@/components/EditRewardForm";
 import LogoUpload from "@/components/LogoUpload";
 
 interface BusinessUser {
@@ -85,6 +86,8 @@ export default function BusinessDashboard() {
   const [cards, setCards] = useState<Card[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [showCreateReward, setShowCreateReward] = useState(false);
+  const [showEditReward, setShowEditReward] = useState(false);
+  const [editingCard, setEditingCard] = useState<Card | null>(null);
   const [showEditBusiness, setShowEditBusiness] = useState(false);
   const [showLogoUpload, setShowLogoUpload] = useState(false);
   const [editBusiness, setEditBusiness] = useState({
@@ -242,6 +245,21 @@ export default function BusinessDashboard() {
       console.error('Error deleting reward:', error);
       alert('Failed to delete reward');
     }
+  };
+
+  const handleEditReward = (card: Card) => {
+    setEditingCard(card);
+    setShowEditReward(true);
+  };
+
+  const handleEditRewardSuccess = () => {
+    fetchDashboardData(); // Refresh data
+    alert('Reward updated successfully!');
+  };
+
+  const handleCloseEditReward = () => {
+    setShowEditReward(false);
+    setEditingCard(null);
   };
 
   // Check if business profile is complete
@@ -637,7 +655,10 @@ export default function BusinessDashboard() {
                             )}
                           </div>
                           <div className="flex space-x-2">
-                            <button className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-colors">
+                            <button 
+                              onClick={() => handleEditReward(card)}
+                              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-colors"
+                            >
                               Edit
                             </button>
                             <button 
@@ -1010,6 +1031,15 @@ export default function BusinessDashboard() {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Edit Reward Modal */}
+      {showEditReward && editingCard && (
+        <EditRewardForm
+          card={editingCard}
+          onClose={handleCloseEditReward}
+          onSuccess={handleEditRewardSuccess}
+        />
       )}
     </div>
   );
