@@ -205,7 +205,7 @@ export default function Home() {
           <div className={`transition-all duration-1000 delay-900 ease-out ${
             isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           }`}>
-            <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 border border-gray-200 shadow-xl max-w-md mx-auto mb-16">
+            <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 border border-gray-200 shadow-xl max-w-md mx-auto mb-8">
               <p className="text-gray-800 mb-6 text-lg font-medium">See how it works</p>
               <form onSubmit={handleEnterZipCode} className="space-y-4">
                 <input
@@ -223,6 +223,19 @@ export default function Home() {
                   Try It Now
                 </button>
               </form>
+            </div>
+            {/* Preview Business Dashboard Button */}
+            <div className="flex justify-center mb-16">
+              <a
+                href="/demo-dashboard"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center space-x-3 bg-black/80 hover:bg-black text-white px-8 py-4 rounded-2xl shadow-xl font-medium text-lg transition-all duration-300 backdrop-blur-xl border border-gray-900/10"
+                style={{ fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
+              >
+                <span>Preview Business Dashboard</span>
+                <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 7l-10 10M17 17V7H7"/></svg>
+              </a>
             </div>
           </div>
         </div>
