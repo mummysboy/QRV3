@@ -99,8 +99,8 @@ export async function POST(req: Request) {
       delivery_method,
       addresstext,
       addressurl,
-      subheader,
-      expires: isDemo ? "Demo Reward Not Valid" : expires,
+      subheader: isDemo ? "Demo Mode: You've successfully claimed this reward! Click 'Redeem Reward' below to experience how your customers will complete the redemption process." : subheader,
+      expires: expires, // Keep the original expiration date even for demo
       logokey,
       header,
       claimed_at: new Date().toISOString(),
