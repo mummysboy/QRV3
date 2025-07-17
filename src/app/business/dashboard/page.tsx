@@ -84,7 +84,15 @@ interface AnalyticsData {
     count: number;
   }>;
   conversionRate: number;
-  revenueGenerated: number;
+  rewardAnalytics: Array<{
+    cardid: string;
+    header: string;
+    subheader: string;
+    quantity: number;
+    claims: number;
+    conversionRate: number;
+    lastClaimed?: string;
+  }>;
 }
 
 type TimeRange = 'day' | 'week' | 'month';
@@ -457,11 +465,11 @@ export default function BusinessDashboard() {
           <div className="text-sm text-gray-600">Conversion Rate</div>
         </div>
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-          <div className="text-2xl mb-2">💰</div>
+          <div className="text-2xl mb-2">🎁</div>
           <div className="text-3xl font-light text-gray-900 mb-1">
-            {isLoadingData ? "..." : `$${analytics?.revenueGenerated || 0}`}
+            {isLoadingData ? "..." : analytics?.totalRewards || 0}
           </div>
-          <div className="text-sm text-gray-600">Revenue Generated</div>
+          <div className="text-sm text-gray-600">Total Rewards</div>
         </div>
       </div>
 
@@ -522,6 +530,49 @@ export default function BusinessDashboard() {
               </span>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Individual Reward Analytics */}
+      <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
+        <h3 className="text-2xl font-light text-gray-900 mb-6">Reward Performance</h3>
+        <div className="space-y-4">
+          {analytics?.rewardAnalytics?.length ? (
+            analytics.rewardAnalytics.map((reward, idx) => (
+              <div key={idx} className="p-6 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h4 className="text-lg font-medium text-gray-900">{reward.header}</h4>
+                    <p className="text-sm text-gray-600">{reward.subheader}</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm text-gray-600">Quantity</div>
+                    <div className="text-lg font-medium text-gray-900">{reward.quantity}</div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-light text-gray-900 mb-1">{reward.claims}</div>
+                    <div className="text-sm text-gray-600">Claims</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-light text-gray-900 mb-1">{reward.conversionRate}%</div>
+                    <div className="text-sm text-gray-600">Conversion</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-light text-gray-900 mb-1">
+                      {reward.lastClaimed ? new Date(reward.lastClaimed).toLocaleDateString() : 'Never'}
+                    </div>
+                    <div className="text-sm text-gray-600">Last Claimed</div>
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              No rewards found
+            </div>
+          )}
         </div>
       </div>
 

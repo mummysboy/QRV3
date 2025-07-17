@@ -46,7 +46,15 @@ interface AnalyticsData {
     count: number;
   }>;
   conversionRate: number;
-  revenueGenerated: number;
+  rewardAnalytics: Array<{
+    cardid: string;
+    header: string;
+    subheader: string;
+    quantity: number;
+    claims: number;
+    conversionRate: number;
+    lastClaimed?: string;
+  }>;
 }
 
 export async function GET(request: NextRequest) {
@@ -122,8 +130,25 @@ export async function GET(request: NextRequest) {
     // Calculate conversion rate (claims / scans * 100)
     const conversionRate = totalScans > 0 ? Math.round((totalClaims / totalScans) * 100) : 0;
 
-    // Estimate revenue generated (for demo purposes, $10 per claim)
-    const revenueGenerated = totalClaims * 10;
+    // Calculate individual reward analytics
+    const rewardAnalytics = cards.map(card => {
+      const cardClaims = claimedRewards.filter(claim => claim.cardid === card.cardid);
+      const cardClaimsCount = cardClaims.length;
+      const cardConversionRate = totalScans > 0 ? Math.round((cardClaimsCount / totalScans) * 100) : 0;
+      const lastClaimed = cardClaims.length > 0 
+        ? cardClaims.sort((a, b) => new Date(b.claimed_at).getTime() - new Date(a.claimed_at).getTime())[0].claimed_at
+        : undefined;
+
+      return {
+        cardid: card.cardid,
+        header: card.header || "Unknown Reward",
+        subheader: card.subheader || "",
+        quantity: card.quantity,
+        claims: cardClaimsCount,
+        conversionRate: cardConversionRate,
+        lastClaimed,
+      };
+    });
 
     // Get recent claims (last 10)
     const recentClaims = claimedRewards
@@ -220,7 +245,7 @@ export async function GET(request: NextRequest) {
       claimsByDay,
       claimsByWeek,
       conversionRate,
-      revenueGenerated,
+      rewardAnalytics,
     };
 
     return NextResponse.json({
