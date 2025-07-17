@@ -71,6 +71,14 @@ interface AnalyticsData {
     lastClaimed?: string;
     lastRedeemed?: string;
   }>;
+  viewsByDay: Array<{
+    date: string;
+    count: number;
+  }>;
+  redeemedByDay: Array<{
+    date: string;
+    count: number;
+  }>;
 }
 
 export async function GET(request: NextRequest) {
@@ -277,20 +285,55 @@ export async function GET(request: NextRequest) {
       const date = new Date(now);
       date.setDate(now.getDate() - i);
       date.setHours(0, 0, 0, 0);
-      
       const nextDate = new Date(date);
       nextDate.setDate(date.getDate() + 1);
-      
-      const dayKey = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      
+      const dayKey = date.toISOString().slice(0, 10); // YYYY-MM-DD
       const dayClaims = claimedRewards.filter(claim => {
         const claimDate = new Date(claim.claimed_at);
         return claimDate >= date && claimDate < nextDate;
       }).length;
-
       claimsByDay.push({
         date: dayKey,
         count: dayClaims,
+      });
+    }
+
+    // Calculate views by day (last 7 days)
+    const viewsByDay = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(now);
+      date.setDate(now.getDate() - i);
+      date.setHours(0, 0, 0, 0);
+      const nextDate = new Date(date);
+      nextDate.setDate(date.getDate() + 1);
+      const dayKey = date.toISOString().slice(0, 10); // YYYY-MM-DD
+      const dayViews = cardViews.filter(view => {
+        const viewDate = new Date(view.viewed_at);
+        return viewDate >= date && viewDate < nextDate;
+      }).length;
+      viewsByDay.push({
+        date: dayKey,
+        count: dayViews,
+      });
+    }
+
+    // Calculate redeemed by day (last 7 days)
+    const redeemedByDay = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(now);
+      date.setDate(now.getDate() - i);
+      date.setHours(0, 0, 0, 0);
+      const nextDate = new Date(date);
+      nextDate.setDate(date.getDate() + 1);
+      const dayKey = date.toISOString().slice(0, 10); // YYYY-MM-DD
+      const dayRedeemed = claimedRewards.filter(claim => {
+        if (!claim.redeemed_at) return false;
+        const redeemedDate = new Date(claim.redeemed_at);
+        return redeemedDate >= date && redeemedDate < nextDate;
+      }).length;
+      redeemedByDay.push({
+        date: dayKey,
+        count: dayRedeemed,
       });
     }
 
@@ -308,6 +351,8 @@ export async function GET(request: NextRequest) {
       conversionRate,
       redemptionRate,
       rewardAnalytics,
+      viewsByDay,
+      redeemedByDay,
     };
 
     return NextResponse.json({

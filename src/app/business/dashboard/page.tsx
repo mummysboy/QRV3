@@ -99,9 +99,17 @@ interface AnalyticsData {
     lastClaimed?: string;
     lastRedeemed?: string;
   }>;
+  viewsByDay: Array<{ date: string; count: number }>;
+  redeemedByDay: Array<{ date: string; count: number }>;
 }
 
 type TimeRange = 'day' | 'week' | 'month';
+
+// Helper to get today's date in YYYY-MM-DD format
+function getTodayString() {
+  const today = new Date();
+  return today.toISOString().slice(0, 10);
+}
 
 export default function BusinessDashboard() {
   const [user, setUser] = useState<BusinessUser | null>(null);
@@ -412,6 +420,24 @@ export default function BusinessDashboard() {
         break;
     }
   };
+
+  // Helper to get today's stats from analytics
+  function getTodayStats(analytics: AnalyticsData | null) {
+    const todayStr = getTodayString();
+    const todayClaims = analytics?.claimsByDay?.find((day: { date: string; count: number }) => day.date === todayStr)?.count || 0;
+    const todayViews = analytics?.viewsByDay?.find((day: { date: string; count: number }) => day.date === todayStr)?.count || 0;
+    const todayRedeemed = analytics?.redeemedByDay?.find((day: { date: string; count: number }) => day.date === todayStr)?.count || 0;
+    const conversionRate = todayViews > 0 ? Math.round((todayClaims / todayViews) * 100) : 0;
+    const redemptionRate = todayClaims > 0 ? Math.round((todayRedeemed / todayClaims) * 100) : 0;
+    return {
+      todayViews,
+      todayClaims,
+      conversionRate,
+      todayRedeemed,
+      redemptionRate,
+      totalRewards: analytics?.totalRewards || 0,
+    };
+  }
 
   // Analytics view component
   const AnalyticsView = () => (
@@ -868,8 +894,71 @@ export default function BusinessDashboard() {
               </div>
             </div>
 
-            {/* Stats Grid */}
-            {/* Removed summary cards grid */}
+            {/* Today's Stats Row */}
+            <div className={`transition-all duration-1000 delay-400 ease-out ${
+              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+            }`}>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-8">
+                {(() => {
+                  const stats = getTodayStats(analytics);
+                  return [
+                    { icon: '📊', label: 'Total Views', value: stats.todayViews },
+                    { icon: '👆', label: 'Total Claims', value: stats.todayClaims },
+                    { icon: '🎯', label: 'Conversion Rate', value: `${stats.conversionRate}%` },
+                    { icon: '✅', label: 'Total Redeemed', value: stats.todayRedeemed },
+                    { icon: '📈', label: 'Redemption Rate', value: `${stats.redemptionRate}%` },
+                    { icon: '🎁', label: 'Total Rewards', value: stats.totalRewards },
+                  ].map((card, idx) => (
+                    <div key={idx} className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+                      <div className="text-2xl mb-2">{card.icon}</div>
+                      <div className="text-3xl font-light text-gray-900 mb-1">{isLoadingData ? "..." : card.value}</div>
+                      <div className="text-sm text-gray-600">{card.label}</div>
+                    </div>
+                  ));
+                })()}
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className={`transition-all duration-1000 delay-1200 ease-out ${
+              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+            }`}>
+              <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100 mb-8">
+                <h3 className="text-2xl font-light text-gray-900 mb-6">Quick Actions</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <button 
+                    onClick={() => handleQuickAction('create')}
+                    className="flex items-center space-x-4 p-4 bg-green-50 rounded-2xl hover:bg-green-100 transition-colors"
+                  >
+                    <span className="text-2xl">➕</span>
+                    <div className="text-left">
+                      <div className="font-medium text-gray-900">Create Reward</div>
+                      <div className="text-sm text-gray-600">New offer in seconds</div>
+                    </div>
+                  </button>
+                  <button 
+                    onClick={() => handleQuickAction('analytics')}
+                    className="flex items-center space-x-4 p-4 bg-blue-50 rounded-2xl hover:bg-blue-100 transition-colors"
+                  >
+                    <span className="text-2xl">📊</span>
+                    <div className="text-left">
+                      <div className="font-medium text-gray-900">View Analytics</div>
+                      <div className="text-sm text-gray-600">Detailed insights</div>
+                    </div>
+                  </button>
+                  <button 
+                    onClick={() => handleQuickAction('settings')}
+                    className="flex items-center space-x-4 p-4 bg-purple-50 rounded-2xl hover:bg-purple-100 transition-colors"
+                  >
+                    <span className="text-2xl">⚙️</span>
+                    <div className="text-left">
+                      <div className="font-medium text-gray-900">Settings</div>
+                      <div className="text-sm text-gray-600">Manage account</div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
 
             {/* Rewards Section */}
             <div className="transition-all duration-1000 delay-400 ease-out mb-12">
@@ -948,47 +1037,6 @@ export default function BusinessDashboard() {
                     </div>
                   </div>
                 ))}
-              </div>
-            </div>
-
-            {/* Quick Actions */}
-            <div className={`transition-all duration-1000 delay-1200 ease-out ${
-              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-            }`}>
-              <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100 mb-8">
-                <h3 className="text-2xl font-light text-gray-900 mb-6">Quick Actions</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <button 
-                    onClick={() => handleQuickAction('create')}
-                    className="flex items-center space-x-4 p-4 bg-green-50 rounded-2xl hover:bg-green-100 transition-colors"
-                  >
-                    <span className="text-2xl">➕</span>
-                    <div className="text-left">
-                      <div className="font-medium text-gray-900">Create Reward</div>
-                      <div className="text-sm text-gray-600">New offer in seconds</div>
-                    </div>
-                  </button>
-                  <button 
-                    onClick={() => handleQuickAction('analytics')}
-                    className="flex items-center space-x-4 p-4 bg-blue-50 rounded-2xl hover:bg-blue-100 transition-colors"
-                  >
-                    <span className="text-2xl">📊</span>
-                    <div className="text-left">
-                      <div className="font-medium text-gray-900">View Analytics</div>
-                      <div className="text-sm text-gray-600">Detailed insights</div>
-                    </div>
-                  </button>
-                  <button 
-                    onClick={() => handleQuickAction('settings')}
-                    className="flex items-center space-x-4 p-4 bg-purple-50 rounded-2xl hover:bg-purple-100 transition-colors"
-                  >
-                    <span className="text-2xl">⚙️</span>
-                    <div className="text-left">
-                      <div className="font-medium text-gray-900">Settings</div>
-                      <div className="text-sm text-gray-600">Manage account</div>
-                    </div>
-                  </button>
-                </div>
               </div>
             </div>
           </>
