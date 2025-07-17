@@ -311,7 +311,7 @@ export default function EditRewardForm({ card, onClose, onSuccess }: EditRewardF
                     <label htmlFor="subheader" className="block text-sm font-medium text-gray-700 mb-1">
                       Reward Description *
                     </label>
-                    <div className="flex items-center gap-2">
+                    <div className="relative">
                       <textarea
                         id="subheader"
                         name="subheader"
@@ -322,31 +322,39 @@ export default function EditRewardForm({ card, onClose, onSuccess }: EditRewardF
                         className="w-full px-3 sm:px-4 py-3 border border-gray-300 rounded-xl focus:border-green-500 focus:outline-none transition-colors text-base resize-none"
                         placeholder="Describe your reward offer (e.g., Get a free coffee with any purchase, 20% off your next visit, Buy one get one free)"
                         disabled={isEnhancing}
+                        maxLength={80}
                       />
-                      <button
-                        type="button"
-                        className="ml-1 px-2 py-1 text-xs rounded flex items-center text-gray-400 border border-gray-200 hover:text-gray-600 hover:border-gray-300 transition bg-white disabled:opacity-60"
-                        style={{ minWidth: 32 }}
-                        onClick={handleEnhanceDescription}
-                        disabled={isEnhancing}
-                        aria-label="Enhance with AI"
-                        onMouseEnter={() => {
-                          console.log('🔍 EditRewardForm: Enhance button hover - isEnhancing:', isEnhancing, 'subheader.trim():', formData.subheader.trim(), 'disabled:', isEnhancing || !formData.subheader.trim());
-                        }}
-                      >
-                        {isEnhancing ? (
-                          <span className="animate-spin mr-1 w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full"></span>
-                        ) : (
-                          <span className="flex items-center">✨<span className="ml-1 hidden sm:inline">Enhance</span></span>
-                        )}
-                      </button>
-                      {hasEnhanced && (
-                        <button
-                          type="button"
-                          className="ml-1 px-2 py-1 text-xs rounded text-gray-400 border border-gray-200 hover:text-gray-600 hover:border-gray-300 transition bg-white"
-                          onClick={handleUndoEnhance}
-                        >Undo</button>
-                      )}
+                      <div className="flex items-center justify-between mt-1">
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            className="px-2 py-1 text-xs rounded flex items-center text-gray-400 border border-gray-200 hover:text-gray-600 hover:border-gray-300 transition bg-white disabled:opacity-60"
+                            style={{ minWidth: 32 }}
+                            onClick={handleEnhanceDescription}
+                            disabled={isEnhancing}
+                            aria-label="Enhance with AI"
+                            onMouseEnter={() => {
+                              console.log('🔍 EditRewardForm: Enhance button hover - isEnhancing:', isEnhancing, 'subheader.trim():', formData.subheader.trim(), 'disabled:', isEnhancing || !formData.subheader.trim());
+                            }}
+                          >
+                            {isEnhancing ? (
+                              <span className="animate-spin mr-1 w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full"></span>
+                            ) : (
+                              <span className="flex items-center">✨<span className="ml-1 hidden sm:inline">Enhance</span></span>
+                            )}
+                          </button>
+                          {hasEnhanced && (
+                            <button
+                              type="button"
+                              className="px-2 py-1 text-xs rounded text-gray-400 border border-gray-200 hover:text-gray-600 hover:border-gray-300 transition bg-white"
+                              onClick={handleUndoEnhance}
+                            >Undo</button>
+                          )}
+                        </div>
+                        <span className={`text-xs ${formData.subheader.length > 70 ? 'text-red-500' : 'text-gray-500'}`}>
+                          {formData.subheader.length}/80
+                        </span>
+                      </div>
                     </div>
                     <p className="text-xs text-gray-500 mt-1">Tell customers what they&apos;ll receive</p>
                   </div>

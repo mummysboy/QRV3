@@ -44,19 +44,19 @@ export async function POST(req: Request) {
       );
     }
     const openai = new OpenAI({ apiKey: openaiKey });
-    // Compose the prompt for enhancement
-    const prompt = `Rewrite the following reward description to be more compelling, clear, and customer-facing, while staying true to the original meaning. Make it sound appealing and friendly, but do not exaggerate or add details.\n\nOriginal: ${description}\n\nEnhanced:`;
+    // Compose the prompt for enhancement with advertising tone and character limit
+    const prompt = `Transform this reward description into a concise, compelling advertisement. Use an exciting, action-oriented tone that creates urgency and desire. Keep it under 80 characters and avoid concluding sentences. Make it punchy and direct.\n\nOriginal: ${description}\n\nEnhanced:`;
     // Use gpt-4o, gpt-4-turbo, or fallback to gpt-3.5-turbo
     let model = 'gpt-4o';
     try {
       await openai.chat.completions.create({
         model,
         messages: [
-          { role: 'system', content: 'You are a helpful assistant for a customer rewards platform.' },
+          { role: 'system', content: 'You are a marketing copywriter specializing in creating compelling, concise reward descriptions with an advertising tone.' },
           { role: 'user', content: prompt }
         ],
-        max_tokens: 120,
-        temperature: 0.7,
+        max_tokens: 60,
+        temperature: 0.8,
       });
     } catch {
       // If gpt-4o is not available, fallback
@@ -65,11 +65,11 @@ export async function POST(req: Request) {
         await openai.chat.completions.create({
           model,
           messages: [
-            { role: 'system', content: 'You are a helpful assistant for a customer rewards platform.' },
+            { role: 'system', content: 'You are a marketing copywriter specializing in creating compelling, concise reward descriptions with an advertising tone.' },
             { role: 'user', content: prompt }
           ],
-          max_tokens: 120,
-          temperature: 0.7,
+          max_tokens: 60,
+          temperature: 0.8,
         });
       } catch {
         model = 'gpt-3.5-turbo';
@@ -79,13 +79,19 @@ export async function POST(req: Request) {
     const completion = await openai.chat.completions.create({
       model,
       messages: [
-        { role: 'system', content: 'You are a helpful assistant for a customer rewards platform.' },
+        { role: 'system', content: 'You are a marketing copywriter specializing in creating compelling, concise reward descriptions with an advertising tone.' },
         { role: 'user', content: prompt }
       ],
-      max_tokens: 120,
-      temperature: 0.7,
+      max_tokens: 60,
+      temperature: 0.8,
     });
-    const enhancedDescription = completion.choices[0]?.message?.content?.trim() || description;
+    let enhancedDescription = completion.choices[0]?.message?.content?.trim() || description;
+    
+    // Ensure the enhanced description doesn't exceed 80 characters
+    if (enhancedDescription.length > 80) {
+      enhancedDescription = enhancedDescription.substring(0, 77) + '...';
+    }
+    
     return NextResponse.json({ enhancedDescription, originalDescription: description });
   } catch (error) {
     console.error('Error enhancing description:', error);

@@ -331,7 +331,7 @@ export default function DemoDashboard() {
               <div className="space-y-4 pt-4">
                 <h3 className="text-base sm:text-lg font-medium text-gray-900">Reward Details</h3>
                 
-                <div className="flex items-center gap-2">
+                <div className="relative">
                   <textarea
                     id="subheader"
                     name="subheader"
@@ -342,26 +342,34 @@ export default function DemoDashboard() {
                     className="w-full px-3 sm:px-4 py-3 border border-gray-300 rounded-xl focus:border-green-500 focus:outline-none transition-colors text-base resize-none"
                     placeholder="Describe your reward offer (e.g., Get a free coffee with any purchase, 20% off your next visit, Buy one get one free)"
                     disabled={isEnhancingEdit}
+                    maxLength={80}
                   />
-                  <button
-                    onClick={() => handleEnhanceEditDescription(formData.subheader, (desc) => setFormData(prev => ({ ...prev, subheader: desc })))}
-                    disabled={isEnhancingEdit}
-                    className="ml-1 px-2 py-1 text-xs rounded flex items-center text-gray-400 border border-gray-200 hover:text-gray-600 hover:border-gray-300 transition bg-white disabled:opacity-60"
-                    aria-label="Enhance with AI"
-                  >
-                    {isEnhancingEdit ? (
-                      <span className="animate-spin mr-1 w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full"></span>
-                    ) : (
-                      <span className="flex items-center">✨<span className="ml-1 hidden sm:inline">Enhance</span></span>
-                    )}
-                  </button>
-                  {hasEnhancedEdit && (
-                    <button
-                      type="button"
-                      className="ml-1 px-2 py-1 text-xs rounded text-gray-400 border border-gray-200 hover:text-gray-600 hover:border-gray-300 transition bg-white"
-                      onClick={() => handleUndoEnhanceEdit((desc) => setFormData(prev => ({ ...prev, subheader: desc })))}
-                    >Undo</button>
-                  )}
+                  <div className="flex items-center justify-between mt-1">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleEnhanceEditDescription(formData.subheader, (desc) => setFormData(prev => ({ ...prev, subheader: desc })))}
+                        disabled={isEnhancingEdit}
+                        className="px-2 py-1 text-xs rounded flex items-center text-gray-400 border border-gray-200 hover:text-gray-600 hover:border-gray-300 transition bg-white disabled:opacity-60"
+                        aria-label="Enhance with AI"
+                      >
+                        {isEnhancingEdit ? (
+                          <span className="animate-spin mr-1 w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full"></span>
+                        ) : (
+                          <span className="flex items-center">✨<span className="ml-1 hidden sm:inline">Enhance</span></span>
+                        )}
+                      </button>
+                      {hasEnhancedEdit && (
+                        <button
+                          type="button"
+                          className="px-2 py-1 text-xs rounded text-gray-400 border border-gray-200 hover:text-gray-600 hover:border-gray-300 transition bg-white"
+                          onClick={() => handleUndoEnhanceEdit((desc) => setFormData(prev => ({ ...prev, subheader: desc })))}
+                        >Undo</button>
+                      )}
+                    </div>
+                    <span className={`text-xs ${formData.subheader.length > 70 ? 'text-red-500' : 'text-gray-500'}`}>
+                      {formData.subheader.length}/80
+                    </span>
+                  </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-1">Tell customers what they&rsquo;ll receive</p>
 
