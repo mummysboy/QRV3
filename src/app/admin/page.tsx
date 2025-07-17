@@ -187,6 +187,14 @@ export default function AdminDashboard() {
     return items.filter(item => item.status === statusFilter);
   };
 
+  const getPendingBusinessesCount = () => {
+    return businesses.filter(business => business.status === 'pending_approval').length;
+  };
+
+  const getPendingSignupsCount = () => {
+    return signups.filter(signup => signup.status === 'pending').length;
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -233,6 +241,34 @@ export default function AdminDashboard() {
         </div>
       </div>
 
+      {/* Pending Notifications */}
+      {(getPendingBusinessesCount() > 0 || getPendingSignupsCount() > 0) && (
+        <div className="bg-yellow-50 border-b border-yellow-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-yellow-800">
+                    Pending approvals: {getPendingBusinessesCount()} businesses, {getPendingSignupsCount()} signups
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setStatusFilter('pending')}
+                className="text-sm font-medium text-yellow-800 hover:text-yellow-900 underline"
+              >
+                View all pending
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Tabs */}
         <div className="bg-white rounded-lg shadow-sm mb-6">
@@ -247,6 +283,11 @@ export default function AdminDashboard() {
                 }`}
               >
                 Signups ({signups.length})
+                {getPendingSignupsCount() > 0 && (
+                  <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                    {getPendingSignupsCount()}
+                  </span>
+                )}
               </button>
               <button
                 onClick={() => setActiveTab('businesses')}
@@ -257,6 +298,11 @@ export default function AdminDashboard() {
                 }`}
               >
                 Businesses ({businesses.length})
+                {getPendingBusinessesCount() > 0 && (
+                  <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                    {getPendingBusinessesCount()}
+                  </span>
+                )}
               </button>
             </nav>
           </div>

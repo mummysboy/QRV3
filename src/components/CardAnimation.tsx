@@ -102,6 +102,31 @@ export default function CardAnimation({ card, playbackRate = 1, isPreview = fals
     return difference > 0 && difference <= twentyFourHours;
   };
 
+  // Helper function to extract city and state from full address
+  const getCityStateFromAddress = (fullAddress: string): string => {
+    if (!fullAddress) return '';
+    
+    // Try to match patterns like "City, State ZIP" or "City, State"
+    const cityStateMatch = fullAddress.match(/([^,]+),\s*([A-Z]{2})\s*\d{5}/);
+    if (cityStateMatch) {
+      return `${cityStateMatch[1].trim()}, ${cityStateMatch[2]}`;
+    }
+    
+    // Fallback: try to extract city and state from the end of the address
+    const parts = fullAddress.split(',').map(part => part.trim());
+    if (parts.length >= 2) {
+      const lastPart = parts[parts.length - 1];
+      const stateMatch = lastPart.match(/^([A-Z]{2})\s*\d{5}/);
+      if (stateMatch) {
+        const city = parts[parts.length - 2];
+        return `${city}, ${stateMatch[1]}`;
+      }
+    }
+    
+    // If no pattern matches, return the original address
+    return fullAddress;
+  };
+
   // Construct the logo URL using the storage utility
   const logoUrl = cardData?.logokey
     ? cardData.logokey.startsWith("data:") || cardData.logokey.startsWith("http")
@@ -278,7 +303,7 @@ export default function CardAnimation({ card, playbackRate = 1, isPreview = fals
                   rel="noopener noreferrer"
                   className={`${isPreview ? 'text-xs' : 'text-xs'} font-light leading-tight underline hover:text-blue-600 block`}
                 >
-                  {cardData?.addresstext}
+                  {getCityStateFromAddress(cardData?.addresstext || '')}
                 </a>
               </div>
               <div className={`mt-2 ${isPreview ? 'px-2' : 'px-1'}`}>

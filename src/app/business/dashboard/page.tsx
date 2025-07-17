@@ -6,6 +6,7 @@ import CreateRewardForm from "@/components/CreateRewardForm";
 import EditRewardForm from "@/components/EditRewardForm";
 import LogoUpload from "@/components/LogoUpload";
 import CardAnimation from "@/components/CardAnimation";
+import AddBusinessForm, { AddBusinessData } from "@/components/AddBusinessForm";
 import { getStorageUrlSync } from "@/lib/storage";
 
 
@@ -114,6 +115,7 @@ function getTodayString() {
 export default function BusinessDashboard() {
   const [user, setUser] = useState<BusinessUser | null>(null);
   const [business, setBusiness] = useState<Business | null>(null);
+  const [allBusinesses, setAllBusinesses] = useState<Business[]>([]);
   const [currentView, setCurrentView] = useState<'dashboard' | 'analytics' | 'settings'>('dashboard');
   const [isLoading, setIsLoading] = useState(true);
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
@@ -123,26 +125,11 @@ export default function BusinessDashboard() {
   const [showEditReward, setShowEditReward] = useState(false);
   const [editingCard, setEditingCard] = useState<Card | null>(null);
   const [showLogoUpload, setShowLogoUpload] = useState(false);
+  const [showAddBusiness, setShowAddBusiness] = useState(false);
   const [timeRange, setTimeRange] = useState<TimeRange>('month');
   const [isVisible, setIsVisible] = useState(false);
   
-  const [editBusiness, setEditBusiness] = useState({
-    name: "",
-    phone: "",
-    email: "",
-    address: "",
-    city: "",
-    state: "",
-    zipCode: "",
-    website: "",
-    socialMedia: "",
-    businessHours: "",
-    description: "",
-    logo: "",
-    photos: "",
-    primaryContactEmail: "",
-    primaryContactPhone: "",
-  });
+
   
   const router = useRouter();
 
@@ -168,24 +155,7 @@ export default function BusinessDashboard() {
       setUser(userObj);
       setBusiness(businessObj);
       
-      // Initialize edit business form
-      setEditBusiness({
-        name: businessObj.name || "",
-        phone: businessObj.phone || "",
-        email: businessObj.email || "",
-        address: businessObj.address || "",
-        city: businessObj.city || "",
-        state: businessObj.state || "",
-        zipCode: businessObj.zipCode || "",
-        website: businessObj.website || "",
-        socialMedia: businessObj.socialMedia || "",
-        businessHours: businessObj.businessHours || "",
-        description: businessObj.description || "",
-        logo: businessObj.logo || "",
-        photos: businessObj.photos || "",
-        primaryContactEmail: businessObj.primaryContactEmail || "",
-        primaryContactPhone: businessObj.primaryContactPhone || "",
-      });
+
     } catch (error) {
       console.error('Error parsing session data:', error);
       router.push('/business/login');
@@ -202,12 +172,37 @@ export default function BusinessDashboard() {
   }, [business?.id]);
 
   useEffect(() => {
+    if (user?.email) {
+      fetchAllBusinesses();
+    }
+  }, [user?.email]);
+
+  useEffect(() => {
     // Trigger animations after component mounts
     const timer = setTimeout(() => setIsVisible(true), 100);
     return () => clearTimeout(timer);
   }, []);
 
 
+
+  const fetchAllBusinesses = async () => {
+    if (!user?.email) return;
+    
+    try {
+      const response = await fetch('/api/business/my-businesses', {
+        headers: {
+          'x-user-email': user.email,
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setAllBusinesses(data.businesses || []);
+      }
+    } catch (error) {
+      console.error('Error fetching all businesses:', error);
+    }
+  };
 
   const fetchDashboardData = async () => {
     if (!business?.id) return;
@@ -236,48 +231,9 @@ export default function BusinessDashboard() {
     }
   };
 
-  const handleLogout = () => {
-    sessionStorage.removeItem('businessUser');
-    sessionStorage.removeItem('businessData');
-    router.push('/business/login');
-  };
 
-  const handleUpdateBusiness = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!business?.id) return;
 
-    try {
-      const response = await fetch('/api/business/update', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          businessId: business.id,
-          ...editBusiness,
-        }),
-      });
 
-      if (response.ok) {
-        const result = await response.json();
-        console.log('Business updated successfully:', result);
-        
-        // Update session storage
-        const updatedBusiness = { ...business, ...editBusiness };
-        sessionStorage.setItem('businessData', JSON.stringify(updatedBusiness));
-        setBusiness(updatedBusiness);
-        
-        // Business updated successfully
-        alert('Business information updated successfully!');
-      } else {
-        const error = await response.json();
-        alert(error.error || 'Failed to update business information');
-      }
-    } catch (error) {
-      console.error('Error updating business:', error);
-      alert('Failed to update business information');
-    }
-  };
 
   const handleDeleteReward = async (cardid: string) => {
     if (!confirm('Are you sure you want to delete this reward?')) return;
@@ -409,7 +365,7 @@ export default function BusinessDashboard() {
     }
   };
 
-  const handleQuickAction = (action: 'create' | 'analytics' | 'settings') => {
+  const handleQuickAction = (action: 'create' | 'analytics' | 'settings' | 'add-business') => {
     switch (action) {
       case 'create':
         setShowCreateReward(true);
@@ -420,6 +376,38 @@ export default function BusinessDashboard() {
       case 'settings':
         setCurrentView('settings');
         break;
+      case 'add-business':
+        setShowAddBusiness(true);
+        break;
+    }
+  };
+
+  const handleAddBusinessSubmit = async (data: AddBusinessData) => {
+    try {
+      const response = await fetch('/api/business/add-business', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-email': user?.email || '',
+          'x-user-firstname': user?.firstName || '',
+          'x-user-lastname': user?.lastName || '',
+        },
+        body: JSON.stringify(data),
+      });
+
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        throw new Error(responseData.error || 'Failed to add business');
+      }
+
+      setShowAddBusiness(false);
+      alert('Business added successfully! It is now pending approval from our admin team.');
+      // Refresh the business list
+      fetchAllBusinesses();
+    } catch (error) {
+      console.error('Error adding business:', error);
+      throw error;
     }
   };
 
@@ -682,18 +670,18 @@ export default function BusinessDashboard() {
             <label className="block text-sm font-medium text-gray-700 mb-2">Business Name</label>
             <input
               type="text"
-              value={editBusiness.name}
-              onChange={(e) => setEditBusiness(prev => ({ ...prev, name: e.target.value }))}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:border-green-500 focus:outline-none transition-colors"
+              value={business?.name || ""}
+              disabled
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600 cursor-not-allowed"
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
             <input
               type="text"
-              value={editBusiness.address}
-              onChange={(e) => setEditBusiness(prev => ({ ...prev, address: e.target.value }))}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:border-green-500 focus:outline-none transition-colors"
+              value={business?.address || ""}
+              disabled
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600 cursor-not-allowed"
             />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -701,27 +689,27 @@ export default function BusinessDashboard() {
               <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
               <input
                 type="text"
-                value={editBusiness.city}
-                onChange={(e) => setEditBusiness(prev => ({ ...prev, city: e.target.value }))}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:border-green-500 focus:outline-none transition-colors"
+                value={business?.city || ""}
+                disabled
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600 cursor-not-allowed"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">State</label>
               <input
                 type="text"
-                value={editBusiness.state}
-                onChange={(e) => setEditBusiness(prev => ({ ...prev, state: e.target.value }))}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:border-green-500 focus:outline-none transition-colors"
+                value={business?.state || ""}
+                disabled
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600 cursor-not-allowed"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">ZIP Code</label>
               <input
                 type="text"
-                value={editBusiness.zipCode}
-                onChange={(e) => setEditBusiness(prev => ({ ...prev, zipCode: e.target.value }))}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:border-green-500 focus:outline-none transition-colors"
+                value={business?.zipCode || ""}
+                disabled
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600 cursor-not-allowed"
               />
             </div>
           </div>
@@ -770,44 +758,11 @@ export default function BusinessDashboard() {
               </button>
             </div>
           </div>
-          <div className="pt-4">
-            <button
-              onClick={handleUpdateBusiness}
-              className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-xl transition-colors"
-            >
-              Update Profile
-            </button>
-          </div>
+
         </div>
       </div>
 
-      <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
-        <h3 className="text-2xl font-light text-gray-900 mb-6">Account</h3>
-        <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl">
-            <div>
-              <div className="font-medium text-gray-900">Email</div>
-              <div className="text-sm text-gray-600">{user?.email}</div>
-            </div>
-            <span className="text-sm text-gray-500">Primary</span>
-          </div>
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl">
-            <div>
-              <div className="font-medium text-gray-900">Role</div>
-              <div className="text-sm text-gray-600">{user?.role}</div>
-            </div>
-            <span className="text-sm text-gray-500">Active</span>
-          </div>
-        </div>
-        <div className="mt-6">
-          <button
-            onClick={handleLogout}
-            className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-6 rounded-xl transition-colors"
-          >
-            Sign Out
-          </button>
-        </div>
-      </div>
+
     </div>
   );
 
@@ -838,6 +793,29 @@ export default function BusinessDashboard() {
               {currentView === 'dashboard' ? 'Business Dashboard' : 
                currentView === 'analytics' ? 'Analytics' : 'Settings'}
             </h1>
+            
+            {/* Business Switcher */}
+            {allBusinesses.length > 1 && (
+              <div className="ml-6">
+                <select
+                  value={business?.id || ''}
+                  onChange={(e) => {
+                    const selectedBusiness = allBusinesses.find(b => b.id === e.target.value);
+                    if (selectedBusiness) {
+                      setBusiness(selectedBusiness);
+                      sessionStorage.setItem('businessData', JSON.stringify(selectedBusiness));
+                    }
+                  }}
+                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                >
+                  {allBusinesses.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name} {b.status === 'pending_approval' && '(Pending)'}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
         </div>
@@ -946,7 +924,7 @@ export default function BusinessDashboard() {
             }`}>
               <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100 mb-8">
                 <h3 className="text-2xl font-light text-gray-900 mb-6">Quick Actions</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <button 
                     onClick={() => handleQuickAction('create')}
                     className="flex items-center space-x-4 p-4 bg-green-50 rounded-2xl hover:bg-green-100 transition-all duration-200 ease-in-out"
@@ -965,6 +943,16 @@ export default function BusinessDashboard() {
                     <div className="text-left">
                       <div className="font-medium text-gray-900">View Analytics</div>
                       <div className="text-sm text-gray-600">Detailed insights</div>
+                    </div>
+                  </button>
+                  <button 
+                    onClick={() => handleQuickAction('add-business')}
+                    className="flex items-center space-x-4 p-4 bg-orange-50 rounded-2xl hover:bg-orange-100 transition-all duration-200 ease-in-out"
+                  >
+                    <span className="text-2xl">🏢</span>
+                    <div className="text-left">
+                      <div className="font-medium text-gray-900">Add Business</div>
+                      <div className="text-sm text-gray-600">Register new location</div>
                     </div>
                   </button>
                   <button 
@@ -1080,6 +1068,13 @@ export default function BusinessDashboard() {
             </div>
           </div>
         )}
+
+        {/* Add Business Modal */}
+        <AddBusinessForm
+          isOpen={showAddBusiness}
+          onClose={() => setShowAddBusiness(false)}
+          onSubmit={handleAddBusinessSubmit}
+        />
       </div>
     </main>
   );
