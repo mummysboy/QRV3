@@ -869,52 +869,7 @@ export default function BusinessDashboard() {
             </div>
 
             {/* Stats Grid */}
-            <div className={`transition-all duration-1000 delay-600 ease-out ${
-              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-            }`}>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
-                <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-2xl">🎁</span>
-                    <span className="text-sm text-green-600 font-medium">+12%</span>
-                  </div>
-                  <div className="text-3xl font-light text-gray-900 mb-1">
-                    {isLoadingData ? "..." : analytics?.activeRewards || 0}
-                  </div>
-                  <div className="text-sm text-gray-600">Active Rewards</div>
-                </div>
-                <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-2xl">👆</span>
-                    <span className="text-sm text-green-600 font-medium">+8%</span>
-                  </div>
-                  <div className="text-3xl font-light text-gray-900 mb-1">
-                    {isLoadingData ? "..." : analytics?.totalClaims || 0}
-                  </div>
-                  <div className="text-sm text-gray-600">Total Claims</div>
-                </div>
-                <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-2xl">📱</span>
-                    <span className="text-sm text-green-600 font-medium">+15%</span>
-                  </div>
-                  <div className="text-3xl font-light text-gray-900 mb-1">
-                    {isLoadingData ? "..." : analytics?.totalViews || 0}
-                  </div>
-                  <div className="text-sm text-gray-600">QR Scans</div>
-                </div>
-                <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-2xl">🎯</span>
-                    <span className="text-sm text-green-600 font-medium">+5%</span>
-                  </div>
-                  <div className="text-3xl font-light text-gray-900 mb-1">
-                    {isLoadingData ? "..." : `${analytics?.conversionRate || 0}%`}
-                  </div>
-                  <div className="text-sm text-gray-600">Conversion Rate</div>
-                </div>
-              </div>
-            </div>
+            {/* Removed summary cards grid */}
 
             {/* Rewards Section */}
             <div className="transition-all duration-1000 delay-400 ease-out mb-12">
