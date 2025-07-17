@@ -145,6 +145,14 @@ export async function POST(request: NextRequest) {
       approvedAt: string; 
     } } }).data.getBusiness;
 
+    // Add check for missing business
+    if (!business) {
+      return NextResponse.json(
+        { error: "Business not found" },
+        { status: 404 }
+      );
+    }
+
     // Check if business is approved
     if (business.status !== "approved") {
       return NextResponse.json(
