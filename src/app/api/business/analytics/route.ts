@@ -37,6 +37,16 @@ interface AnalyticsData {
     month: string;
     count: number;
   }>;
+  claimsByDay: Array<{
+    date: string;
+    count: number;
+  }>;
+  claimsByWeek: Array<{
+    week: string;
+    count: number;
+  }>;
+  conversionRate: number;
+  revenueGenerated: number;
 }
 
 export async function GET(request: NextRequest) {
@@ -109,6 +119,12 @@ export async function GET(request: NextRequest) {
     // Estimate total scans (for now, we'll use claims as a proxy)
     const totalScans = totalClaims;
 
+    // Calculate conversion rate (claims / scans * 100)
+    const conversionRate = totalScans > 0 ? Math.round((totalClaims / totalScans) * 100) : 0;
+
+    // Estimate revenue generated (for demo purposes, $10 per claim)
+    const revenueGenerated = totalClaims * 10;
+
     // Get recent claims (last 10)
     const recentClaims = claimedRewards
       .sort((a, b) => new Date(b.claimed_at).getTime() - new Date(a.claimed_at).getTime())
@@ -146,6 +162,53 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    // Calculate claims by week (last 8 weeks)
+    const claimsByWeek = [];
+    for (let i = 7; i >= 0; i--) {
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() - (now.getDay() + 7 * i));
+      startOfWeek.setHours(0, 0, 0, 0);
+      
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6);
+      endOfWeek.setHours(23, 59, 59, 999);
+      
+      const weekKey = `Week ${startOfWeek.getDate()}/${startOfWeek.getMonth() + 1}`;
+      
+      const weekClaims = claimedRewards.filter(claim => {
+        const claimDate = new Date(claim.claimed_at);
+        return claimDate >= startOfWeek && claimDate <= endOfWeek;
+      }).length;
+
+      claimsByWeek.push({
+        week: weekKey,
+        count: weekClaims,
+      });
+    }
+
+    // Calculate claims by day (last 7 days)
+    const claimsByDay = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(now);
+      date.setDate(now.getDate() - i);
+      date.setHours(0, 0, 0, 0);
+      
+      const nextDate = new Date(date);
+      nextDate.setDate(date.getDate() + 1);
+      
+      const dayKey = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      
+      const dayClaims = claimedRewards.filter(claim => {
+        const claimDate = new Date(claim.claimed_at);
+        return claimDate >= date && claimDate < nextDate;
+      }).length;
+
+      claimsByDay.push({
+        date: dayKey,
+        count: dayClaims,
+      });
+    }
+
     const analyticsData: AnalyticsData = {
       totalRewards,
       activeRewards,
@@ -154,6 +217,10 @@ export async function GET(request: NextRequest) {
       recentClaims,
       rewardsByStatus,
       claimsByMonth,
+      claimsByDay,
+      claimsByWeek,
+      conversionRate,
+      revenueGenerated,
     };
 
     return NextResponse.json({
