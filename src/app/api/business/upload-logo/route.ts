@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { v4 as uuidv4 } from "uuid";
+import sharp from "sharp";
 
 const s3Client = new S3Client({
   region: "us-west-1",
@@ -41,15 +42,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate file type
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-    if (!validTypes.includes(logo.type)) {
-      return NextResponse.json(
-        { error: "Invalid file type. Please upload a valid image file." },
-        { status: 400 }
-      );
-    }
-
+    // Accept any image type, but process/convert it below
     // Validate file size (max 5MB)
     if (logo.size > 5 * 1024 * 1024) {
       return NextResponse.json(
@@ -58,21 +51,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate unique filename
-    const fileExtension = logo.name.split('.').pop();
-    const fileName = `logos/${businessName.replace(/[^a-zA-Z0-9]/g, '-')}-${uuidv4()}.${fileExtension}`;
-
     // Convert file to buffer
-    const buffer = Buffer.from(await logo.arrayBuffer());
+    const inputBuffer = Buffer.from(await logo.arrayBuffer());
+
+    // Use sharp to process the image: auto-orient, resize, convert to PNG
+    let processedBuffer;
+    try {
+      processedBuffer = await sharp(inputBuffer)
+        .rotate() // auto-orient based on EXIF
+        .resize(512, 512, { fit: 'inside', withoutEnlargement: true })
+        .png()
+        .toBuffer();
+    } catch {
+      return NextResponse.json(
+        { error: "Failed to process image. Please upload a valid image file." },
+        { status: 400 }
+      );
+    }
+
+    // Generate unique filename (always .png)
+    const fileName = `logos/${businessName.replace(/[^a-zA-Z0-9]/g, '-')}-${uuidv4()}.png`;
 
     // Upload to S3
     const uploadCommand = new PutObjectCommand({
       Bucket: BUCKET_NAME,
       Key: fileName,
-      Body: buffer,
-      ContentType: logo.type,
-      // Remove ACL since the bucket doesn't allow it
-      // The bucket should be configured for public read access
+      Body: processedBuffer,
+      ContentType: 'image/png',
     });
 
     await s3Client.send(uploadCommand);

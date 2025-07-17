@@ -60,16 +60,11 @@ export default function BusinessLogin() {
       {/* Header */}
       <div className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <Link href="/" className="flex items-center">
+          <div className="flex justify-center items-center py-4">
+            <Link href="/" className="flex items-center justify-center w-full">
               <LogoVideo />
             </Link>
-            <Link 
-              href="/business/signup"
-              className="text-green-600 hover:text-green-700 font-medium"
-            >
-              Don&apos;t have an account? Sign up
-            </Link>
+            {/* Removed sign up link from header */}
           </div>
         </div>
       </div>
@@ -167,12 +162,7 @@ export default function BusinessLogin() {
             </div>
 
             <div className="text-center">
-              <p className="text-sm text-gray-600">
-                Don&apos;t have a business account?{" "}
-                <Link href="/business/signup" className="font-medium text-green-600 hover:text-green-500">
-                  Sign up here
-                </Link>
-              </p>
+              {/* Removed sign up link at bottom of form */}
             </div>
           </form>
         </div>

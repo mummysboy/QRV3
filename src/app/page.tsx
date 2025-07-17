@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import LogoVideo from "@/components/LogoVideo";
 import BusinessSignupForm, { BusinessSignupData } from "@/components/BusinessSignupForm";
-import BusinessSignupSuccess from "@/components/BusinessSignupSuccess";
+// Remove import of BusinessSignupSuccess
 
 export default function Home() {
   const [zipCode, setZipCode] = useState("");
@@ -11,7 +11,7 @@ export default function Home() {
   const [currentSection, setCurrentSection] = useState(0);
   const [currentReview, setCurrentReview] = useState(0);
   const [showBusinessSignupForm, setShowBusinessSignupForm] = useState(false);
-  const [showBusinessSignupSuccess, setShowBusinessSignupSuccess] = useState(false);
+  // Remove showBusinessSignupSuccess state
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const [isHowItWorksVisible, setIsHowItWorksVisible] = useState(false);
@@ -116,8 +116,8 @@ export default function Home() {
         throw new Error('Failed to submit business signup');
       }
 
-      setShowBusinessSignupForm(false);
-      setShowBusinessSignupSuccess(true);
+      setShowBusinessSignupForm(false); // Optionally close the form, or leave open for overlay
+      // Do not show BusinessSignupSuccess
     } catch (error) {
       console.error('Error submitting business signup:', error);
       alert('Failed to submit business signup. Please try again.');
@@ -126,26 +126,6 @@ export default function Home() {
 
   const handleCloseBusinessSignupForm = () => {
     setShowBusinessSignupForm(false);
-  };
-
-  const handleCloseBusinessSignupSuccess = () => {
-    setShowBusinessSignupSuccess(false);
-  };
-
-  const handleEnterZipCode = (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmedZipCode = zipCode.trim();
-    if (trimmedZipCode) {
-      // Basic zip code validation (5 digits or 5+4 format)
-      const zipCodeRegex = /^\d{5}(-\d{4})?$/;
-      if (zipCodeRegex.test(trimmedZipCode)) {
-        window.open(`/claim-reward/${trimmedZipCode}`, '_blank');
-      } else {
-        alert('Please enter a valid zip code (e.g., 12345 or 12345-6789)');
-      }
-    } else {
-      alert('Please enter a zip code');
-    }
   };
 
   // Swipe handlers for reviews carousel
@@ -170,6 +150,23 @@ export default function Home() {
     }
     if (isRightSwipe) {
       setCurrentReview((prev) => (prev - 1 + reviews.length) % reviews.length);
+    }
+  };
+
+  // Restore handleEnterZipCode for the zip code demo form
+  const handleEnterZipCode = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmedZipCode = zipCode.trim();
+    if (trimmedZipCode) {
+      // Basic zip code validation (5 digits or 5+4 format)
+      const zipCodeRegex = /^\d{5}(-\d{4})?$/;
+      if (zipCodeRegex.test(trimmedZipCode)) {
+        window.open(`/claim-reward/${trimmedZipCode}`, '_blank');
+      } else {
+        alert('Please enter a valid zip code (e.g., 12345 or 12345-6789)');
+      }
+    } else {
+      alert('Please enter a zip code');
     }
   };
 
@@ -485,12 +482,7 @@ export default function Home() {
         onClose={handleCloseBusinessSignupForm}
         onSubmit={handleBusinessSignupSubmit}
       />
-
-      {/* Business Signup Success Modal */}
-      <BusinessSignupSuccess
-        isOpen={showBusinessSignupSuccess}
-        onClose={handleCloseBusinessSignupSuccess}
-      />
+      {/* Remove BusinessSignupSuccess modal */}
     </main>
   );
 }

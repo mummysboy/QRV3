@@ -110,11 +110,13 @@ const schema = a.schema({
     .model({
       id: a.string().required(),
       email: a.string().required(),
+      password: a.string().required(), // <--- Restored field
       firstName: a.string().required(),
       lastName: a.string().required(),
       role: a.string().required(),
       status: a.string().required(),
       businessId: a.string().required(),
+      lastLoginAt: a.string(), // <--- Restored field (optional)
       createdAt: a.string(),
       updatedAt: a.string(),
     })

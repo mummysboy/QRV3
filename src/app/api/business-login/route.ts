@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
     // Get business information
     const businessResult = await client.graphql({
       query: `
-        query GetBusiness($id: ID!) {
+        query GetBusiness($id: String!) {
           getBusiness(id: $id) {
             id
             name

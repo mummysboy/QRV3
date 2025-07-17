@@ -5,41 +5,134 @@ import Link from "next/link";
 import CreateRewardForm, { RewardData } from "@/components/CreateRewardForm";
 import CardAnimation from "@/components/CardAnimation";
 
-export default function DemoDashboard() {
-  const [isVisible, setIsVisible] = useState(false);
+// Mock business user and business info
+const mockBusiness = {
+  id: "demo-business-1",
+  name: "Demo Coffee Shop",
+  phone: "(415) 555-1234",
+  email: "demo@coffeeshop.com",
+  zipCode: "94105",
+  category: "Cafe",
+  status: "Active",
+  logo: undefined, // Optionally use a public asset
+  address: "123 Main St",
+  city: "San Francisco",
+  state: "CA",
+  website: "https://demo-coffee.com",
+  socialMedia: "@democoffee",
+  businessHours: "7am - 7pm",
+  description: "A cozy spot for coffee lovers.",
+  photos: "",
+  primaryContactEmail: "demo@coffeeshop.com",
+  primaryContactPhone: "(415) 555-1234",
+  createdAt: "2024-01-01",
+  updatedAt: "2024-06-01",
+  approvedAt: "2024-01-02",
+};
 
-  // Demo business info - Updated for deployment trigger
-  const demoBusiness = {
-    id: "demo-business-1",
-    name: "Demo Coffee Shop",
-    address: "123 Main St",
-    city: "San Francisco",
-    state: "CA",
-    zipCode: "94105",
-    category: "Cafe",
-    logo: undefined,
-  };
-
-  // Demo rewards state
-  const [rewards, setRewards] = useState<RewardData[]>([
+// Mock analytics data
+const mockAnalytics = {
+  totalRewards: 3,
+  activeRewards: 2,
+  totalClaims: 156,
+  totalViews: 320,
+  totalRedeemed: 89,
+  recentClaims: [
+    { id: "1", cardid: "demo-1", header: "Free Coffee", claimed_at: new Date().toISOString(), delivery_method: "Email" },
+    { id: "2", cardid: "demo-2", header: "20% Off Lunch", claimed_at: new Date(Date.now() - 86400000).toISOString(), delivery_method: "SMS" },
+  ],
+  rewardsByStatus: { active: 2, inactive: 1 },
+  claimsByMonth: [
+    { month: "2024-04", count: 40 },
+    { month: "2024-05", count: 60 },
+    { month: "2024-06", count: 56 },
+  ],
+  claimsByDay: [
+    { date: new Date().toISOString().slice(0, 10), count: 23 },
+    { date: new Date(Date.now() - 86400000).toISOString().slice(0, 10), count: 18 },
+  ],
+  claimsByWeek: [
+    { week: "2024-W22", count: 30 },
+    { week: "2024-W23", count: 40 },
+    { week: "2024-W24", count: 25 },
+  ],
+  conversionRate: 48,
+  redemptionRate: 57,
+  rewardAnalytics: [
     {
-      businessId: demoBusiness.id,
-      businessName: demoBusiness.name,
-      businessAddress: demoBusiness.address,
-      businessCity: demoBusiness.city,
-      businessState: demoBusiness.state,
-      businessZipCode: demoBusiness.zipCode,
-      businessCategory: demoBusiness.category,
-      businessLogo: demoBusiness.logo,
+      cardid: "demo-1",
+      header: "Free Coffee",
       subheader: "Get a free coffee with any purchase!",
       quantity: 100,
-      expires: "",
+      claims: 56,
+      views: 120,
+      redeemed: 30,
+      conversionRate: 47,
+      redemptionRate: 54,
+      lastClaimed: new Date().toISOString(),
+      lastRedeemed: new Date(Date.now() - 3600000).toISOString(),
     },
-  ]);
+    {
+      cardid: "demo-2",
+      header: "20% Off Lunch",
+      subheader: "Enjoy 20% off your lunch order.",
+      quantity: 50,
+      claims: 30,
+      views: 80,
+      redeemed: 20,
+      conversionRate: 38,
+      redemptionRate: 66,
+      lastClaimed: new Date(Date.now() - 86400000).toISOString(),
+      lastRedeemed: new Date(Date.now() - 7200000).toISOString(),
+    },
+    {
+      cardid: "demo-3",
+      header: "Weekend Special",
+      subheader: "Buy one get one free on weekends!",
+      quantity: 30,
+      claims: 10,
+      views: 30,
+      redeemed: 5,
+      conversionRate: 33,
+      redemptionRate: 50,
+      lastClaimed: null,
+      lastRedeemed: null,
+    },
+  ],
+  viewsByDay: [
+    { date: new Date().toISOString().slice(0, 10), count: 40 },
+    { date: new Date(Date.now() - 86400000).toISOString().slice(0, 10), count: 35 },
+  ],
+  redeemedByDay: [
+    { date: new Date().toISOString().slice(0, 10), count: 12 },
+    { date: new Date(Date.now() - 86400000).toISOString().slice(0, 10), count: 8 },
+  ],
+};
+
+export default function DemoDashboard() {
+  const [isVisible, setIsVisible] = useState(false);
+  const [currentView, setCurrentView] = useState<'dashboard' | 'analytics' | 'settings'>('dashboard');
   const [showCreate, setShowCreate] = useState(false);
   const [editIndex, setEditIndex] = useState<number | null>(null);
   const [editRewardData, setEditRewardData] = useState<RewardData | null>(null);
-  const [currentView, setCurrentView] = useState<'dashboard' | 'analytics' | 'settings'>('dashboard');
+  // Use mock business and analytics
+  const business = mockBusiness;
+  // Demo rewards state from mock analytics
+  const [rewards, setRewards] = useState<RewardData[]>([
+    ...mockAnalytics.rewardAnalytics.map((r) => ({
+      businessId: business.id,
+      businessName: business.name,
+      businessAddress: business.address,
+      businessCity: business.city,
+      businessState: business.state,
+      businessZipCode: business.zipCode,
+      businessCategory: business.category,
+      businessLogo: business.logo,
+      subheader: r.subheader,
+      quantity: r.quantity,
+      expires: r.lastClaimed || '',
+    })),
+  ]);
 
   // For edit reward form
   const [isEnhancingEdit, setIsEnhancingEdit] = useState(false);
@@ -676,7 +769,7 @@ export default function DemoDashboard() {
           isOpen={showCreate}
           onClose={() => setShowCreate(false)}
           onSubmit={handleCreateReward}
-          business={demoBusiness}
+          business={mockBusiness}
           isProfileComplete={true}
         />
         {/* Edit Reward Modal */}
