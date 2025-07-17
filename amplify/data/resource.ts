@@ -16,6 +16,18 @@ const schema = a.schema({
     .identifier(["cardid"])
     .authorization((allow) => [allow.publicApiKey()]),
 
+  CardView: a
+    .model({
+      id: a.id().required(),
+      cardid: a.string().required(),
+      businessId: a.string(),
+      viewed_at: a.string().required(),
+      ip_address: a.string(),
+      user_agent: a.string(),
+    })
+    .identifier(["id"])
+    .authorization((allow) => [allow.publicApiKey()]),
+
   ClaimedReward: a
     .model({
       id: a.string().required(),
@@ -53,12 +65,14 @@ const schema = a.schema({
       lastName: a.string().required(),
       email: a.string().required(),
       phone: a.string(),
-      businessName: a.string().required(),
-      businessAddress: a.string().required(),
-      businessCity: a.string().required(),
-      businessState: a.string().required(),
-      businessZip: a.string().required(),
-      status: a.string().default("pending"),
+      businessName: a.string(),
+      businessAddress: a.string(),
+      businessCity: a.string(),
+      businessState: a.string(),
+      businessZipCode: a.string(),
+      businessCategory: a.string(),
+      businessLogo: a.string(),
+      status: a.string(),
       createdAt: a.string(),
     })
     .identifier(["id"])
@@ -66,45 +80,42 @@ const schema = a.schema({
 
   Business: a
     .model({
-      id: a.id().required(),
+      id: a.string().required(),
       name: a.string().required(),
       phone: a.string().required(),
       email: a.string().required(),
       zipCode: a.string().required(),
       category: a.string().required(),
-      status: a.string().default("pending_approval"), // pending_approval, approved, rejected
-      logo: a.string(), // S3 key for logo
+      status: a.string().required(),
+      logo: a.string(),
       address: a.string().required(),
       city: a.string().required(),
       state: a.string().required(),
       website: a.string(),
       socialMedia: a.string(),
-      businessHours: a.string(), // JSON string of hours
+      businessHours: a.string(),
       description: a.string(),
-      photos: a.string(), // JSON array of S3 keys
+      photos: a.string(),
       primaryContactEmail: a.string(),
       primaryContactPhone: a.string(),
-      profileComplete: a.boolean().default(false), // Track if profile is complete
       createdAt: a.string(),
       updatedAt: a.string(),
       approvedAt: a.string(),
-      approvedBy: a.string(), // Admin user ID
     })
     .identifier(["id"])
     .authorization((allow) => [allow.publicApiKey()]),
 
   BusinessUser: a
     .model({
-      id: a.id().required(),
-      businessId: a.string().required(),
+      id: a.string().required(),
       email: a.string().required(),
-      password: a.string().required(), // Will be hashed
       firstName: a.string().required(),
       lastName: a.string().required(),
-      role: a.string().default("owner"), // owner, manager, staff
-      status: a.string().default("active"), // active, inactive
+      role: a.string().required(),
+      status: a.string().required(),
+      businessId: a.string().required(),
       createdAt: a.string(),
-      lastLoginAt: a.string(),
+      updatedAt: a.string(),
     })
     .identifier(["id"])
     .authorization((allow) => [allow.publicApiKey()]),

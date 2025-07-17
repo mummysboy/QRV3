@@ -11,6 +11,7 @@ import ThankYouOverlay from "@/components/ThankYouOverlay";
 import { generateClient } from "aws-amplify/api";
 import ContactPopup from "@/components/Popups/ContactPopup";
 import { useParams } from "next/navigation";
+import { trackCardView } from "@/lib/analytics";
 
 interface CardData {
   cardid: string;
@@ -21,6 +22,7 @@ interface CardData {
   quantity: number;
   logokey: string;
   header: string;
+  businessId?: string;
 }
 
 export default function ClaimRewardPage() {
@@ -82,6 +84,7 @@ export default function ClaimRewardPage() {
           quantity
           logokey
           header
+          businessId
         }
       }
     }
@@ -129,6 +132,16 @@ export default function ClaimRewardPage() {
 
         console.log("📋 Setting card data:", data);
         setCard(data);
+        
+        // Track the card view for analytics
+        if (data?.cardid) {
+          try {
+            await trackCardView(data.cardid, data.businessId);
+            console.log("📊 Card view tracked for analytics");
+          } catch (error) {
+            console.error("❌ Failed to track card view:", error);
+          }
+        }
       } catch (err) {
         // If you need to use the logo URL, handle it here or pass it to a component as needed.
         console.error("🚨 Error fetching card or logo:", err);

@@ -59,7 +59,7 @@ interface AnalyticsData {
   totalRewards: number;
   activeRewards: number;
   totalClaims: number;
-  totalScans: number;
+  totalViews: number;
   recentClaims: Array<{
     id: string;
     cardid: string;
@@ -90,6 +90,7 @@ interface AnalyticsData {
     subheader: string;
     quantity: number;
     claims: number;
+    views: number;
     conversionRate: number;
     lastClaimed?: string;
   }>;
@@ -446,7 +447,7 @@ export default function BusinessDashboard() {
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
           <div className="text-2xl mb-2">📊</div>
           <div className="text-3xl font-light text-gray-900 mb-1">
-            {isLoadingData ? "..." : analytics?.totalScans || 0}
+            {isLoadingData ? "..." : analytics?.totalViews || 0}
           </div>
           <div className="text-sm text-gray-600">Total Views</div>
         </div>
@@ -550,7 +551,11 @@ export default function BusinessDashboard() {
                     <div className="text-lg font-medium text-gray-900">{reward.quantity}</div>
                   </div>
                 </div>
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-4 gap-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-light text-gray-900 mb-1">{reward.views}</div>
+                    <div className="text-sm text-gray-600">Views</div>
+                  </div>
                   <div className="text-center">
                     <div className="text-2xl font-light text-gray-900 mb-1">{reward.claims}</div>
                     <div className="text-sm text-gray-600">Claims</div>
@@ -867,7 +872,7 @@ export default function BusinessDashboard() {
                     <span className="text-sm text-green-600 font-medium">+15%</span>
                   </div>
                   <div className="text-3xl font-light text-gray-900 mb-1">
-                    {isLoadingData ? "..." : analytics?.totalScans || 0}
+                    {isLoadingData ? "..." : analytics?.totalViews || 0}
                   </div>
                   <div className="text-sm text-gray-600">QR Scans</div>
                 </div>

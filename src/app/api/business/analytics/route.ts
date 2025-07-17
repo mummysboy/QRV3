@@ -17,11 +17,20 @@ interface ClaimedReward {
   delivery_method?: string;
 }
 
+interface CardView {
+  id: string;
+  cardid: string;
+  businessId: string;
+  viewed_at: string;
+  ip_address: string;
+  user_agent: string;
+}
+
 interface AnalyticsData {
   totalRewards: number;
   activeRewards: number;
   totalClaims: number;
-  totalScans: number;
+  totalViews: number;
   recentClaims: Array<{
     id: string;
     cardid: string;
@@ -52,6 +61,7 @@ interface AnalyticsData {
     subheader: string;
     quantity: number;
     claims: number;
+    views: number;
     conversionRate: number;
     lastClaimed?: string;
   }>;
@@ -119,22 +129,47 @@ export async function GET(request: NextRequest) {
 
     const claimedRewards = (claimedRewardsResult as { data: { listClaimedRewards: { items: ClaimedReward[] } } }).data.listClaimedRewards.items;
 
+    // Get all card views for this business
+    const cardViewsResult = await client.graphql({
+      query: `
+        query GetBusinessCardViews($businessId: String!) {
+          listCardViews(filter: {
+            businessId: { eq: $businessId }
+          }) {
+            items {
+              id
+              cardid
+              businessId
+              viewed_at
+              ip_address
+              user_agent
+            }
+          }
+        }
+      `,
+      variables: {
+        businessId: businessId,
+      },
+    });
+
+    const cardViews = (cardViewsResult as { data: { listCardViews: { items: CardView[] } } }).data.listCardViews.items;
+
     // Calculate analytics
     const totalRewards = cards.length;
     const activeRewards = cards.filter(card => card.quantity > 0).length;
     const totalClaims = claimedRewards.length;
-    
-    // Estimate total scans (for now, we'll use claims as a proxy)
-    const totalScans = totalClaims;
+    const totalViews = cardViews.length;
 
-    // Calculate conversion rate (claims / scans * 100)
-    const conversionRate = totalScans > 0 ? Math.round((totalClaims / totalScans) * 100) : 0;
+    // Calculate conversion rate (claims / views * 100)
+    const conversionRate = totalViews > 0 ? Math.round((totalClaims / totalViews) * 100) : 0;
 
     // Calculate individual reward analytics
     const rewardAnalytics = cards.map(card => {
       const cardClaims = claimedRewards.filter(claim => claim.cardid === card.cardid);
+      const cardViewsForReward = cardViews.filter((view: CardView) => view.cardid === card.cardid);
       const cardClaimsCount = cardClaims.length;
-      const cardConversionRate = totalScans > 0 ? Math.round((cardClaimsCount / totalScans) * 100) : 0;
+      const cardViewsCount = cardViewsForReward.length;
+      const cardConversionRate = cardViewsCount > 0 ? Math.round((cardClaimsCount / cardViewsCount) * 100) : 0;
       const lastClaimed = cardClaims.length > 0 
         ? cardClaims.sort((a, b) => new Date(b.claimed_at).getTime() - new Date(a.claimed_at).getTime())[0].claimed_at
         : undefined;
@@ -145,6 +180,7 @@ export async function GET(request: NextRequest) {
         subheader: card.subheader || "",
         quantity: card.quantity,
         claims: cardClaimsCount,
+        views: cardViewsCount,
         conversionRate: cardConversionRate,
         lastClaimed,
       };
@@ -238,7 +274,7 @@ export async function GET(request: NextRequest) {
       totalRewards,
       activeRewards,
       totalClaims,
-      totalScans,
+      totalViews,
       recentClaims,
       rewardsByStatus,
       claimsByMonth,
