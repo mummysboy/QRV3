@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
 
 interface CardData {
   cardid: string;
   addresstext: string;
   addressurl: string;
+  header: string;
   subheader: string;
   expires: string;
   quantity: number;
@@ -31,13 +31,11 @@ export default function ClaimRewardPopup({
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Fade in on mount
   useEffect(() => {
     const timeout = setTimeout(() => setIsVisible(true), 10);
     return () => clearTimeout(timeout);
   }, []);
 
-  // Outside click closes
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (popupRef.current && !popupRef.current.contains(e.target as Node)) {
@@ -45,19 +43,17 @@ export default function ClaimRewardPopup({
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const triggerClose = () => {
     setIsVisible(false);
-    setTimeout(() => onClose(), 1000); // smoother exit
+    setTimeout(() => onClose(), 1000);
   };
 
   const getUserIP = async (): Promise<string> => {
     try {
-      const res = await fetch("https://api.ipify.org?format=json");
+      const res = await fetch("/api/ip");
       const data = await res.json();
       return data.ip;
     } catch {
@@ -67,7 +63,6 @@ export default function ClaimRewardPopup({
 
   const handleSubmit = async () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
     if (!email.trim() || !emailRegex.test(email)) {
       setError("Please enter a valid email address.");
       return;
@@ -82,55 +77,46 @@ export default function ClaimRewardPopup({
         setLoading(false);
         return;
       }
-      // 1. Decrement the reward quantity
-      const { error: decrementError } = await supabase.rpc(
-        "decrement_quantity",
-        {
-          card_id: card.cardid, // ✅ correct
-        }
-      );
 
-      if (decrementError) {
-        console.error("Supabase RPC error:", decrementError.message);
-        setError("This reward is no longer available.");
-        return;
-      }
-
-      // 2. Get IP address
       const ip = await getUserIP();
 
-      // 3. Log the claim
-      const { error: insertError } = await supabase
-        .from("claimed_rewards")
-        .insert([
-          {
-            cardid: card.cardid,
-            email,
-            ip_address: ip,
-            addresstext: card.addresstext,
-            addressurl: card.addressurl,
-            subheader: card.subheader,
-            expires: card.expires,
-            logokey: card.logokey,
-          },
-        ]);
+      // Call AWS API to claim reward
+      const res = await fetch("/api/claim-reward", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          ip_address: ip,
+          ...card,
+        }),
+      });
 
-      if (insertError) {
-        console.error("Insert error:", insertError.message);
+      const result = await res.json();
+      if (!res.ok || !result.rewardId) {
+        console.error("Claim error:", result.error);
         setError("Failed to log reward. Please try again.");
         return;
       }
 
-      // 4. Show confirmation
+      const rewardId = result.rewardId;
+      const rewardUrl = `https://www.qrewards.net/reward/${rewardId}`;
+
+      // Send email (via AWS Lambda or Resend)
+      await fetch("/api/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: email,
+          url: rewardUrl,
+        }),
+      });
+
       setShowConfirmation(true);
 
       setTimeout(() => {
         setIsFullyClosing(true);
         onComplete();
-
-        setTimeout(() => {
-          onComplete();
-        }, 2000);
+        setTimeout(() => onComplete(), 2000);
       }, 1500);
     } catch (err) {
       console.error("Unexpected error:", err);
@@ -161,7 +147,6 @@ export default function ClaimRewardPopup({
           </button>
         )}
 
-        {/* Email Form */}
         <div
           className={`transition-opacity duration-500 ease-out ${
             showConfirmation ? "opacity-0 pointer-events-none" : "opacity-100"
@@ -169,7 +154,7 @@ export default function ClaimRewardPopup({
         >
           <h3 className="text-xl font-semibold mb-2">Claim Your Reward</h3>
           <p className="text-sm text-gray-700 mb-4">
-            Enter your email and we’ll send your reward right away.
+            Enter your email and we&apos;ll send your reward right away.
           </p>
 
           <input
@@ -185,7 +170,7 @@ export default function ClaimRewardPopup({
           <div className="text-xs text-gray-600 mb-4 leading-relaxed">
             By clicking <strong>Submit</strong>, you agree to our{" "}
             <a
-              href="/terms"
+              href="/terms.html"
               className="text-blue-600 underline"
               target="_blank"
             >
@@ -212,7 +197,6 @@ export default function ClaimRewardPopup({
           </div>
         </div>
 
-        {/* Loading & Confirmation */}
         <div
           className={`absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center transition-opacity duration-1000 ease-out ${
             loading || showConfirmation
@@ -223,18 +207,21 @@ export default function ClaimRewardPopup({
           {loading ? (
             <>
               <div className="relative mb-4">
-                <div className="w-12 h-12 rounded-full border-4 border-green-300 border-t-green-700 animate-spin"></div>
-                <div className="absolute top-0 left-0 w-16 h-16 rounded-full animate-ping bg-green-100 opacity-50"></div>
+                <div className="w-16 h-16 rounded-full border-4 border-green-300 border-t-green-700 animate-spin mx-auto"></div>
+                <div className="absolute top-0 left-0 w-20 h-20 rounded-full animate-ping bg-green-100 opacity-50"></div>
               </div>
-              <p className="text-gray-700 text-sm font-medium">
-                Sending your reward...
+              <p className="text-gray-700 text-lg font-medium mb-2">
+                Sending your reward…
+              </p>
+              <p className="text-gray-500 text-sm">
+                Please wait, this may take a few seconds.
               </p>
             </>
           ) : (
             <>
               <div className="mb-3">
                 <svg
-                  className="w-12 h-12 text-green-600"
+                  className="w-16 h-16 text-green-600 mx-auto"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth={2}
@@ -247,13 +234,21 @@ export default function ClaimRewardPopup({
                   />
                 </svg>
               </div>
-              <p className="text-black text-lg font-semibold mb-1">
-                Reward claimed!
+              <p className="text-black text-xl font-bold mb-2">
+                Reward sent!
               </p>
-              <p className="text-sm text-gray-600 text-center max-w-xs">
-                Please check your inbox — and make sure to check your{" "}
-                <strong>spam or promotions folder</strong> if you don’t see it.
+              <p className="text-gray-600 text-base text-center max-w-xs mb-2">
+                Please check your inbox (and your spam/promotions folder).
               </p>
+              <button
+                onClick={() => {
+                  setIsFullyClosing(true);
+                  setTimeout(() => onComplete(), 800);
+                }}
+                className="mt-2 bg-green-700 text-white px-6 py-2 rounded-lg hover:bg-green-800 transition"
+              >
+                Close
+              </button>
             </>
           )}
         </div>

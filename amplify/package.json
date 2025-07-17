@@ -1,0 +1,14 @@
+{
+  "name": "amplify-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  },
+  "dependencies": {
+    "@aws-amplify/backend": "^1.16.1"
+  }
+}

@@ -1,7 +1,17 @@
 import type { NextConfig } from "next";
+import type { Configuration as WebpackConfig } from "webpack";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  experimental: {
+    serverActions: {},
+  },
+  webpack: (config: WebpackConfig) => {
+    config.module!.exprContextCritical = false;
+    return config;
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 };
 
 export default nextConfig;
