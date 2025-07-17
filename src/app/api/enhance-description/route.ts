@@ -1,26 +1,28 @@
 import { NextResponse } from 'next/server';
 import { OpenAI } from 'openai';
+import { getOpenAIKeys, getOpenAIKey } from '@/lib/aws-secrets';
 
-function getOpenAIKey() {
-  // Prefer project key (starts with proj-'), fallback to OPENAI_API_KEY
-  const projectKey = process.env.OPENAI_PROJECT_KEY;
-  const apiKey = process.env.OPENAI_API_KEY;
-  
-  console.log('🔍 Environment variables check:');
-  console.log('🔍OPENAI_PROJECT_KEY exists:', !!projectKey);
-  console.log('🔍OPENAI_PROJECT_KEY starts with proj-:', projectKey?.startsWith('proj-'));
-  console.log('🔍OPENAI_PROJECT_KEY preview:', projectKey ? `${projectKey.substring(0, 4)}...` : 'not set');
-  console.log('🔍 OPENAI_API_KEY exists:', !!apiKey);
-  console.log('🔍 OPENAI_API_KEY preview:', apiKey ? `${apiKey.substring(0, 4)}...` : 'not set');
-  
-  if (projectKey && projectKey.startsWith('proj-')) {
-    console.log('🔍 Using project key');
-    return projectKey;
+async function getOpenAIKeyAsync() {
+  // First try to get from environment variables (for local development)
+  const envKey = getOpenAIKey();
+  if (envKey) {
+    console.log('🔍 Using environment variable key');
+    return envKey;
   }
-  if (apiKey) {
-    console.log('🔍 Using API key');
-    return apiKey;
+
+  // If not in environment, try AWS Secrets Manager
+  console.log('🔍 Fetching from AWS Secrets Manager');
+  const keys = await getOpenAIKeys();
+  
+  if (keys.projectKey && keys.projectKey.startsWith('proj-')) {
+    console.log('🔍 Using project key from Secrets Manager');
+    return keys.projectKey;
   }
+  if (keys.apiKey && keys.apiKey.startsWith('sk-')) {
+    console.log('🔍 Using API key from Secrets Manager');
+    return keys.apiKey;
+  }
+  
   console.log('🔍 No valid key found');
   return null;
 }
@@ -34,7 +36,7 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-    const openaiKey = getOpenAIKey();
+    const openaiKey = await getOpenAIKeyAsync();
     if (!openaiKey) {
       return NextResponse.json(
         { error: 'OpenAI API key not configured' },

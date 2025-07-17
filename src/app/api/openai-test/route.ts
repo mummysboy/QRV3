@@ -1,26 +1,28 @@
 import { NextResponse } from 'next/server';
 import { OpenAI } from 'openai';
+import { getOpenAIKeys, getOpenAIKey } from '@/lib/aws-secrets';
 
-function getOpenAIKey() {
-  // Prefer project key (starts with proj-'), fallback to OPENAI_API_KEY
-  const projectKey = process.env.OPENAI_PROJECT_KEY;
-  const apiKey = process.env.OPENAI_API_KEY;
-  
-  console.log('🔍 OpenAI Environment Variables Check:');
-  console.log('🔍 OPENAI_PROJECT_KEY exists:', !!projectKey);
-  console.log('🔍 OPENAI_PROJECT_KEY starts with proj-:', projectKey?.startsWith('proj-'));
-  console.log('🔍 OPENAI_PROJECT_KEY preview:', projectKey ? `${projectKey.substring(0, 4)}...` : 'not set');
-  console.log('🔍 OPENAI_API_KEY exists:', !!apiKey);
-  console.log('🔍 OPENAI_API_KEY preview:', apiKey ? `${apiKey.substring(0, 4)}...` : 'not set');
-  
-  if (projectKey && projectKey.startsWith('proj-')) {
-    console.log('🔍 Using project key');
-    return { key: projectKey, type: 'project' };
+async function getOpenAIKeyAsync() {
+  // First try to get from environment variables (for local development)
+  const envKey = getOpenAIKey();
+  if (envKey) {
+    console.log('🔍 Using environment variable key');
+    return { key: envKey, type: envKey.startsWith('proj-') ? 'project' : 'api' };
   }
-  if (apiKey) {
-    console.log('🔍 Using API key');
-    return { key: apiKey, type: 'api' };
+
+  // If not in environment, try AWS Secrets Manager
+  console.log('🔍 Fetching from AWS Secrets Manager');
+  const keys = await getOpenAIKeys();
+  
+  if (keys.projectKey && keys.projectKey.startsWith('proj-')) {
+    console.log('🔍 Using project key from Secrets Manager');
+    return { key: keys.projectKey, type: 'project' };
   }
+  if (keys.apiKey && keys.apiKey.startsWith('sk-')) {
+    console.log('🔍 Using API key from Secrets Manager');
+    return { key: keys.apiKey, type: 'api' };
+  }
+  
   console.log('🔍 No valid key found');
   return null;
 }
@@ -29,7 +31,7 @@ export async function GET() {
   console.log('🧪 OpenAI Test endpoint called');
   
   try {
-    const keyInfo = getOpenAIKey();
+    const keyInfo = await getOpenAIKeyAsync();
     
     if (!keyInfo) {
       return NextResponse.json({
