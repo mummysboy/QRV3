@@ -125,6 +125,7 @@ export default function BusinessDashboard() {
   const [showLogoUpload, setShowLogoUpload] = useState(false);
   const [timeRange, setTimeRange] = useState<TimeRange>('month');
   const [isVisible, setIsVisible] = useState(false);
+  const [showHamburgerMenu, setShowHamburgerMenu] = useState(false);
   
   const [editBusiness, setEditBusiness] = useState({
     name: "",
@@ -206,6 +207,21 @@ export default function BusinessDashboard() {
     const timer = setTimeout(() => setIsVisible(true), 100);
     return () => clearTimeout(timer);
   }, []);
+
+  // Close hamburger menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (showHamburgerMenu && !target.closest('.hamburger-menu')) {
+        setShowHamburgerMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showHamburgerMenu]);
 
   const fetchDashboardData = async () => {
     if (!business?.id) return;
@@ -846,17 +862,46 @@ export default function BusinessDashboard() {
                currentView === 'analytics' ? 'Analytics' : 'Settings'}
             </h1>
           </div>
-          <div className="flex items-center space-x-4">
-            <div className="text-right">
-              <p className="text-sm font-medium text-gray-900">{user.firstName} {user.lastName}</p>
-              <p className="text-xs text-gray-600">{user.email}</p>
-            </div>
+          <div className="relative hamburger-menu">
             <button
-              onClick={handleLogout}
-              className="text-gray-600 hover:text-gray-900 transition-colors"
+              onClick={() => setShowHamburgerMenu(!showHamburgerMenu)}
+              className="text-gray-600 hover:text-gray-900 transition-colors p-2"
+              aria-label="Menu"
             >
-              Sign out
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
             </button>
+            
+            {/* Hamburger Menu Dropdown */}
+            {showHamburgerMenu && (
+              <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
+                <div className="px-4 py-3 border-b border-gray-100">
+                  <p className="text-sm font-medium text-gray-900">{user.firstName} {user.lastName}</p>
+                  <p className="text-xs text-gray-600">{user.email}</p>
+                </div>
+                <div className="py-1">
+                  <button
+                    onClick={() => {
+                      setShowHamburgerMenu(false);
+                      setCurrentView('settings');
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    Settings
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowHamburgerMenu(false);
+                      handleLogout();
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                  >
+                    Sign out
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -903,7 +948,7 @@ export default function BusinessDashboard() {
             }`}>
               <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100 mb-8">
                 <div className="flex items-center space-x-4 mb-6">
-                  <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center overflow-hidden">
+                  <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center overflow-hidden">
                     {business.logo && business.logo.trim() !== '' ? (
                       <img
                         src={business.logo.startsWith("data:") || business.logo.startsWith("http")
@@ -925,7 +970,7 @@ export default function BusinessDashboard() {
                         }}
                       />
                     ) : null}
-                    <span className="text-2xl fallback-icon" style={{ display: business.logo && business.logo.trim() !== '' ? 'none' : 'flex' }}>🏪</span>
+                    <span className="text-2xl fallback-icon text-gray-600" style={{ display: business.logo && business.logo.trim() !== '' ? 'none' : 'flex' }}>🏪</span>
                   </div>
                   <div>
                     <h2 className="text-3xl font-light text-gray-900">Welcome back, {user.firstName}!</h2>
