@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import CardAnimation from "@/components/CardAnimation";
 
 interface Card {
@@ -22,11 +22,22 @@ interface EditRewardFormProps {
 }
 
 export default function EditRewardForm({ card, onClose, onSuccess }: EditRewardFormProps) {
+  console.log('🔍 EditRewardForm: Card data received:', card);
+  console.log('🔍 EditRewardForm: Card subheader:', card.subheader);
+  
   const [formData, setFormData] = useState({
     subheader: card.subheader || "",
     quantity: card.quantity || 100,
     expires: card.expires || "",
   });
+  
+  console.log('🔍 EditRewardForm: Initial formData:', formData);
+  
+  // Monitor form data changes
+  useEffect(() => {
+    console.log('🔍 EditRewardForm: formData changed:', formData);
+  }, [formData]);
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -34,6 +45,10 @@ export default function EditRewardForm({ card, onClose, onSuccess }: EditRewardF
   const [selectedHour, setSelectedHour] = useState(12);
   const [selectedMinute, setSelectedMinute] = useState(0);
   const [selectedPeriod, setSelectedPeriod] = useState<'AM' | 'PM'>('PM');
+
+  const [isEnhancing, setIsEnhancing] = useState(false);
+  const [prevDescription, setPrevDescription] = useState<string | null>(null);
+  const [hasEnhanced, setHasEnhanced] = useState(false);
 
   // Extract business information from card data
   const businessInfo = {
@@ -89,6 +104,61 @@ export default function EditRewardForm({ card, onClose, onSuccess }: EditRewardF
         ...prev,
         [name]: value
       }));
+    }
+  };
+
+  const handleEnhanceDescription = async () => {
+    console.log('🔍 EditRewardForm: Enhance button clicked');
+    console.log('🔍 EditRewardForm: Current subheader:', formData.subheader);
+    console.log('🔍 EditRewardForm: subheader.trim():', formData.subheader.trim());
+    console.log('🔍 EditRewardForm: isEnhancing state:', isEnhancing);
+    
+    setIsEnhancing(true);
+    setPrevDescription(formData.subheader);
+    
+    // Test with a hardcoded description to see if the API works
+    const testDescription = formData.subheader || "Get a free coffee";
+    console.log('🔍 EditRewardForm: Using description for API:', testDescription);
+    
+    try {
+      const res = await fetch("/api/enhance-description", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ description: testDescription }),
+      });
+      
+      console.log('🔍 EditRewardForm: Response status:', res.status);
+      console.log('🔍 EditRewardForm: Response ok:', res.ok);
+      
+      const data = await res.json();
+      console.log('🔍 EditRewardForm: API response:', data);
+      
+      if (res.ok && data.enhancedDescription) {
+        setFormData(prev => {
+          console.log('🔍 EditRewardForm: Setting form data, prev:', prev);
+          const newData = { ...prev, subheader: data.enhancedDescription };
+          console.log('🔍 EditRewardForm: New form data:', newData);
+          return newData;
+        });
+        setHasEnhanced(true);
+        console.log('🔍 EditRewardForm: Enhanced description set successfully');
+      } else {
+        console.log('🔍 EditRewardForm: API response not ok or no enhanced description');
+        console.log('🔍 EditRewardForm: res.ok:', res.ok);
+        console.log('🔍 EditRewardForm: data.enhancedDescription:', data.enhancedDescription);
+      }
+    } catch (error) {
+      console.error('🔍 EditRewardForm: Error during enhancement:', error);
+    } finally {
+      setIsEnhancing(false);
+    }
+  };
+
+  const handleUndoEnhance = () => {
+    if (prevDescription !== null) {
+      setFormData(prev => ({ ...prev, subheader: prevDescription }));
+      setPrevDescription(null);
+      setHasEnhanced(false);
     }
   };
 
@@ -241,16 +311,43 @@ export default function EditRewardForm({ card, onClose, onSuccess }: EditRewardF
                     <label htmlFor="subheader" className="block text-sm font-medium text-gray-700 mb-1">
                       Reward Description *
                     </label>
-                    <textarea
-                      id="subheader"
-                      name="subheader"
-                      value={formData.subheader}
-                      onChange={handleInputChange}
-                      required
-                      rows={4}
-                      className="w-full px-3 sm:px-4 py-3 border border-gray-300 rounded-xl focus:border-green-500 focus:outline-none transition-colors text-base resize-none"
-                      placeholder="Describe your reward offer (e.g., Get a free coffee with any purchase, 20% off your next visit, Buy one get one free)"
-                    />
+                    <div className="flex items-center gap-2">
+                      <textarea
+                        id="subheader"
+                        name="subheader"
+                        value={formData.subheader}
+                        onChange={handleInputChange}
+                        required
+                        rows={4}
+                        className="w-full px-3 sm:px-4 py-3 border border-gray-300 rounded-xl focus:border-green-500 focus:outline-none transition-colors text-base resize-none"
+                        placeholder="Describe your reward offer (e.g., Get a free coffee with any purchase, 20% off your next visit, Buy one get one free)"
+                        disabled={isEnhancing}
+                      />
+                      <button
+                        type="button"
+                        className="ml-1 px-2 py-1 text-xs rounded flex items-center text-gray-400 border border-gray-200 hover:text-gray-600 hover:border-gray-300 transition bg-white disabled:opacity-60"
+                        style={{ minWidth: 32 }}
+                        onClick={handleEnhanceDescription}
+                        disabled={isEnhancing}
+                        aria-label="Enhance with AI"
+                        onMouseEnter={() => {
+                          console.log('🔍 EditRewardForm: Enhance button hover - isEnhancing:', isEnhancing, 'subheader.trim():', formData.subheader.trim(), 'disabled:', isEnhancing || !formData.subheader.trim());
+                        }}
+                      >
+                        {isEnhancing ? (
+                          <span className="animate-spin mr-1 w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full"></span>
+                        ) : (
+                          <span className="flex items-center">✨<span className="ml-1 hidden sm:inline">Enhance</span></span>
+                        )}
+                      </button>
+                      {hasEnhanced && (
+                        <button
+                          type="button"
+                          className="ml-1 px-2 py-1 text-xs rounded text-gray-400 border border-gray-200 hover:text-gray-600 hover:border-gray-300 transition bg-white"
+                          onClick={handleUndoEnhance}
+                        >Undo</button>
+                      )}
+                    </div>
                     <p className="text-xs text-gray-500 mt-1">Tell customers what they&apos;ll receive</p>
                   </div>
 

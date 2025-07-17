@@ -41,6 +41,11 @@ export default function DemoDashboard() {
   const [editRewardData, setEditRewardData] = useState<RewardData | null>(null);
   const [currentView, setCurrentView] = useState<'dashboard' | 'analytics' | 'settings'>('dashboard');
 
+  // For edit reward form
+  const [isEnhancingEdit, setIsEnhancingEdit] = useState(false);
+  const [prevEditDescription, setPrevEditDescription] = useState<string | null>(null);
+  const [hasEnhancedEdit, setHasEnhancedEdit] = useState(false);
+
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), 300);
     return () => clearTimeout(timer);
@@ -80,6 +85,54 @@ export default function DemoDashboard() {
       ));
       setEditIndex(null);
       setEditRewardData(null);
+    }
+  };
+
+  // Enhance logic for edit
+  const handleEnhanceEditDescription = async (desc: string, setDesc: (d: string) => void) => {
+    console.log('🔍 DemoDashboard: Enhance button clicked');
+    console.log('🔍 DemoDashboard: Current description:', desc);
+    
+    setIsEnhancingEdit(true);
+    setPrevEditDescription(desc);
+    
+    // Use fallback description if empty
+    const testDescription = desc || "Get a free coffee";
+    console.log('🔍 DemoDashboard: Using description for API:', testDescription);
+    
+    try {
+      const res = await fetch("/api/enhance-description", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ description: testDescription }),
+      });
+      
+      console.log('🔍 DemoDashboard: Response status:', res.status);
+      console.log('🔍 DemoDashboard: Response ok:', res.ok);
+      
+      const data = await res.json();
+      console.log('🔍 DemoDashboard: API response:', data);
+      
+      if (res.ok && data.enhancedDescription) {
+        setDesc(data.enhancedDescription);
+        setHasEnhancedEdit(true);
+        console.log('🔍 DemoDashboard: Enhanced description set successfully');
+      } else {
+        console.log('🔍 DemoDashboard: API response not ok or no enhanced description');
+        console.log('🔍 DemoDashboard: res.ok:', res.ok);
+        console.log('🔍 DemoDashboard: data.enhancedDescription:', data.enhancedDescription);
+      }
+    } catch (error) {
+      console.error('🔍 DemoDashboard: Error during enhancement:', error);
+    } finally {
+      setIsEnhancingEdit(false);
+    }
+  };
+  const handleUndoEnhanceEdit = (setDesc: (d: string) => void) => {
+    if (prevEditDescription !== null) {
+      setDesc(prevEditDescription);
+      setPrevEditDescription(null);
+      setHasEnhancedEdit(false);
     }
   };
 
@@ -185,10 +238,7 @@ export default function DemoDashboard() {
               <div className="space-y-4 pt-4">
                 <h3 className="text-base sm:text-lg font-medium text-gray-900">Reward Details</h3>
                 
-                <div>
-                  <label htmlFor="subheader" className="block text-sm font-medium text-gray-700 mb-1">
-                    Reward Description *
-                  </label>
+                <div className="flex items-center gap-2">
                   <textarea
                     id="subheader"
                     name="subheader"
@@ -198,9 +248,29 @@ export default function DemoDashboard() {
                     rows={4}
                     className="w-full px-3 sm:px-4 py-3 border border-gray-300 rounded-xl focus:border-green-500 focus:outline-none transition-colors text-base resize-none"
                     placeholder="Describe your reward offer (e.g., Get a free coffee with any purchase, 20% off your next visit, Buy one get one free)"
+                    disabled={isEnhancingEdit}
                   />
-                  <p className="text-xs text-gray-500 mt-1">Tell customers what they&rsquo;ll receive</p>
+                  <button
+                    onClick={() => handleEnhanceEditDescription(formData.subheader, (desc) => setFormData(prev => ({ ...prev, subheader: desc })))}
+                    disabled={isEnhancingEdit}
+                    className="ml-1 px-2 py-1 text-xs rounded flex items-center text-gray-400 border border-gray-200 hover:text-gray-600 hover:border-gray-300 transition bg-white disabled:opacity-60"
+                    aria-label="Enhance with AI"
+                  >
+                    {isEnhancingEdit ? (
+                      <span className="animate-spin mr-1 w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full"></span>
+                    ) : (
+                      <span className="flex items-center">✨<span className="ml-1 hidden sm:inline">Enhance</span></span>
+                    )}
+                  </button>
+                  {hasEnhancedEdit && (
+                    <button
+                      type="button"
+                      className="ml-1 px-2 py-1 text-xs rounded text-gray-400 border border-gray-200 hover:text-gray-600 hover:border-gray-300 transition bg-white"
+                      onClick={() => handleUndoEnhanceEdit((desc) => setFormData(prev => ({ ...prev, subheader: desc })))}
+                    >Undo</button>
+                  )}
                 </div>
+                <p className="text-xs text-gray-500 mt-1">Tell customers what they&rsquo;ll receive</p>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
