@@ -989,51 +989,20 @@ export default function BusinessDashboard() {
                         }}
                       />
                     </div>
-
-                    {/* Card Details Below */}
-                    <div className="mt-4 bg-white rounded-2xl p-4 shadow-lg border border-gray-100">
-                      <div className="space-y-3">
-                        <div className="border-b border-gray-100 pb-3">
-                          <h4 className="font-semibold text-gray-900 text-lg leading-tight mb-1">
-                            {card.subheader || "Reward description"}
-                          </h4>
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-gray-600 font-medium">Quantity: {card.quantity}</span>
-                            <span className="text-gray-500">
-                              {card.expires ? new Date(card.expires).toLocaleDateString() : "No expiration"}
-                            </span>
-                          </div>
-                        </div>
-                        
-                        {/* Card Status Indicators */}
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <div className={`w-2 h-2 rounded-full ${card.quantity > 0 ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></div>
-                            <span className={`text-xs font-medium ${card.quantity > 0 ? 'text-green-600' : 'text-gray-500'}`}>
-                              {card.quantity > 0 ? 'Active' : 'Inactive'}
-                            </span>
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            ID: {card.cardid}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Action Buttons */}
-                      <div className="mt-4 space-y-2">
-                        <button
-                          onClick={() => handleEditReward(card)}
-                          className="w-full bg-black/90 hover:bg-black text-white px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 backdrop-blur-sm border border-gray-800/20"
-                        >
-                          Edit Reward
-                        </button>
-                        <button
-                          onClick={() => handleDeleteReward(card.cardid)}
-                          className="w-full bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300"
-                        >
-                          Delete Reward
-                        </button>
-                      </div>
+                    {/* Action Buttons - side by side, mobile friendly */}
+                    <div className="mt-4 flex space-x-2">
+                      <button
+                        onClick={() => handleEditReward(card)}
+                        className="flex-1 flex items-center justify-center bg-blue-50 hover:bg-blue-100 text-blue-700 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 shadow-sm border border-blue-100"
+                      >
+                        <span className="mr-2">✏️</span> Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteReward(card.cardid)}
+                        className="flex-1 flex items-center justify-center bg-red-50 hover:bg-red-100 text-red-600 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 shadow-sm border border-red-100"
+                      >
+                        <span className="mr-2">🗑️</span> Delete
+                      </button>
                     </div>
                   </div>
                 ))}
