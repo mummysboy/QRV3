@@ -125,7 +125,6 @@ export default function BusinessDashboard() {
   const [showLogoUpload, setShowLogoUpload] = useState(false);
   const [timeRange, setTimeRange] = useState<TimeRange>('month');
   const [isVisible, setIsVisible] = useState(false);
-  const [showHamburgerMenu, setShowHamburgerMenu] = useState(false);
   
   const [editBusiness, setEditBusiness] = useState({
     name: "",
@@ -208,20 +207,7 @@ export default function BusinessDashboard() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Close hamburger menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Element;
-      if (showHamburgerMenu && !target.closest('.hamburger-menu')) {
-        setShowHamburgerMenu(false);
-      }
-    };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showHamburgerMenu]);
 
   const fetchDashboardData = async () => {
     if (!business?.id) return;
@@ -862,47 +848,7 @@ export default function BusinessDashboard() {
                currentView === 'analytics' ? 'Analytics' : 'Settings'}
             </h1>
           </div>
-          <div className="relative hamburger-menu">
-            <button
-              onClick={() => setShowHamburgerMenu(!showHamburgerMenu)}
-              className="text-gray-600 hover:text-gray-900 transition-colors p-2"
-              aria-label="Menu"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-            
-            {/* Hamburger Menu Dropdown */}
-            {showHamburgerMenu && (
-              <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
-                <div className="px-4 py-3 border-b border-gray-100">
-                  <p className="text-sm font-medium text-gray-900">{user.firstName} {user.lastName}</p>
-                  <p className="text-xs text-gray-600">{user.email}</p>
-                </div>
-                <div className="py-1">
-                  <button
-                    onClick={() => {
-                      setShowHamburgerMenu(false);
-                      setCurrentView('settings');
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    Settings
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowHamburgerMenu(false);
-                      handleLogout();
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                  >
-                    Sign out
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+
         </div>
       </div>
 
