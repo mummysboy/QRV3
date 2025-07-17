@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { uploadData } from 'aws-amplify/storage';
 
 interface LogoUploadProps {
   currentLogo?: string;
@@ -59,23 +60,25 @@ export default function LogoUpload({ currentLogo, onUpload, businessName }: Logo
     setIsUploading(true);
 
     try {
-      // Create FormData for file upload
-      const formData = new FormData();
-      formData.append('logo', file);
-      formData.append('businessName', businessName);
+      // Generate unique filename
+      const fileName = `logos/${businessName.replace(/[^a-zA-Z0-9]/g, '-')}-${Date.now()}.${file.name.split('.').pop()}`;
 
-      // Upload to your API endpoint
-      const response = await fetch('/api/business/upload-logo', {
-        method: 'POST',
-        body: formData,
+      // Upload using Amplify Storage
+      const result = await uploadData({
+        key: fileName,
+        data: file,
+        options: {
+          contentType: file.type,
+        }
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to upload logo');
-      }
+      // Get the URL for the uploaded file
+      await result.result;
+      
+      // Construct the URL using the key
+      const logoUrl = fileName;
 
-      const result = await response.json();
-      onUpload(result.logoUrl);
+      onUpload(logoUrl);
     } catch (error) {
       console.error('Error uploading logo:', error);
       setError('Failed to upload logo. Please try again.');

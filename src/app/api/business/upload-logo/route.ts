@@ -1,29 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { uploadData } from 'aws-amplify/storage';
 import { v4 as uuidv4 } from "uuid";
 import sharp from "sharp";
 
-const s3Client = new S3Client({
-  region: "us-west-1",
-  // Add credentials if they exist in environment variables
-  ...(process.env.ACCESS_KEY_ID && process.env.SECRET_ACCESS_KEY && {
-    credentials: {
-      accessKeyId: process.env.ACCESS_KEY_ID,
-      secretAccessKey: process.env.SECRET_ACCESS_KEY,
-    },
-  }),
-});
-
-const BUCKET_NAME = "qrewards-media6367c-dev";
-
 export async function POST(request: NextRequest) {
   try {
-    // Debug: Log AWS configuration
-    console.log("🔧 Logo upload - AWS Configuration:");
-    console.log("🔧 ACCESS_KEY_ID exists:", !!process.env.ACCESS_KEY_ID);
-    console.log("🔧 SECRET_ACCESS_KEY exists:", !!process.env.SECRET_ACCESS_KEY);
-    console.log("🔧 REGION:", process.env.REGION || "us-west-1");
-    
     const formData = await request.formData();
     const logo = formData.get('logo') as File;
     const businessName = formData.get('businessName') as string;
@@ -42,7 +23,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Accept any image type, but process/convert it below
     // Validate file size (max 5MB)
     if (logo.size > 5 * 1024 * 1024) {
       return NextResponse.json(
@@ -69,21 +49,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate unique filename (always .png)
+    // Generate unique filename
     const fileName = `logos/${businessName.replace(/[^a-zA-Z0-9]/g, '-')}-${uuidv4()}.png`;
 
-    // Upload to S3
-    const uploadCommand = new PutObjectCommand({
-      Bucket: BUCKET_NAME,
-      Key: fileName,
-      Body: processedBuffer,
-      ContentType: 'image/png',
+    // Upload using Amplify Storage
+    const result = await uploadData({
+      key: fileName,
+      data: processedBuffer,
+      options: {
+        contentType: 'image/png',
+      }
     });
 
-    await s3Client.send(uploadCommand);
-
-    // Construct the public URL
-    const logoUrl = `https://${BUCKET_NAME}.s3.us-west-1.amazonaws.com/${fileName}`;
+    // Get the URL for the uploaded file
+    const logoUrl = await result.result;
 
     console.log('Logo uploaded successfully:', {
       fileName,
@@ -104,19 +83,10 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error uploading logo:", error);
     
-    // Provide more specific error messages
     let errorMessage = "Failed to upload logo";
     
     if (error instanceof Error) {
-      if (error.message.includes("AccessDenied") || error.message.includes("403")) {
-        errorMessage = "Access denied. Please check S3 bucket permissions.";
-      } else if (error.message.includes("NoSuchBucket")) {
-        errorMessage = "S3 bucket not found. Please check bucket configuration.";
-      } else if (error.message.includes("InvalidAccessKeyId")) {
-        errorMessage = "Invalid AWS credentials. Please check environment variables.";
-      } else {
-        errorMessage = `Upload failed: ${error.message}`;
-      }
+      errorMessage = `Upload failed: ${error.message}`;
     }
     
     return NextResponse.json(

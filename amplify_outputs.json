@@ -832,6 +832,13 @@
               "isRequired": true,
               "attributes": []
             },
+            "password": {
+              "name": "password",
+              "isArray": false,
+              "type": "String",
+              "isRequired": true,
+              "attributes": []
+            },
             "firstName": {
               "name": "firstName",
               "isArray": false,
@@ -865,6 +872,13 @@
               "isArray": false,
               "type": "String",
               "isRequired": true,
+              "attributes": []
+            },
+            "lastLoginAt": {
+              "name": "lastLoginAt",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
               "attributes": []
             },
             "createdAt": {
@@ -1026,9 +1040,16 @@
       "nonModels": {}
     }
   },
-  "auth": {
+  "storage": {
     "aws_region": "us-west-1",
-    "user_pool_id": "us-west-1_Bq9MirgDM"
+    "bucket_name": "amplify-qrewardsnew-isaac-qrewardsstoragebucketb6d-ioazr82zsrke",
+    "buckets": [
+      {
+        "name": "qrewards-storage",
+        "bucket_name": "amplify-qrewardsnew-isaac-qrewardsstoragebucketb6d-ioazr82zsrke",
+        "aws_region": "us-west-1"
+      }
+    ]
   },
   "version": "1.4"
 }

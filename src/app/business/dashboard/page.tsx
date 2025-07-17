@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import CreateRewardForm from "@/components/CreateRewardForm";
 import EditRewardForm from "@/components/EditRewardForm";
 import LogoUpload from "@/components/LogoUpload";
 import CardAnimation from "@/components/CardAnimation";
+import { getStorageUrlSync } from "@/lib/storage";
 
 
 
@@ -523,7 +523,7 @@ export default function BusinessDashboard() {
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
+        <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
           <h3 className="text-2xl font-light text-gray-900 mb-6">Claims Over Time</h3>
           <div className="h-64 flex items-end justify-center space-x-2">
             {timeRange === 'day' && analytics?.claimsByDay?.map((day, idx) => (
@@ -556,7 +556,7 @@ export default function BusinessDashboard() {
           </div>
         </div>
 
-        <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
+        <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
           <h3 className="text-2xl font-light text-gray-900 mb-6">Reward Status</h3>
           <div className="space-y-4">
             <div className="flex items-center justify-between p-4 bg-green-50 rounded-2xl">
@@ -582,7 +582,7 @@ export default function BusinessDashboard() {
       </div>
 
       {/* Individual Reward Analytics */}
-      <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
+      <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
         <h3 className="text-2xl font-light text-gray-900 mb-6">Reward Performance</h3>
         <div className="space-y-4">
           {analytics?.rewardAnalytics?.length ? (
@@ -636,7 +636,7 @@ export default function BusinessDashboard() {
         </div>
       </div>
 
-      <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
+      <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
         <h3 className="text-2xl font-light text-gray-900 mb-6">Recent Activity</h3>
         <div className="space-y-4">
           {analytics?.recentClaims?.length ? (
@@ -675,7 +675,7 @@ export default function BusinessDashboard() {
         </button>
       </div>
       
-      <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
+      <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
         <h3 className="text-2xl font-light text-gray-900 mb-6">Business Profile</h3>
         <div className="space-y-6">
           <div>
@@ -741,9 +741,7 @@ export default function BusinessDashboard() {
                 <img 
                   src={business.logo.startsWith("data:") || business.logo.startsWith("http")
                     ? business.logo
-                    : business.logo.startsWith("/")
-                      ? `https://qrewards-media6367c-dev.s3.us-west-1.amazonaws.com${business.logo}`
-                      : `https://qrewards-media6367c-dev.s3.us-west-1.amazonaws.com/${business.logo}`
+                    : getStorageUrlSync(business.logo)
                   } 
                   alt="Business Logo" 
                   className="w-32 h-32 object-contain rounded-xl border-2 border-gray-200"
@@ -831,18 +829,11 @@ export default function BusinessDashboard() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
       {/* Header */}
-      <div className={`transition-all duration-1000 ease-out ${
-        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+      <div className={`transition-all duration-700 ease-in-out ${
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
       }`}>
         <div className="flex justify-between items-center p-6 border-b border-gray-200 bg-white/80 backdrop-blur-xl">
           <div className="flex items-center space-x-4">
-            <Link 
-              href="/"
-              className="text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              ← Back to Home
-            </Link>
-            <div className="w-px h-6 bg-gray-300"></div>
             <h1 className="text-2xl font-light text-gray-900">
               {currentView === 'dashboard' ? 'Business Dashboard' : 
                currentView === 'analytics' ? 'Analytics' : 'Settings'}
@@ -855,8 +846,8 @@ export default function BusinessDashboard() {
       <div className="container mx-auto px-6 py-8">
         {/* Profile Completion Banner */}
         {!isProfileComplete && (
-          <div className={`transition-all duration-1000 delay-300 ease-out ${
-            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          <div className={`transition-all duration-600 delay-200 ease-in-out ${
+            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
           }`}>
             <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-6 mb-8">
               <div className="flex items-center justify-between">
@@ -889,19 +880,17 @@ export default function BusinessDashboard() {
         {currentView === 'dashboard' ? (
           <>
             {/* Welcome Section */}
-            <div className={`transition-all duration-1000 delay-300 ease-out ${
-              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+            <div className={`transition-all duration-600 delay-200 ease-in-out ${
+              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
             }`}>
-              <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100 mb-8">
+              <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100 mb-8">
                 <div className="flex items-center space-x-4 mb-6">
                   <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center overflow-hidden">
                     {business.logo && business.logo.trim() !== '' ? (
                       <img
                         src={business.logo.startsWith("data:") || business.logo.startsWith("http")
                           ? business.logo
-                          : business.logo.startsWith("/")
-                            ? `https://qrewards-media6367c-dev.s3.us-west-1.amazonaws.com${business.logo}`
-                            : `https://qrewards-media6367c-dev.s3.us-west-1.amazonaws.com/${business.logo}`
+                          : getStorageUrlSync(business.logo)
                         }
                         alt="Business Logo"
                         className="w-full h-full object-contain rounded-xl"
@@ -927,8 +916,8 @@ export default function BusinessDashboard() {
             </div>
 
             {/* Today's Stats Row */}
-            <div className={`transition-all duration-1000 delay-400 ease-out ${
-              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+            <div className={`transition-all duration-600 delay-300 ease-in-out ${
+              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
             }`}>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-8">
                 {(() => {
@@ -941,7 +930,7 @@ export default function BusinessDashboard() {
                     { icon: '📈', label: 'Redemption Rate', value: `${stats.redemptionRate}%` },
                     { icon: '🎁', label: 'Total Rewards', value: stats.totalRewards },
                   ].map((card, idx) => (
-                    <div key={idx} className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+                    <div key={idx} className="bg-white rounded-2xl p-6 shadow-md border border-gray-100">
                       <div className="text-2xl mb-2">{card.icon}</div>
                       <div className="text-3xl font-light text-gray-900 mb-1">{isLoadingData ? "..." : card.value}</div>
                       <div className="text-sm text-gray-600">{card.label}</div>
@@ -952,15 +941,15 @@ export default function BusinessDashboard() {
             </div>
 
             {/* Quick Actions */}
-            <div className={`transition-all duration-1000 delay-1200 ease-out ${
-              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+            <div className={`transition-all duration-600 delay-400 ease-in-out ${
+              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
             }`}>
-              <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100 mb-8">
+              <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100 mb-8">
                 <h3 className="text-2xl font-light text-gray-900 mb-6">Quick Actions</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <button 
                     onClick={() => handleQuickAction('create')}
-                    className="flex items-center space-x-4 p-4 bg-green-50 rounded-2xl hover:bg-green-100 transition-colors"
+                    className="flex items-center space-x-4 p-4 bg-green-50 rounded-2xl hover:bg-green-100 transition-all duration-200 ease-in-out"
                   >
                     <span className="text-2xl">➕</span>
                     <div className="text-left">
@@ -970,7 +959,7 @@ export default function BusinessDashboard() {
                   </button>
                   <button 
                     onClick={() => handleQuickAction('analytics')}
-                    className="flex items-center space-x-4 p-4 bg-blue-50 rounded-2xl hover:bg-blue-100 transition-colors"
+                    className="flex items-center space-x-4 p-4 bg-blue-50 rounded-2xl hover:bg-blue-100 transition-all duration-200 ease-in-out"
                   >
                     <span className="text-2xl">📊</span>
                     <div className="text-left">
@@ -980,7 +969,7 @@ export default function BusinessDashboard() {
                   </button>
                   <button 
                     onClick={() => handleQuickAction('settings')}
-                    className="flex items-center space-x-4 p-4 bg-purple-50 rounded-2xl hover:bg-purple-100 transition-colors"
+                    className="flex items-center space-x-4 p-4 bg-purple-50 rounded-2xl hover:bg-purple-100 transition-all duration-200 ease-in-out"
                   >
                     <span className="text-2xl">⚙️</span>
                     <div className="text-left">
@@ -993,15 +982,9 @@ export default function BusinessDashboard() {
             </div>
 
             {/* Rewards Section */}
-            <div className="transition-all duration-1000 delay-400 ease-out mb-12">
-              <div className="flex items-center justify-between mb-6">
+            <div className="transition-all duration-600 delay-500 ease-in-out mb-12">
+              <div className="mb-6">
                 <h3 className="text-2xl font-light text-gray-900">Your Rewards</h3>
-                <button
-                  onClick={() => setShowCreateReward(true)}
-                  className="bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-3 rounded-xl shadow transition-all duration-300"
-                >
-                  + Create Reward
-                </button>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {cards.map((card, idx) => (
@@ -1025,13 +1008,13 @@ export default function BusinessDashboard() {
                     <div className="mt-4 flex space-x-2">
                       <button
                         onClick={() => handleEditReward(card)}
-                        className="flex-1 flex items-center justify-center bg-blue-50 hover:bg-blue-100 text-blue-700 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 shadow-sm border border-blue-100"
+                        className="flex-1 flex items-center justify-center bg-blue-50 hover:bg-blue-100 text-blue-700 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ease-in-out shadow-sm border border-blue-100"
                       >
                         <span className="mr-2">✏️</span> Edit
                       </button>
                       <button
                         onClick={() => handleDeleteReward(card.cardid)}
-                        className="flex-1 flex items-center justify-center bg-red-50 hover:bg-red-100 text-red-600 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 shadow-sm border border-red-100"
+                        className="flex-1 flex items-center justify-center bg-red-50 hover:bg-red-100 text-red-600 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ease-in-out shadow-sm border border-red-100"
                       >
                         <span className="mr-2">🗑️</span> Delete
                       </button>

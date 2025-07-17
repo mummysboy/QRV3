@@ -54,6 +54,10 @@ export default function CreateRewardForm({
     quantity: 100, // Default quantity
     expires: "",
   });
+
+  // Debug: Log the business logo value
+  console.log('CreateRewardForm - business.logo:', business.logo);
+  console.log('CreateRewardForm - formData.businessLogo:', formData.businessLogo);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -231,7 +235,7 @@ export default function CreateRewardForm({
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4"
+      className="fixed inset-0 bg-neutral-100/80 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4"
       onClick={handleBackdropClick}
     >
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto mx-2 sm:mx-4">

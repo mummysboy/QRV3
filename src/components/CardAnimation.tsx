@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { generateGoogleMapsUrl } from "@/lib/utils";
+import { getStorageUrlSync } from "@/lib/storage";
 
 interface CardProps {
   cardid?: string | number;
@@ -101,13 +102,11 @@ export default function CardAnimation({ card, playbackRate = 1, isPreview = fals
     return difference > 0 && difference <= twentyFourHours;
   };
 
-  // Construct the logo URL using the public S3 path and normalize slashes
+  // Construct the logo URL using the storage utility
   const logoUrl = cardData?.logokey
     ? cardData.logokey.startsWith("data:") || cardData.logokey.startsWith("http")
       ? cardData.logokey
-      : cardData.logokey.startsWith("/")
-        ? `https://qrewards-media6367c-dev.s3.us-west-1.amazonaws.com${cardData.logokey}`
-        : `https://qrewards-media6367c-dev.s3.us-west-1.amazonaws.com/${cardData.logokey}`
+      : getStorageUrlSync(cardData.logokey)
     : null;
 
   // Debug: Log card data
@@ -117,6 +116,7 @@ export default function CardAnimation({ card, playbackRate = 1, isPreview = fals
   console.log('CardAnimation - constructed logoUrl:', logoUrl);
   console.log('CardAnimation - addresstext:', cardData?.addresstext);
   console.log('CardAnimation - addressurl:', cardData?.addressurl);
+  console.log('CardAnimation - storage utility result:', getStorageUrlSync(cardData?.logokey || ''));
 
   // Debug when card prop changes
   useEffect(() => {
