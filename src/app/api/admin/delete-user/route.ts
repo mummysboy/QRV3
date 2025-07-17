@@ -1,6 +1,16 @@
 import { NextResponse } from "next/server";
 import { generateClient } from "aws-amplify/api";
 import "../../../../lib/amplify-client";
+import { CognitoIdentityProviderClient, AdminDeleteUserCommand } from "@aws-sdk/client-cognito-identity-provider";
+import outputsJson from "@/amplify_outputs.json";
+
+interface AmplifyOutputs {
+  auth: {
+    aws_region: string;
+    user_pool_id: string;
+  };
+}
+const outputs = outputsJson as unknown as AmplifyOutputs;
 
 export async function POST(req: Request) {
   try {
@@ -67,6 +77,22 @@ export async function POST(req: Request) {
     });
 
     console.log("🗑️ Delete result:", JSON.stringify(deleteResult, null, 2));
+
+    // Delete from Cognito User Pool as well
+    try {
+      const cognitoClient = new CognitoIdentityProviderClient({
+        region: outputs.auth.aws_region
+      });
+      const adminDeleteUserCommand = new AdminDeleteUserCommand({
+        UserPoolId: outputs.auth.user_pool_id,
+        Username: email
+      });
+      await cognitoClient.send(adminDeleteUserCommand);
+      console.log(`✅ Successfully deleted user ${email} from Cognito user pool`);
+    } catch (cognitoError) {
+      console.error(`❌ Failed to delete user ${email} from Cognito user pool:`, cognitoError);
+      // Optionally, you can return an error here or just log it
+    }
 
     // Also check if we should delete the associated business
     const businessResult = await client.graphql({
@@ -174,6 +200,65 @@ export async function POST(req: Request) {
     console.error("❌ Error deleting user:", error);
     return NextResponse.json(
       { error: "Failed to delete user", details: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 }
+    );
+  }
+} 
+
+export async function DELETE() {
+  try {
+    const client = generateClient();
+    // Get all business users whose status is not 'active'
+    const userResult = await client.graphql({
+      query: `
+        query ListInactiveBusinessUsers {
+          listBusinessUsers(filter: { status: { ne: "active" } }) {
+            items {
+              id
+              email
+              status
+            }
+          }
+        }
+      `
+    });
+    const users = (userResult as { data: { listBusinessUsers: { items: Array<{ id: string; email: string; status: string }> } } }).data.listBusinessUsers.items;
+    let deletedCount = 0;
+    for (const user of users) {
+      // Delete from DB
+      await client.graphql({
+        query: `
+          mutation DeleteBusinessUser($id: ID!) {
+            deleteBusinessUser(input: { id: $id }) { id email }
+          }
+        `,
+        variables: { id: user.id },
+      });
+      // Delete from Cognito
+      try {
+        const cognitoClient = new CognitoIdentityProviderClient({
+          region: outputs.auth.aws_region
+        });
+        const adminDeleteUserCommand = new AdminDeleteUserCommand({
+          UserPoolId: outputs.auth.user_pool_id,
+          Username: user.email
+        });
+        await cognitoClient.send(adminDeleteUserCommand);
+        console.log(`✅ Deleted inactive user ${user.email} from Cognito`);
+      } catch (cognitoError) {
+        console.error(`❌ Failed to delete inactive user ${user.email} from Cognito:`, cognitoError);
+      }
+      deletedCount++;
+    }
+    return NextResponse.json({
+      success: true,
+      message: `Deleted ${deletedCount} inactive users`,
+      deletedCount
+    });
+  } catch (error) {
+    console.error("❌ Error deleting inactive users:", error);
+    return NextResponse.json(
+      { error: "Failed to delete inactive users", details: error instanceof Error ? error.message : "Unknown error" },
       { status: 500 }
     );
   }

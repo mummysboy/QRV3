@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { detectSQLInjection, showSQLInjectionPopup } from "@/utils/sqlInjectionDetector";
 
 interface SignupFormProps {
   isOpen: boolean;
@@ -198,6 +199,12 @@ export default function SignupForm({ isOpen, onClose, onSubmit }: SignupFormProp
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    
+    // Check for SQL injection attempts
+    if (detectSQLInjection(value)) {
+      showSQLInjectionPopup();
+      return;
+    }
     
     if (name === "phone") {
       // Format phone number as user types

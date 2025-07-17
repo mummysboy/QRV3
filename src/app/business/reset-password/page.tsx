@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import LogoVideo from "@/components/LogoVideo";
+import { detectSQLInjection, showSQLInjectionPopup } from "@/utils/sqlInjectionDetector";
 
 function ResetPasswordContent() {
   const [formData, setFormData] = useState({
@@ -82,6 +83,13 @@ function ResetPasswordContent() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    
+    // Check for SQL injection attempts
+    if (detectSQLInjection(value)) {
+      showSQLInjectionPopup();
+      return;
+    }
+    
     setFormData(prev => ({
       ...prev,
       [name]: value

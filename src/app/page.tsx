@@ -112,15 +112,19 @@ export default function Home() {
         body: JSON.stringify(data),
       });
 
+      const responseData = await response.json();
+
       if (!response.ok) {
-        throw new Error('Failed to submit business signup');
+        // Throw error with the specific message from the API
+        throw new Error(responseData.error || 'Failed to submit business signup');
       }
 
       setShowBusinessSignupForm(false); // Optionally close the form, or leave open for overlay
       // Do not show BusinessSignupSuccess
     } catch (error) {
       console.error('Error submitting business signup:', error);
-      alert('Failed to submit business signup. Please try again.');
+      // Re-throw the error so the form component can handle it
+      throw error;
     }
   };
 

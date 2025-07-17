@@ -1026,5 +1026,9 @@
       "nonModels": {}
     }
   },
+  "auth": {
+    "aws_region": "us-west-1",
+    "user_pool_id": "us-west-1_Bq9MirgDM"
+  },
   "version": "1.4"
 }

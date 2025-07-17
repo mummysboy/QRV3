@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import SignupSuccess from "./SignupSuccess";
 import { useRouter } from "next/navigation";
+import { detectSQLInjection, showSQLInjectionPopup } from "@/utils/sqlInjectionDetector";
 
 interface BusinessSignupFormProps {
   isOpen: boolean;
@@ -22,6 +23,22 @@ export interface BusinessSignupData {
   password: string;
   firstName: string;
   lastName: string;
+}
+
+interface FieldErrors {
+  businessName?: string;
+  businessPhone?: string;
+  businessAddress?: string;
+  businessCity?: string;
+  businessState?: string;
+  businessZipCode?: string;
+  category?: string;
+  email?: string;
+  password?: string;
+  firstName?: string;
+  lastName?: string;
+  customCategory?: string;
+  general?: string;
 }
 
 const BUSINESS_CATEGORIES = [
@@ -57,6 +74,8 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
   const [customCategory, setCustomCategory] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
   const [fadeIn, setFadeIn] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+
   useEffect(() => {
     if (isOpen) {
       setTimeout(() => setFadeIn(true), 10);
@@ -86,26 +105,96 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
     }
   };
 
+  // Clear field errors when user starts typing
+  const clearFieldError = (fieldName: keyof FieldErrors) => {
+    setFieldErrors(prev => {
+      const newErrors = { ...prev };
+      delete newErrors[fieldName];
+      return newErrors;
+    });
+  };
+
+  // Validate individual field
+  const validateField = (name: string, value: string): string | null => {
+    switch (name) {
+      case 'businessPhone':
+        const cleanPhone = value.replace(/\D/g, '');
+        if (cleanPhone.length !== 10) {
+          return "Please enter a valid 10-digit phone number.";
+        }
+        break;
+      case 'businessZipCode':
+        const zipCodeRegex = /^\d{5}(-\d{4})?$/;
+        if (!zipCodeRegex.test(value)) {
+          return "Please enter a valid zip code (e.g., 12345 or 12345-6789).";
+        }
+        break;
+      case 'email':
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(value)) {
+          return "Please enter a valid email address.";
+        }
+        break;
+      case 'password':
+        if (value.length < 8) {
+          return "Password must be at least 8 characters long.";
+        }
+        break;
+      case 'businessState':
+        if (value.length !== 2) {
+          return "Please enter a 2-letter state code (e.g., CA, NY).";
+        }
+        break;
+      case 'customCategory':
+        if (showCustomCategory && value.trim().length === 0) {
+          return "Please enter a custom category.";
+        }
+        break;
+    }
+    return null;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFieldErrors({});
     
-    // Validate phone number format
-    const cleanPhone = formData.businessPhone.replace(/\D/g, '');
-    if (cleanPhone.length !== 10) {
-      alert("Please enter a valid 10-digit phone number.");
-      return;
+    // Validate all fields
+    const errors: FieldErrors = {};
+    let hasErrors = false;
+
+    // Check required fields
+    const requiredFields: (keyof BusinessSignupData)[] = [
+      'businessName', 'businessPhone', 'businessAddress', 'businessCity', 
+      'businessState', 'businessZipCode', 'category', 'email', 'password', 
+      'firstName', 'lastName'
+    ];
+
+    requiredFields.forEach(field => {
+      if (!formData[field] || formData[field].trim() === '') {
+        errors[field] = `This field is required.`;
+        hasErrors = true;
+      }
+    });
+
+    // Check custom category if "Other" is selected
+    if (formData.category === "Other" && (!customCategory || customCategory.trim() === '')) {
+      errors.customCategory = "Please enter a custom category.";
+      hasErrors = true;
     }
 
-    // Validate zip code
-    const zipCodeRegex = /^\d{5}(-\d{4})?$/;
-    if (!zipCodeRegex.test(formData.businessZipCode)) {
-      alert("Please enter a valid zip code.");
-      return;
-    }
+    // Validate specific fields
+    Object.keys(formData).forEach(key => {
+      const fieldName = key as keyof BusinessSignupData;
+      const value = formData[fieldName];
+      const error = validateField(key, value);
+      if (error) {
+        errors[fieldName] = error;
+        hasErrors = true;
+      }
+    });
 
-    // Validate password strength
-    if (formData.password.length < 8) {
-      alert("Password must be at least 8 characters long.");
+    if (hasErrors) {
+      setFieldErrors(errors);
       return;
     }
     
@@ -117,9 +206,8 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
         ...formData,
         category: finalCategory,
       };
-      
       await onSubmit(submitData);
-      // Reset form
+      // Only reset and show success if no error is thrown
       setFormData({
         businessName: "",
         businessPhone: "",
@@ -136,8 +224,31 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
       setCustomCategory("");
       setShowCustomCategory(false);
       setShowSuccess(true); // Show thank you overlay
-    } catch (error) {
-      console.error("Error submitting form:", error);
+    } catch (error: unknown) {
+      // Handle API errors and map them to specific fields
+      if (error && typeof error === 'object' && 'message' in error) {
+        const errorMessage = (error as { message?: string }).message || "Failed to submit business signup. Please try again.";
+        
+        // Map common API errors to specific fields
+        if (errorMessage.includes("email already exists")) {
+          setFieldErrors({ email: "An account with this email already exists. Please use a different email or sign in." });
+        } else if (errorMessage.includes("Invalid email format")) {
+          setFieldErrors({ email: "Please enter a valid email address." });
+        } else if (errorMessage.includes("Invalid phone number format")) {
+          setFieldErrors({ businessPhone: "Please enter a valid 10-digit phone number." });
+        } else if (errorMessage.includes("Invalid zip code format")) {
+          setFieldErrors({ businessZipCode: "Please enter a valid zip code (e.g., 12345 or 12345-6789)." });
+        } else if (errorMessage.includes("Business already exists")) {
+          setFieldErrors({ businessName: "A business with this name and zip code already exists." });
+        } else if (errorMessage.includes("Missing required fields")) {
+          setFieldErrors({ general: "Please fill in all required fields." });
+        } else {
+          setFieldErrors({ general: errorMessage });
+        }
+      } else {
+        setFieldErrors({ general: "Failed to submit business signup. Please try again." });
+      }
+      // Do NOT reset form or show success overlay on error
     } finally {
       setIsSubmitting(false);
     }
@@ -145,6 +256,15 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+    
+    // Check for SQL injection attempts
+    if (detectSQLInjection(value)) {
+      showSQLInjectionPopup();
+      return;
+    }
+    
+    // Clear field error when user starts typing
+    clearFieldError(name as keyof FieldErrors);
     
     if (name === "businessPhone") {
       // Format phone number as user types
@@ -159,6 +279,13 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
         [name]: value
       }));
       setShowCustomCategory(value === "Other");
+      // Clear custom category error if user changes category
+      if (value !== "Other") {
+        clearFieldError('customCategory');
+      }
+    } else if (name === "customCategory") {
+      setCustomCategory(value);
+      clearFieldError('customCategory');
     } else {
       setFormData(prev => ({
         ...prev,
@@ -174,6 +301,13 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
       setFadeIn(false);
       setTimeout(onClose, 500); // match transition duration
     }
+  };
+
+  // Helper function to get error styling for input fields
+  const getInputErrorStyle = (fieldName: keyof FieldErrors) => {
+    return fieldErrors[fieldName] 
+      ? "border-red-500 focus:border-red-500" 
+      : "border-gray-300 focus:border-green-500";
   };
 
   return (
@@ -209,6 +343,14 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
                   </svg>
                 </button>
               </div>
+              
+              {/* General error message */}
+              {fieldErrors.general && (
+                <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm border border-red-200">
+                  {fieldErrors.general}
+                </div>
+              )}
+
               <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Business Information */}
                 <div className="space-y-4">
@@ -225,9 +367,12 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
                       value={formData.businessName}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-3 sm:px-4 py-3 border border-gray-300 rounded-xl focus:border-green-500 focus:outline-none transition-colors text-base"
+                      className={`w-full px-3 sm:px-4 py-3 border rounded-xl focus:outline-none transition-colors text-base ${getInputErrorStyle('businessName')}`}
                       placeholder="Your Business Name"
                     />
+                    {fieldErrors.businessName && (
+                      <p className="text-red-600 text-xs mt-1">{fieldErrors.businessName}</p>
+                    )}
                   </div>
 
                   <div>
@@ -241,10 +386,13 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
                       value={formData.businessPhone}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-3 sm:px-4 py-3 border border-gray-300 rounded-xl focus:border-green-500 focus:outline-none transition-colors text-base"
+                      className={`w-full px-3 sm:px-4 py-3 border rounded-xl focus:outline-none transition-colors text-base ${getInputErrorStyle('businessPhone')}`}
                       placeholder="(555) 123-4567"
                       maxLength={14}
                     />
+                    {fieldErrors.businessPhone && (
+                      <p className="text-red-600 text-xs mt-1">{fieldErrors.businessPhone}</p>
+                    )}
                   </div>
 
                   <div>
@@ -258,9 +406,12 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
                       value={formData.businessAddress}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-3 sm:px-4 py-3 border border-gray-300 rounded-xl focus:border-green-500 focus:outline-none transition-colors text-base"
+                      className={`w-full px-3 sm:px-4 py-3 border rounded-xl focus:outline-none transition-colors text-base ${getInputErrorStyle('businessAddress')}`}
                       placeholder="123 Main Street"
                     />
+                    {fieldErrors.businessAddress && (
+                      <p className="text-red-600 text-xs mt-1">{fieldErrors.businessAddress}</p>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -275,9 +426,12 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
                         value={formData.businessCity}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-3 sm:px-4 py-3 border border-gray-300 rounded-xl focus:border-green-500 focus:outline-none transition-colors text-base"
+                        className={`w-full px-3 sm:px-4 py-3 border rounded-xl focus:outline-none transition-colors text-base ${getInputErrorStyle('businessCity')}`}
                         placeholder="City"
                       />
+                      {fieldErrors.businessCity && (
+                        <p className="text-red-600 text-xs mt-1">{fieldErrors.businessCity}</p>
+                      )}
                     </div>
                     
                     <div>
@@ -291,10 +445,13 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
                         value={formData.businessState}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-3 sm:px-4 py-3 border border-gray-300 rounded-xl focus:border-green-500 focus:outline-none transition-colors text-base"
+                        className={`w-full px-3 sm:px-4 py-3 border rounded-xl focus:outline-none transition-colors text-base ${getInputErrorStyle('businessState')}`}
                         placeholder="CA"
                         maxLength={2}
                       />
+                      {fieldErrors.businessState && (
+                        <p className="text-red-600 text-xs mt-1">{fieldErrors.businessState}</p>
+                      )}
                     </div>
 
                     <div>
@@ -308,10 +465,13 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
                         value={formData.businessZipCode}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-3 sm:px-4 py-3 border border-gray-300 rounded-xl focus:border-green-500 focus:outline-none transition-colors text-base"
+                        className={`w-full px-3 sm:px-4 py-3 border rounded-xl focus:outline-none transition-colors text-base ${getInputErrorStyle('businessZipCode')}`}
                         placeholder="12345"
                         maxLength={10}
                       />
+                      {fieldErrors.businessZipCode && (
+                        <p className="text-red-600 text-xs mt-1">{fieldErrors.businessZipCode}</p>
+                      )}
                     </div>
                   </div>
 
@@ -325,7 +485,7 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
                       value={formData.category}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-3 sm:px-4 py-3 border border-gray-300 rounded-xl focus:border-green-500 focus:outline-none transition-colors text-base"
+                      className={`w-full px-3 sm:px-4 py-3 border rounded-xl focus:outline-none transition-colors text-base ${getInputErrorStyle('category')}`}
                     >
                       <option value="">Select a category</option>
                       {BUSINESS_CATEGORIES.map((category) => (
@@ -334,6 +494,9 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
                         </option>
                       ))}
                     </select>
+                    {fieldErrors.category && (
+                      <p className="text-red-600 text-xs mt-1">{fieldErrors.category}</p>
+                    )}
                   </div>
 
                   {showCustomCategory && (
@@ -346,11 +509,14 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
                         id="customCategory"
                         name="customCategory"
                         value={customCategory}
-                        onChange={(e) => setCustomCategory(e.target.value)}
+                        onChange={handleInputChange}
                         required
-                        className="w-full px-3 sm:px-4 py-3 border border-gray-300 rounded-xl focus:border-green-500 focus:outline-none transition-colors text-base"
+                        className={`w-full px-3 sm:px-4 py-3 border rounded-xl focus:outline-none transition-colors text-base ${getInputErrorStyle('customCategory')}`}
                         placeholder="Enter your business category"
                       />
+                      {fieldErrors.customCategory && (
+                        <p className="text-red-600 text-xs mt-1">{fieldErrors.customCategory}</p>
+                      )}
                     </div>
                   )}
                 </div>
@@ -371,9 +537,12 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
                         value={formData.firstName}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-3 sm:px-4 py-3 border border-gray-300 rounded-xl focus:border-green-500 focus:outline-none transition-colors text-base"
+                        className={`w-full px-3 sm:px-4 py-3 border rounded-xl focus:outline-none transition-colors text-base ${getInputErrorStyle('firstName')}`}
                         placeholder="John"
                       />
+                      {fieldErrors.firstName && (
+                        <p className="text-red-600 text-xs mt-1">{fieldErrors.firstName}</p>
+                      )}
                     </div>
                     
                     <div>
@@ -387,9 +556,12 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
                         value={formData.lastName}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-3 sm:px-4 py-3 border border-gray-300 rounded-xl focus:border-green-500 focus:outline-none transition-colors text-base"
+                        className={`w-full px-3 sm:px-4 py-3 border rounded-xl focus:outline-none transition-colors text-base ${getInputErrorStyle('lastName')}`}
                         placeholder="Doe"
                       />
+                      {fieldErrors.lastName && (
+                        <p className="text-red-600 text-xs mt-1">{fieldErrors.lastName}</p>
+                      )}
                     </div>
                   </div>
 
@@ -404,9 +576,12 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
                       value={formData.email}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-3 sm:px-4 py-3 border border-gray-300 rounded-xl focus:border-green-500 focus:outline-none transition-colors text-base"
+                      className={`w-full px-3 sm:px-4 py-3 border rounded-xl focus:outline-none transition-colors text-base ${getInputErrorStyle('email')}`}
                       placeholder="john@example.com"
                     />
+                    {fieldErrors.email && (
+                      <p className="text-red-600 text-xs mt-1">{fieldErrors.email}</p>
+                    )}
                   </div>
 
                   <div>
@@ -421,9 +596,12 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
                       onChange={handleInputChange}
                       required
                       minLength={8}
-                      className="w-full px-3 sm:px-4 py-3 border border-gray-300 rounded-xl focus:border-green-500 focus:outline-none transition-colors text-base"
+                      className={`w-full px-3 sm:px-4 py-3 border rounded-xl focus:outline-none transition-colors text-base ${getInputErrorStyle('password')}`}
                       placeholder="At least 8 characters"
                     />
+                    {fieldErrors.password && (
+                      <p className="text-red-600 text-xs mt-1">{fieldErrors.password}</p>
+                    )}
                     <p className="text-xs text-gray-500 mt-1">Password must be at least 8 characters long</p>
                   </div>
                 </div>

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import LogoVideo from "@/components/LogoVideo";
+import { detectSQLInjection, showSQLInjectionPopup } from "@/utils/sqlInjectionDetector";
 
 export default function BusinessLogin() {
   const [formData, setFormData] = useState({
@@ -49,6 +50,13 @@ export default function BusinessLogin() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    
+    // Check for SQL injection attempts
+    if (detectSQLInjection(value)) {
+      showSQLInjectionPopup();
+      return;
+    }
+    
     setFormData(prev => ({
       ...prev,
       [name]: value

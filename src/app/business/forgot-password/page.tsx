@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import LogoVideo from "@/components/LogoVideo";
+import { detectSQLInjection, showSQLInjectionPopup } from "@/utils/sqlInjectionDetector";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -160,7 +161,14 @@ export default function ForgotPassword() {
                 autoComplete="email"
                 required
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  // Check for SQL injection attempts
+                  if (detectSQLInjection(e.target.value)) {
+                    showSQLInjectionPopup();
+                    return;
+                  }
+                  setEmail(e.target.value);
+                }}
                 className="mt-1 appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-xl focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm"
                 placeholder="Enter your business email"
               />
