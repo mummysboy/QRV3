@@ -42,6 +42,7 @@ const schema = a.schema({
       addresstext: a.string(),
       expires: a.string(),
       claimed_at: a.string(),
+      redeemed_at: a.string(),
       businessId: a.string(), // Link to business
     })
     .identifier(["id"])

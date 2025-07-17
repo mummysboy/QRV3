@@ -132,6 +132,107 @@
             "sortKeyFieldNames": []
           }
         },
+        "CardView": {
+          "name": "CardView",
+          "fields": {
+            "id": {
+              "name": "id",
+              "isArray": false,
+              "type": "ID",
+              "isRequired": true,
+              "attributes": []
+            },
+            "cardid": {
+              "name": "cardid",
+              "isArray": false,
+              "type": "String",
+              "isRequired": true,
+              "attributes": []
+            },
+            "businessId": {
+              "name": "businessId",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
+              "attributes": []
+            },
+            "viewed_at": {
+              "name": "viewed_at",
+              "isArray": false,
+              "type": "String",
+              "isRequired": true,
+              "attributes": []
+            },
+            "ip_address": {
+              "name": "ip_address",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
+              "attributes": []
+            },
+            "user_agent": {
+              "name": "user_agent",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
+              "attributes": []
+            },
+            "createdAt": {
+              "name": "createdAt",
+              "isArray": false,
+              "type": "AWSDateTime",
+              "isRequired": false,
+              "attributes": [],
+              "isReadOnly": true
+            },
+            "updatedAt": {
+              "name": "updatedAt",
+              "isArray": false,
+              "type": "AWSDateTime",
+              "isRequired": false,
+              "attributes": [],
+              "isReadOnly": true
+            }
+          },
+          "syncable": true,
+          "pluralName": "CardViews",
+          "attributes": [
+            {
+              "type": "model",
+              "properties": {}
+            },
+            {
+              "type": "key",
+              "properties": {
+                "fields": [
+                  "id"
+                ]
+              }
+            },
+            {
+              "type": "auth",
+              "properties": {
+                "rules": [
+                  {
+                    "allow": "public",
+                    "provider": "apiKey",
+                    "operations": [
+                      "create",
+                      "update",
+                      "delete",
+                      "read"
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "primaryKeyInfo": {
+            "isCustomPrimaryKey": false,
+            "primaryKeyFieldName": "id",
+            "sortKeyFieldNames": []
+          }
+        },
         "ClaimedReward": {
           "name": "ClaimedReward",
           "fields": {
@@ -214,6 +315,13 @@
             },
             "claimed_at": {
               "name": "claimed_at",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
+              "attributes": []
+            },
+            "redeemed_at": {
+              "name": "redeemed_at",
               "isArray": false,
               "type": "String",
               "isRequired": false,
@@ -410,35 +518,49 @@
               "name": "businessName",
               "isArray": false,
               "type": "String",
-              "isRequired": true,
+              "isRequired": false,
               "attributes": []
             },
             "businessAddress": {
               "name": "businessAddress",
               "isArray": false,
               "type": "String",
-              "isRequired": true,
+              "isRequired": false,
               "attributes": []
             },
             "businessCity": {
               "name": "businessCity",
               "isArray": false,
               "type": "String",
-              "isRequired": true,
+              "isRequired": false,
               "attributes": []
             },
             "businessState": {
               "name": "businessState",
               "isArray": false,
               "type": "String",
-              "isRequired": true,
+              "isRequired": false,
               "attributes": []
             },
-            "businessZip": {
-              "name": "businessZip",
+            "businessZipCode": {
+              "name": "businessZipCode",
               "isArray": false,
               "type": "String",
-              "isRequired": true,
+              "isRequired": false,
+              "attributes": []
+            },
+            "businessCategory": {
+              "name": "businessCategory",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
+              "attributes": []
+            },
+            "businessLogo": {
+              "name": "businessLogo",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
               "attributes": []
             },
             "status": {
@@ -509,7 +631,7 @@
             "id": {
               "name": "id",
               "isArray": false,
-              "type": "ID",
+              "type": "String",
               "isRequired": true,
               "attributes": []
             },
@@ -552,7 +674,7 @@
               "name": "status",
               "isArray": false,
               "type": "String",
-              "isRequired": false,
+              "isRequired": true,
               "attributes": []
             },
             "logo": {
@@ -632,13 +754,6 @@
               "isRequired": false,
               "attributes": []
             },
-            "profileComplete": {
-              "name": "profileComplete",
-              "isArray": false,
-              "type": "Boolean",
-              "isRequired": false,
-              "attributes": []
-            },
             "createdAt": {
               "name": "createdAt",
               "isArray": false,
@@ -655,13 +770,6 @@
             },
             "approvedAt": {
               "name": "approvedAt",
-              "isArray": false,
-              "type": "String",
-              "isRequired": false,
-              "attributes": []
-            },
-            "approvedBy": {
-              "name": "approvedBy",
               "isArray": false,
               "type": "String",
               "isRequired": false,
@@ -713,26 +821,12 @@
             "id": {
               "name": "id",
               "isArray": false,
-              "type": "ID",
-              "isRequired": true,
-              "attributes": []
-            },
-            "businessId": {
-              "name": "businessId",
-              "isArray": false,
               "type": "String",
               "isRequired": true,
               "attributes": []
             },
             "email": {
               "name": "email",
-              "isArray": false,
-              "type": "String",
-              "isRequired": true,
-              "attributes": []
-            },
-            "password": {
-              "name": "password",
               "isArray": false,
               "type": "String",
               "isRequired": true,
@@ -756,14 +850,21 @@
               "name": "role",
               "isArray": false,
               "type": "String",
-              "isRequired": false,
+              "isRequired": true,
               "attributes": []
             },
             "status": {
               "name": "status",
               "isArray": false,
               "type": "String",
-              "isRequired": false,
+              "isRequired": true,
+              "attributes": []
+            },
+            "businessId": {
+              "name": "businessId",
+              "isArray": false,
+              "type": "String",
+              "isRequired": true,
               "attributes": []
             },
             "createdAt": {
@@ -773,20 +874,12 @@
               "isRequired": false,
               "attributes": []
             },
-            "lastLoginAt": {
-              "name": "lastLoginAt",
+            "updatedAt": {
+              "name": "updatedAt",
               "isArray": false,
               "type": "String",
               "isRequired": false,
               "attributes": []
-            },
-            "updatedAt": {
-              "name": "updatedAt",
-              "isArray": false,
-              "type": "AWSDateTime",
-              "isRequired": false,
-              "attributes": [],
-              "isReadOnly": true
             }
           },
           "syncable": true,

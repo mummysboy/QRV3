@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import CardAnimation from "@/components/CardAnimation";
 import LogoVideo from "@/components/LogoVideo";
+import { trackRewardRedemption } from "@/lib/analytics";
 
 interface CardData {
   id: string;
@@ -105,10 +106,13 @@ export default function RewardPage() {
     setRedeeming(true);
     setRedeemError("");
     try {
+      // Track the redemption
+      await trackRewardRedemption(card.id);
+      
       const res = await fetch("/api/redeem-reward", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: card.id }),
+        body: JSON.stringify({ claimedRewardId: card.id }),
       });
       if (!res.ok) {
         const data = await res.json();

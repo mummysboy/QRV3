@@ -14,6 +14,7 @@ interface ClaimedReward {
   cardid: string;
   header?: string;
   claimed_at: string;
+  redeemed_at?: string;
   delivery_method?: string;
 }
 
@@ -31,6 +32,7 @@ interface AnalyticsData {
   activeRewards: number;
   totalClaims: number;
   totalViews: number;
+  totalRedeemed: number;
   recentClaims: Array<{
     id: string;
     cardid: string;
@@ -55,6 +57,7 @@ interface AnalyticsData {
     count: number;
   }>;
   conversionRate: number;
+  redemptionRate: number;
   rewardAnalytics: Array<{
     cardid: string;
     header: string;
@@ -62,8 +65,11 @@ interface AnalyticsData {
     quantity: number;
     claims: number;
     views: number;
+    redeemed: number;
     conversionRate: number;
+    redemptionRate: number;
     lastClaimed?: string;
+    lastRedeemed?: string;
   }>;
 }
 
@@ -116,6 +122,7 @@ export async function GET(request: NextRequest) {
               cardid
               header
               claimed_at
+              redeemed_at
               delivery_method
               businessId
             }
@@ -159,19 +166,33 @@ export async function GET(request: NextRequest) {
     const activeRewards = cards.filter(card => card.quantity > 0).length;
     const totalClaims = claimedRewards.length;
     const totalViews = cardViews.length;
+    const totalRedeemed = claimedRewards.filter(claim => claim.redeemed_at).length;
 
     // Calculate conversion rate (claims / views * 100)
     const conversionRate = totalViews > 0 ? Math.round((totalClaims / totalViews) * 100) : 0;
+    
+    // Calculate redemption rate (redeemed / claims * 100)
+    const redemptionRate = totalClaims > 0 ? Math.round((totalRedeemed / totalClaims) * 100) : 0;
 
     // Calculate individual reward analytics
     const rewardAnalytics = cards.map(card => {
       const cardClaims = claimedRewards.filter(claim => claim.cardid === card.cardid);
       const cardViewsForReward = cardViews.filter((view: CardView) => view.cardid === card.cardid);
+      const cardRedeemed = cardClaims.filter(claim => claim.redeemed_at);
+      
       const cardClaimsCount = cardClaims.length;
       const cardViewsCount = cardViewsForReward.length;
+      const cardRedeemedCount = cardRedeemed.length;
+      
       const cardConversionRate = cardViewsCount > 0 ? Math.round((cardClaimsCount / cardViewsCount) * 100) : 0;
+      const cardRedemptionRate = cardClaimsCount > 0 ? Math.round((cardRedeemedCount / cardClaimsCount) * 100) : 0;
+      
       const lastClaimed = cardClaims.length > 0 
         ? cardClaims.sort((a, b) => new Date(b.claimed_at).getTime() - new Date(a.claimed_at).getTime())[0].claimed_at
+        : undefined;
+        
+      const lastRedeemed = cardRedeemed.length > 0
+        ? cardRedeemed.sort((a, b) => new Date(b.redeemed_at!).getTime() - new Date(a.redeemed_at!).getTime())[0].redeemed_at
         : undefined;
 
       return {
@@ -181,8 +202,11 @@ export async function GET(request: NextRequest) {
         quantity: card.quantity,
         claims: cardClaimsCount,
         views: cardViewsCount,
+        redeemed: cardRedeemedCount,
         conversionRate: cardConversionRate,
+        redemptionRate: cardRedemptionRate,
         lastClaimed,
+        lastRedeemed,
       };
     });
 
@@ -275,12 +299,14 @@ export async function GET(request: NextRequest) {
       activeRewards,
       totalClaims,
       totalViews,
+      totalRedeemed,
       recentClaims,
       rewardsByStatus,
       claimsByMonth,
       claimsByDay,
       claimsByWeek,
       conversionRate,
+      redemptionRate,
       rewardAnalytics,
     };
 

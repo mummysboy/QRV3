@@ -60,6 +60,7 @@ interface AnalyticsData {
   activeRewards: number;
   totalClaims: number;
   totalViews: number;
+  totalRedeemed: number;
   recentClaims: Array<{
     id: string;
     cardid: string;
@@ -84,6 +85,7 @@ interface AnalyticsData {
     count: number;
   }>;
   conversionRate: number;
+  redemptionRate: number;
   rewardAnalytics: Array<{
     cardid: string;
     header: string;
@@ -91,8 +93,11 @@ interface AnalyticsData {
     quantity: number;
     claims: number;
     views: number;
+    redeemed: number;
     conversionRate: number;
+    redemptionRate: number;
     lastClaimed?: string;
+    lastRedeemed?: string;
   }>;
 }
 
@@ -443,7 +448,7 @@ export default function BusinessDashboard() {
         </div>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
           <div className="text-2xl mb-2">📊</div>
           <div className="text-3xl font-light text-gray-900 mb-1">
@@ -464,6 +469,20 @@ export default function BusinessDashboard() {
             {isLoadingData ? "..." : `${analytics?.conversionRate || 0}%`}
           </div>
           <div className="text-sm text-gray-600">Conversion Rate</div>
+        </div>
+        <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+          <div className="text-2xl mb-2">✅</div>
+          <div className="text-3xl font-light text-gray-900 mb-1">
+            {isLoadingData ? "..." : analytics?.totalRedeemed || 0}
+          </div>
+          <div className="text-sm text-gray-600">Total Redeemed</div>
+        </div>
+        <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+          <div className="text-2xl mb-2">📈</div>
+          <div className="text-3xl font-light text-gray-900 mb-1">
+            {isLoadingData ? "..." : `${analytics?.redemptionRate || 0}%`}
+          </div>
+          <div className="text-sm text-gray-600">Redemption Rate</div>
         </div>
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
           <div className="text-2xl mb-2">🎁</div>
@@ -551,7 +570,7 @@ export default function BusinessDashboard() {
                     <div className="text-lg font-medium text-gray-900">{reward.quantity}</div>
                   </div>
                 </div>
-                <div className="grid grid-cols-4 gap-4">
+                <div className="grid grid-cols-6 gap-4">
                   <div className="text-center">
                     <div className="text-2xl font-light text-gray-900 mb-1">{reward.views}</div>
                     <div className="text-sm text-gray-600">Views</div>
@@ -561,14 +580,22 @@ export default function BusinessDashboard() {
                     <div className="text-sm text-gray-600">Claims</div>
                   </div>
                   <div className="text-center">
+                    <div className="text-2xl font-light text-gray-900 mb-1">{reward.redeemed}</div>
+                    <div className="text-sm text-gray-600">Redeemed</div>
+                  </div>
+                  <div className="text-center">
                     <div className="text-2xl font-light text-gray-900 mb-1">{reward.conversionRate}%</div>
                     <div className="text-sm text-gray-600">Conversion</div>
                   </div>
                   <div className="text-center">
+                    <div className="text-2xl font-light text-gray-900 mb-1">{reward.redemptionRate}%</div>
+                    <div className="text-sm text-gray-600">Redemption</div>
+                  </div>
+                  <div className="text-center">
                     <div className="text-2xl font-light text-gray-900 mb-1">
-                      {reward.lastClaimed ? new Date(reward.lastClaimed).toLocaleDateString() : 'Never'}
+                      {reward.lastRedeemed ? new Date(reward.lastRedeemed).toLocaleDateString() : 'Never'}
                     </div>
-                    <div className="text-sm text-gray-600">Last Claimed</div>
+                    <div className="text-sm text-gray-600">Last Redeemed</div>
                   </div>
                 </div>
               </div>
