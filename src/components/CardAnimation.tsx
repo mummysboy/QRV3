@@ -213,20 +213,7 @@ export default function CardAnimation({ card, playbackRate = 1, isPreview = fals
           isPreview ? 'opacity-100' : (showOverlay ? "opacity-100" : "opacity-0")
         }`}
       >
-        {/* Status & Quantity Overlays */}
-        {cardData && (
-          <>
-            {/* Status: Top Left */}
-            <div className="absolute top-2 left-2 flex items-center bg-white/90 rounded-full px-2 py-0.5 shadow text-xs font-medium z-10">
-              <span className={`w-2 h-2 rounded-full mr-1 ${(cardData.quantity ?? 0) > 0 ? 'bg-green-500' : 'bg-gray-400'}`}></span>
-              <span className={`${(cardData.quantity ?? 0) > 0 ? 'text-green-700' : 'text-gray-500'}`}>{(cardData.quantity ?? 0) > 0 ? 'Active' : 'Inactive'}</span>
-            </div>
-            {/* Quantity: Bottom Right */}
-            <div className="absolute bottom-2 right-2 bg-white/90 rounded-full px-3 py-1 shadow text-xs font-semibold text-blue-700 border border-blue-100 z-10">
-              Qty: {cardData.quantity ?? 0}
-            </div>
-          </>
-        )}
+        {/* Removed Status & Quantity Overlays */}
         <div className={`bg-white text-black text-center px-3 py-3 rounded-lg ${isPreview ? 'max-w-[180px] w-full' : 'max-w-[160px] w-full'} flex flex-col justify-center transition-all duration-500 ${isPreview ? 'min-h-[160px]' : 'min-h-[130px]'}`}>
           {!card ? (
             <p className="text-xs font-semibold text-gray-700 px-1 leading-tight">
