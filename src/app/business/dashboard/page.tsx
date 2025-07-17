@@ -735,13 +735,33 @@ export default function BusinessDashboard() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Business Logo</label>
             <div className="flex items-center space-x-4">
-              {business?.logo ? (
-                <img src={business.logo} alt="Business Logo" className="w-32 h-32 object-cover rounded-xl border-2 border-gray-200" />
-              ) : (
-                <div className="w-32 h-32 bg-gray-100 rounded-xl flex items-center justify-center border-2 border-dashed border-gray-300">
-                  <span className="text-gray-500">No Logo</span>
-                </div>
-              )}
+              {business?.logo && business.logo.trim() !== '' ? (
+                <img 
+                  src={business.logo.startsWith("data:") || business.logo.startsWith("http")
+                    ? business.logo
+                    : business.logo.startsWith("/")
+                      ? `https://qrewards-media6367c-dev.s3.us-west-1.amazonaws.com${business.logo}`
+                      : `https://qrewards-media6367c-dev.s3.us-west-1.amazonaws.com/${business.logo}`
+                  } 
+                  alt="Business Logo" 
+                  className="w-32 h-32 object-contain rounded-xl border-2 border-gray-200"
+                  onError={(e) => {
+                    // Show fallback if image fails to load
+                    const target = e.currentTarget;
+                    target.style.display = 'none';
+                    const fallback = target.parentElement?.querySelector('.logo-fallback');
+                    if (fallback) {
+                      (fallback as HTMLElement).style.display = 'flex';
+                    }
+                  }}
+                />
+              ) : null}
+              <div 
+                className="w-32 h-32 bg-gray-100 rounded-xl flex items-center justify-center border-2 border-dashed border-gray-300 logo-fallback"
+                style={{ display: business?.logo && business.logo.trim() !== '' ? 'none' : 'flex' }}
+              >
+                <span className="text-gray-500">No Logo</span>
+              </div>
               <button
                 onClick={() => setShowLogoUpload(true)}
                 className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
@@ -883,8 +903,29 @@ export default function BusinessDashboard() {
             }`}>
               <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100 mb-8">
                 <div className="flex items-center space-x-4 mb-6">
-                  <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center">
-                    <span className="text-2xl">🏪</span>
+                  <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center overflow-hidden">
+                    {business.logo && business.logo.trim() !== '' ? (
+                      <img
+                        src={business.logo.startsWith("data:") || business.logo.startsWith("http")
+                          ? business.logo
+                          : business.logo.startsWith("/")
+                            ? `https://qrewards-media6367c-dev.s3.us-west-1.amazonaws.com${business.logo}`
+                            : `https://qrewards-media6367c-dev.s3.us-west-1.amazonaws.com/${business.logo}`
+                        }
+                        alt="Business Logo"
+                        className="w-full h-full object-contain rounded-xl"
+                        onError={(e) => {
+                          // Fallback to emoji if image fails to load
+                          const target = e.currentTarget;
+                          target.style.display = 'none';
+                          const fallback = target.parentElement?.querySelector('.fallback-icon');
+                          if (fallback) {
+                            (fallback as HTMLElement).style.display = 'flex';
+                          }
+                        }}
+                      />
+                    ) : null}
+                    <span className="text-2xl fallback-icon" style={{ display: business.logo && business.logo.trim() !== '' ? 'none' : 'flex' }}>🏪</span>
                   </div>
                   <div>
                     <h2 className="text-3xl font-light text-gray-900">Welcome back, {user.firstName}!</h2>
