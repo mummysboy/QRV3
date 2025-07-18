@@ -623,21 +623,21 @@ export default function AdminDashboard() {
                 <button
                   onClick={() => handleStatusUpdate(selectedItem.type, selectedItem.data.id, 'approved')}
                   disabled={isProcessing}
-                  className="bg-green-600 text-white px-3 py-2 rounded text-sm hover:bg-green-700 disabled:opacity-50"
+                  className="bg-gray-700 text-white px-3 py-2 rounded text-sm hover:bg-gray-800 disabled:opacity-50"
                 >
                   Approve
                 </button>
                 <button
                   onClick={() => handleStatusUpdate(selectedItem.type, selectedItem.data.id, 'rejected')}
                   disabled={isProcessing}
-                  className="bg-red-600 text-white px-3 py-2 rounded text-sm hover:bg-red-700 disabled:opacity-50"
+                  className="bg-gray-700 text-white px-3 py-2 rounded text-sm hover:bg-gray-800 disabled:opacity-50"
                 >
                   Reject
                 </button>
                 <button
                   onClick={() => handleStatusUpdate(selectedItem.type, selectedItem.data.id, 'paused')}
                   disabled={isProcessing}
-                  className="bg-yellow-600 text-white px-3 py-2 rounded text-sm hover:bg-yellow-700 disabled:opacity-50"
+                  className="bg-gray-700 text-white px-3 py-2 rounded text-sm hover:bg-gray-800 disabled:opacity-50"
                 >
                   Pause
                 </button>
@@ -699,28 +699,28 @@ export default function AdminDashboard() {
                   <button
                     onClick={() => handleStatusUpdate('business', editingBusiness.id, 'approved')}
                     disabled={isProcessing || editingBusiness.status === 'approved'}
-                    className="bg-green-600 text-white px-3 py-2 rounded text-sm hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-gray-700 text-white px-3 py-2 rounded text-sm hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Approve
                   </button>
                   <button
                     onClick={() => handleStatusUpdate('business', editingBusiness.id, 'rejected')}
                     disabled={isProcessing || editingBusiness.status === 'rejected'}
-                    className="bg-red-600 text-white px-3 py-2 rounded text-sm hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-gray-700 text-white px-3 py-2 rounded text-sm hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Reject
                   </button>
                   <button
                     onClick={() => handleStatusUpdate('business', editingBusiness.id, 'paused')}
                     disabled={isProcessing || editingBusiness.status === 'paused'}
-                    className="bg-yellow-600 text-white px-3 py-2 rounded text-sm hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-gray-700 text-white px-3 py-2 rounded text-sm hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Pause
                   </button>
                   <button
                     onClick={() => handleStatusUpdate('business', editingBusiness.id, 'pending_approval')}
                     disabled={isProcessing || editingBusiness.status === 'pending_approval'}
-                    className="bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-gray-700 text-white px-3 py-2 rounded text-sm hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Set Pending
                   </button>
@@ -860,14 +860,14 @@ export default function AdminDashboard() {
                 <div className="flex space-x-3">
                   <button
                     onClick={handleLoginAsBusiness}
-                    className="px-6 py-3 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+                    className="px-6 py-3 bg-gray-700 text-white rounded-md hover:bg-gray-800 transition-colors"
                   >
                     🔐 Login As Business
                   </button>
                   <button
                     onClick={() => handleDelete('business', editingBusiness.id)}
                     disabled={isProcessing}
-                    className="px-6 py-3 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 transition-colors"
+                    className="px-6 py-3 bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:opacity-50 transition-colors"
                   >
                     🗑️ Delete Business
                   </button>
@@ -885,7 +885,7 @@ export default function AdminDashboard() {
                   <button
                     onClick={handleEditBusiness}
                     disabled={isProcessing || !editFormData.name.trim() || !editFormData.email.trim()}
-                    className="px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="px-6 py-3 bg-gray-800 text-white rounded-md hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     {isProcessing ? 'Updating...' : '💾 Save Changes'}
                   </button>
