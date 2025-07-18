@@ -125,6 +125,8 @@ export default function BusinessDashboard() {
   const [showAddBusiness, setShowAddBusiness] = useState(false);
   const [timeRange, setTimeRange] = useState<TimeRange>('month');
   const [isVisible, setIsVisible] = useState(false);
+  const [logoProcessing, setLogoProcessing] = useState(false);
+  const [logoProcessingStartTime, setLogoProcessingStartTime] = useState<number | null>(null);
   
 
   
@@ -134,6 +136,15 @@ export default function BusinessDashboard() {
 
   // Check if profile is complete
   const isProfileComplete = Boolean(business?.logo && business.logo.trim() !== '');
+
+  // Check if logo is still processing (give it 30 seconds to process)
+  const isLogoProcessing = logoProcessing && logoProcessingStartTime && 
+    (Date.now() - logoProcessingStartTime) < 30000; // 30 seconds
+
+  // Check if we should show logo processing message
+  const shouldShowLogoProcessing = isLogoProcessing || 
+    (business?.logo && business.logo.trim() !== '' && !isLogoProcessing && logoProcessingStartTime && 
+     (Date.now() - logoProcessingStartTime) < 60000); // Show for 1 minute after upload
 
   useEffect(() => {
     // Check if user is logged in
@@ -179,6 +190,17 @@ export default function BusinessDashboard() {
     const timer = setTimeout(() => setIsVisible(true), 100);
     return () => clearTimeout(timer);
   }, []);
+
+  // Clear logo processing state after timeout
+  useEffect(() => {
+    if (logoProcessing && logoProcessingStartTime) {
+      const timer = setTimeout(() => {
+        setLogoProcessing(false);
+      }, 30000); // 30 seconds
+      
+      return () => clearTimeout(timer);
+    }
+  }, [logoProcessing, logoProcessingStartTime]);
 
 
 
@@ -277,6 +299,10 @@ export default function BusinessDashboard() {
   const handleLogoUpload = async (logoUrl: string) => {
     if (!business?.id) return;
 
+    // Set logo processing state
+    setLogoProcessing(true);
+    setLogoProcessingStartTime(Date.now());
+
     try {
       const response = await fetch('/api/business/update', {
         method: 'PUT',
@@ -299,14 +325,22 @@ export default function BusinessDashboard() {
         setBusiness(updatedBusiness);
         
         setShowLogoUpload(false);
-        alert('Logo uploaded successfully!');
+        
+        // Refresh the page immediately
+        window.location.reload();
       } else {
         const error = await response.json();
         alert(error.error || 'Failed to upload logo');
+        // Reset processing state on error
+        setLogoProcessing(false);
+        setLogoProcessingStartTime(null);
       }
     } catch (error) {
       console.error('Error uploading logo:', error);
       alert('Failed to upload logo');
+      // Reset processing state on error
+      setLogoProcessing(false);
+      setLogoProcessingStartTime(null);
     }
   };
 
@@ -883,6 +917,42 @@ export default function BusinessDashboard() {
           </div>
         )}
 
+        {/* Logo Processing Banner */}
+        {isProfileComplete && shouldShowLogoProcessing && (
+          <div className={`transition-all duration-600 delay-200 ease-in-out ${
+            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+          }`}>
+            <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6 mb-8">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    {isLogoProcessing ? (
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                    ) : (
+                      <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                    )}
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-blue-800">
+                      {isLogoProcessing ? 'Logo Processing...' : 'Logo Update Complete'}
+                    </h3>
+                    <div className="mt-2 text-sm text-blue-700">
+                      <p>
+                        {isLogoProcessing 
+                          ? 'Your logo is being processed. Please wait a moment before creating rewards to ensure it displays correctly.'
+                          : 'Your logo has been updated and should now appear in your rewards.'
+                        }
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {currentView === 'dashboard' ? (
           <>
             {/* Welcome Section */}
@@ -1068,7 +1138,11 @@ export default function BusinessDashboard() {
             logo: business.logo,
           }}
           isProfileComplete={isProfileComplete}
+          isLogoProcessing={isLogoProcessing || false}
+          shouldShowLogoProcessing={shouldShowLogoProcessing || false}
         />
+
+
 
         {/* Edit Reward Modal */}
         {showEditReward && editingCard && (
