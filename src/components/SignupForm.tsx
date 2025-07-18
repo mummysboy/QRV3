@@ -167,6 +167,13 @@ export default function SignupForm({ isOpen, onClose, onSubmit }: SignupFormProp
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Check for SQL injection attempts in all form fields
+    const allFields = Object.values(formData).join(' ');
+    if (detectSQLInjection(allFields)) {
+      showSQLInjectionPopup();
+      return;
+    }
+    
     // Validate phone number format
     const cleanPhone = formData.phone.replace(/\D/g, '');
     if (cleanPhone.length !== 10) {
@@ -199,12 +206,6 @@ export default function SignupForm({ isOpen, onClose, onSubmit }: SignupFormProp
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    
-    // Check for SQL injection attempts
-    if (detectSQLInjection(value)) {
-      showSQLInjectionPopup();
-      return;
-    }
     
     if (name === "phone") {
       // Format phone number as user types

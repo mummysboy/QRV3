@@ -158,6 +158,13 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
     e.preventDefault();
     setFieldErrors({});
     
+    // Check for SQL injection attempts in all form fields
+    const allFields = Object.values(formData).join(' ') + (customCategory ? ' ' + customCategory : '');
+    if (detectSQLInjection(allFields)) {
+      showSQLInjectionPopup();
+      return;
+    }
+    
     // Validate all fields
     const errors: FieldErrors = {};
     let hasErrors = false;
@@ -256,12 +263,6 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    
-    // Check for SQL injection attempts
-    if (detectSQLInjection(value)) {
-      showSQLInjectionPopup();
-      return;
-    }
     
     // Clear field error when user starts typing
     clearFieldError(name as keyof FieldErrors);

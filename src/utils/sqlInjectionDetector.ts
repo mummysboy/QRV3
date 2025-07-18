@@ -1,29 +1,35 @@
 // SQL Injection Detection Utility
-export const detectSQLInjection = (input: string): boolean => {
+export const detectSQLInjection = (input: string, debug: boolean = false): boolean => {
   if (!input || typeof input !== 'string') return false;
   
+  // Skip detection for very short inputs (likely legitimate)
+  if (input.length < 5) return false;
+  
+  // Skip detection for common legitimate business names/descriptions
+  const commonLegitimate = [
+    'select', 'update', 'create', 'delete', 'drop', 'insert', 'alter',
+    'selection', 'updates', 'creative', 'deleted', 'dropped', 'inserted', 'altered'
+  ];
+  
+  const inputLower = input.toLowerCase();
+  const hasCommonWords = commonLegitimate.some(word => inputLower.includes(word));
+  if (hasCommonWords && input.length < 25) return false;
+  
   const sqlPatterns = [
-    // Common SQL keywords and patterns
-    /\b(union|select|insert|update|delete|drop|create|alter|exec|execute|script|javascript|vbscript|onload|onerror|onclick)\b/i,
-    // SQL injection patterns
-    /(\b(union|select|insert|update|delete|drop|create|alter|exec|execute)\b.*\b(union|select|insert|update|delete|drop|create|alter|exec|execute)\b)/i,
-    // Comment patterns
-    /--|#|\/\*|\*\//,
-    // Quote patterns
-    /'|"|`/,
-    // Semicolon patterns
-    /;/,
-    // OR/AND patterns
-    /\b(or|and)\b\s+\d+\s*=\s*\d+/i,
-    // UNION patterns
+    // Multiple SQL keywords in sequence (highly suspicious)
+    /\b(union|select|insert|update|delete|drop|create|alter|exec|execute)\b.*\b(union|select|insert|update|delete|drop|create|alter|exec|execute)\b/i,
+    // SQL comments at end of string
+    /--\s*$|#\s*$|\/\*.*\*\//,
+    // Multiple quotes (SQL injection attempt)
+    /'[^']*'[^']*'|"[^"]*"[^"]*"/,
+    // Semicolon followed by SQL command
+    /;\s*(select|insert|update|delete|drop|create|alter|exec|execute)/i,
+    // Classic SQL injection patterns
+    /\b(or|and)\b\s+\d+\s*=\s*\d+\s*(or|and)/i,
     /\bunion\b.*\bselect\b/i,
-    // DROP patterns
     /\bdrop\b.*\btable\b/i,
-    // INSERT patterns
     /\binsert\b.*\binto\b/i,
-    // UPDATE patterns
     /\bupdate\b.*\bset\b/i,
-    // DELETE patterns
     /\bdelete\b.*\bfrom\b/i,
     // Script injection patterns
     /<script|javascript:|vbscript:|onload=|onerror=|onclick=/i,
@@ -41,7 +47,25 @@ export const detectSQLInjection = (input: string): boolean => {
     /\\u003cscript|\\u003ciframe|\\u003cobject|\\u003cembed/i
   ];
 
-  return sqlPatterns.some(pattern => pattern.test(input));
+  if (debug) {
+    console.log('SQL Injection Check - Input:', input);
+    console.log('Input length:', input.length);
+    console.log('Has common words:', hasCommonWords);
+  }
+
+  const result = sqlPatterns.some((pattern, index) => {
+    const matches = pattern.test(input);
+    if (debug && matches) {
+      console.log(`Pattern ${index} matched:`, pattern);
+    }
+    return matches;
+  });
+
+  if (debug) {
+    console.log('SQL Injection detected:', result);
+  }
+
+  return result;
 };
 
 export const showSQLInjectionPopup = (): void => {

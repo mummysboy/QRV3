@@ -15,6 +15,14 @@ export default function BusinessLogin() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check for SQL injection attempts in all form fields
+    const allFields = Object.values(formData).join(' ');
+    if (detectSQLInjection(allFields)) {
+      showSQLInjectionPopup();
+      return;
+    }
+    
     setIsSubmitting(true);
     setError("");
 
@@ -50,12 +58,6 @@ export default function BusinessLogin() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    
-    // Check for SQL injection attempts
-    if (detectSQLInjection(value)) {
-      showSQLInjectionPopup();
-      return;
-    }
     
     setFormData(prev => ({
       ...prev,

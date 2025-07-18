@@ -139,6 +139,13 @@ export default function AddBusinessForm({ isOpen, onClose, onSubmit }: AddBusine
     e.preventDefault();
     setFieldErrors({});
     
+    // Check for SQL injection attempts in all form fields
+    const allFields = Object.values(formData).join(' ') + (customCategory ? ' ' + customCategory : '');
+    if (detectSQLInjection(allFields)) {
+      showSQLInjectionPopup();
+      return;
+    }
+    
     // Validate all fields
     const errors: FieldErrors = {};
     let hasErrors = false;
@@ -209,12 +216,6 @@ export default function AddBusinessForm({ isOpen, onClose, onSubmit }: AddBusine
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    
-    // Check for SQL injection attempts
-    if (detectSQLInjection(value)) {
-      showSQLInjectionPopup();
-      return;
-    }
     
     if (name === "businessPhone") {
       // Format phone number as user types
