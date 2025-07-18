@@ -320,16 +320,22 @@ export default function BusinessDashboard() {
     businessCategory: string;
     businessLogo?: string;
     subheader: string;
-    quantity: number;
+    quantity: number | "";
     expires: string;
   }) => {
+    // Validate quantity
+    if (rewardData.quantity === "" || rewardData.quantity <= 0) {
+      alert("Please enter a valid quantity greater than 0");
+      return;
+    }
+
     const constructedAddress = `${rewardData.businessAddress}, ${rewardData.businessCity}, ${rewardData.businessState} ${rewardData.businessZipCode}`;
     
     const requestBody = {
       businessId: rewardData.businessId,
       header: rewardData.businessName,
       subheader: rewardData.subheader,
-      quantity: rewardData.quantity,
+      quantity: rewardData.quantity as number, // Type assertion since we validated it above
       expires: rewardData.expires,
       logokey: rewardData.businessLogo || "",
       addressurl: constructedAddress,
