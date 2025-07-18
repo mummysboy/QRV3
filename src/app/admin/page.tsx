@@ -47,12 +47,75 @@ interface Business {
   }>;
 }
 
-type TabType = 'signups' | 'businesses';
+interface AdminAnalytics {
+  totalBusinesses: number;
+  activeBusinesses: number;
+  totalSignups: number;
+  totalCardViews: number;
+  totalClaims: number;
+  totalRedeemed: number;
+  conversionRate: number;
+  redemptionRate: number;
+  topPerformingBusinesses: Array<{
+    businessId: string;
+    businessName: string;
+    totalViews: number;
+    totalClaims: number;
+    conversionRate: number;
+  }>;
+  claimsByMonth: Array<{
+    month: string;
+    count: number;
+  }>;
+  claimsByDay: Array<{
+    date: string;
+    count: number;
+  }>;
+  viewsByDay: Array<{
+    date: string;
+    count: number;
+  }>;
+  businessAnalytics: Array<{
+    businessId: string;
+    businessName: string;
+    totalRewards: number;
+    activeRewards: number;
+    totalViews: number;
+    totalClaims: number;
+    totalRedeemed: number;
+    conversionRate: number;
+    redemptionRate: number;
+  }>;
+}
+
+type TabType = 'signups' | 'businesses' | 'analytics';
 
 interface SelectedItem {
   type: 'signup' | 'business';
   data: Signup | Business;
 }
+
+interface SignupWithType extends Signup {
+  type?: 'signup';
+}
+
+interface BusinessAsSignup {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  businessName: string;
+  businessAddress: string;
+  businessCity: string;
+  businessState: string;
+  businessZip: string;
+  status: string;
+  createdAt: string;
+  type: 'business';
+}
+
+type SignupItem = SignupWithType | BusinessAsSignup;
 
 export default function AdminDashboard() {
   const [signups, setSignups] = useState<Signup[]>([]);
@@ -78,6 +141,14 @@ export default function AdminDashboard() {
     description: '',
     status: ''
   });
+
+  // Analytics state
+  const [analytics, setAnalytics] = useState<AdminAnalytics | null>(null);
+  const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(false);
+  const [selectedDateRange, setSelectedDateRange] = useState<string>('month');
+  const [selectedBusinessId, setSelectedBusinessId] = useState<string>('all');
+  const [showAllBusinesses, setShowAllBusinesses] = useState<boolean>(true);
+
   const router = useRouter();
 
   useEffect(() => {
@@ -114,6 +185,13 @@ export default function AdminDashboard() {
     validateSession();
   }, [router]);
 
+  // Fetch analytics when tab changes or filters change
+  useEffect(() => {
+    if (activeTab === 'analytics') {
+      fetchAnalytics();
+    }
+  }, [activeTab, selectedDateRange, selectedBusinessId, showAllBusinesses]);
+
   const fetchAllSignups = async () => {
     try {
       const response = await fetch('/api/admin/all-signups-simple');
@@ -128,6 +206,29 @@ export default function AdminDashboard() {
       console.error('Error fetching signups:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchAnalytics = async () => {
+    setIsLoadingAnalytics(true);
+    try {
+      const params = new URLSearchParams({
+        timeRange: selectedDateRange,
+        businessId: selectedBusinessId,
+        showAll: showAllBusinesses.toString()
+      });
+      
+      const response = await fetch(`/api/admin/analytics?${params}`);
+      if (response.ok) {
+        const data = await response.json();
+        setAnalytics(data.analytics);
+      } else {
+        console.error('Failed to fetch analytics');
+      }
+    } catch (error) {
+      console.error('Error fetching analytics:', error);
+    } finally {
+      setIsLoadingAnalytics(false);
     }
   };
 
@@ -324,17 +425,44 @@ export default function AdminDashboard() {
   };
 
   const getFilteredItems = () => {
-    const items = activeTab === 'signups' ? signups : businesses;
-    if (statusFilter === 'all') return items;
-    return items.filter(item => item.status === statusFilter);
-  };
-
-  const getPendingBusinessesCount = () => {
-    return businesses.filter(business => business.status === 'pending_approval').length;
+    if (activeTab === 'signups') {
+      // Include both signups and pending businesses in signups tab
+      const allSignups = [...signups];
+      const pendingBusinesses = businesses.filter(business => business.status === 'pending_approval');
+      
+      // Convert pending businesses to signup format for display
+      const pendingBusinessesAsSignups: BusinessAsSignup[] = pendingBusinesses.map(business => ({
+        id: business.id,
+        firstName: business.name,
+        lastName: '',
+        email: business.email,
+        phone: business.phone,
+        businessName: business.name,
+        businessAddress: business.address,
+        businessCity: business.city,
+        businessState: business.state,
+        businessZip: business.zipCode,
+        status: business.status,
+        createdAt: business.createdAt,
+        type: 'business'
+      }));
+      
+      const allItems = [...allSignups, ...pendingBusinessesAsSignups];
+      
+      if (statusFilter === 'all') return allItems;
+      return allItems.filter(item => item.status === statusFilter);
+    } else {
+      // Only show approved businesses in businesses tab
+      const approvedBusinesses = businesses.filter(business => business.status === 'approved');
+      if (statusFilter === 'all') return approvedBusinesses;
+      return approvedBusinesses.filter(business => business.status === statusFilter);
+    }
   };
 
   const getPendingSignupsCount = () => {
-    return signups.filter(signup => signup.status === 'pending').length;
+    const pendingSignups = signups.filter(signup => signup.status === 'pending').length;
+    const pendingBusinesses = businesses.filter(business => business.status === 'pending_approval').length;
+    return pendingSignups + pendingBusinesses;
   };
 
   const formatDate = (dateString: string) => {
@@ -384,7 +512,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Pending Notifications */}
-      {(getPendingBusinessesCount() > 0 || getPendingSignupsCount() > 0) && (
+      {getPendingSignupsCount() > 0 && (
         <div className="bg-yellow-50 border-b border-yellow-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
             <div className="flex items-center justify-between">
@@ -396,12 +524,15 @@ export default function AdminDashboard() {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-yellow-800">
-                    Pending approvals: {getPendingBusinessesCount()} businesses, {getPendingSignupsCount()} signups
+                    Pending approvals: {getPendingSignupsCount()} items need review
                   </p>
                 </div>
               </div>
               <button
-                onClick={() => setStatusFilter('pending')}
+                onClick={() => {
+                  setActiveTab('signups');
+                  setStatusFilter('pending');
+                }}
                 className="text-sm font-medium text-yellow-800 hover:text-yellow-900 underline"
               >
                 View all pending
@@ -424,7 +555,7 @@ export default function AdminDashboard() {
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                Signups ({signups.length})
+                Signups ({signups.length + businesses.filter(b => b.status === 'pending_approval').length})
                 {getPendingSignupsCount() > 0 && (
                   <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                     {getPendingSignupsCount()}
@@ -439,12 +570,17 @@ export default function AdminDashboard() {
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                Businesses ({businesses.length})
-                {getPendingBusinessesCount() > 0 && (
-                  <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                    {getPendingBusinessesCount()}
-                  </span>
-                )}
+                Businesses ({businesses.filter(b => b.status === 'approved').length})
+              </button>
+              <button
+                onClick={() => setActiveTab('analytics')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'analytics'
+                    ? 'border-green-500 text-green-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Analytics 📊
               </button>
             </nav>
           </div>
@@ -470,15 +606,220 @@ export default function AdminDashboard() {
         </div>
 
         {/* Content */}
-        <div className="bg-white rounded-lg shadow-sm">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900">
-              {activeTab === 'signups' ? 'All Signups' : 'All Businesses'} ({getFilteredItems().length})
-            </h2>
-            <p className="text-sm text-gray-600 mt-1">
-              {activeTab === 'businesses' ? 'Click on any business to edit information, status, and login' : 'Manage and review all signups'}
-            </p>
+        {activeTab === 'analytics' ? (
+          <div className="bg-white rounded-lg shadow-sm">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">Analytics Dashboard</h2>
+              <p className="text-sm text-gray-600 mt-1">Comprehensive analytics across all businesses</p>
+              
+              {/* Analytics Filters */}
+              <div className="mt-4 flex flex-wrap gap-4 items-center">
+                <div className="flex items-center space-x-2">
+                  <label className="text-sm font-medium text-gray-700">Date Range:</label>
+                  <select
+                    value={selectedDateRange}
+                    onChange={(e) => setSelectedDateRange(e.target.value)}
+                    className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                  >
+                    <option value="day">Today</option>
+                    <option value="week">Last 7 Days</option>
+                    <option value="month">Last 30 Days</option>
+                  </select>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <label className="text-sm font-medium text-gray-700">Business:</label>
+                  <select
+                    value={selectedBusinessId}
+                    onChange={(e) => setSelectedBusinessId(e.target.value)}
+                    className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                  >
+                    <option value="all">All Businesses</option>
+                    {businesses.map((business) => (
+                      <option key={business.id} value={business.id}>
+                        {business.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <label className="text-sm font-medium text-gray-700">View:</label>
+                  <select
+                    value={showAllBusinesses ? 'all' : 'individual'}
+                    onChange={(e) => setShowAllBusinesses(e.target.value === 'all')}
+                    className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                  >
+                    <option value="all">Aggregated</option>
+                    <option value="individual">Individual Businesses</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Analytics Content */}
+            {isLoadingAnalytics ? (
+              <div className="p-8 text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
+                <p className="mt-4 text-gray-600">Loading analytics...</p>
+              </div>
+            ) : analytics ? (
+              <div className="p-6">
+                {/* Summary Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                  <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-6 text-white">
+                    <div className="text-2xl font-bold">{analytics.totalBusinesses}</div>
+                    <div className="text-sm opacity-90">Total Businesses</div>
+                  </div>
+                  <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg p-6 text-white">
+                    <div className="text-2xl font-bold">{analytics.totalCardViews}</div>
+                    <div className="text-sm opacity-90">Total Views</div>
+                  </div>
+                  <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg p-6 text-white">
+                    <div className="text-2xl font-bold">{analytics.totalClaims}</div>
+                    <div className="text-sm opacity-90">Total Claims</div>
+                  </div>
+                  <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg p-6 text-white">
+                    <div className="text-2xl font-bold">{analytics.conversionRate}%</div>
+                    <div className="text-sm opacity-90">Conversion Rate</div>
+                  </div>
+                </div>
+
+                {/* Charts */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                  <div className="bg-white rounded-lg border border-gray-200 p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Claims Over Time</h3>
+                    <div className="h-64 flex items-end justify-center space-x-2">
+                      {analytics.claimsByDay.map((day, idx) => (
+                        <div key={idx} className="flex flex-col items-center">
+                          <div 
+                            className="bg-green-500 rounded-t-lg w-8 transition-all duration-300"
+                            style={{ height: `${Math.max(day.count * 10, 4)}px` }}
+                          ></div>
+                          <span className="text-xs text-gray-500 mt-2">{day.date}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg border border-gray-200 p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Views Over Time</h3>
+                    <div className="h-64 flex items-end justify-center space-x-2">
+                      {analytics.viewsByDay.map((day, idx) => (
+                        <div key={idx} className="flex flex-col items-center">
+                          <div 
+                            className="bg-blue-500 rounded-t-lg w-8 transition-all duration-300"
+                            style={{ height: `${Math.max(day.count * 5, 4)}px` }}
+                          ></div>
+                          <span className="text-xs text-gray-500 mt-2">{day.date}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Top Performing Businesses */}
+                <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Performing Businesses</h3>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Business</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Views</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Claims</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Conversion Rate</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {analytics.topPerformingBusinesses.map((business, idx) => (
+                          <tr key={idx}>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                              {business.businessName}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {business.totalViews}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {business.totalClaims}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {business.conversionRate}%
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Individual Business Analytics */}
+                {!showAllBusinesses && (
+                  <div className="bg-white rounded-lg border border-gray-200 p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Individual Business Analytics</h3>
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Business</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rewards</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Views</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Claims</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Redeemed</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Conversion</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Redemption</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {analytics.businessAnalytics.map((business, idx) => (
+                            <tr key={idx}>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                {business.businessName}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {business.totalRewards} ({business.activeRewards} active)
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {business.totalViews}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {business.totalClaims}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {business.totalRedeemed}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {business.conversionRate}%
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {business.redemptionRate}%
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="p-8 text-center">
+                <span className="text-4xl mb-4 block">📊</span>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No analytics data available</h3>
+                <p className="text-gray-600">Analytics data will appear here once businesses start using the platform.</p>
+              </div>
+            )}
           </div>
+        ) : (
+          <div className="bg-white rounded-lg shadow-sm">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">
+                {activeTab === 'signups' ? 'All Signups' : 'All Businesses'} ({getFilteredItems().length})
+              </h2>
+              <p className="text-sm text-gray-600 mt-1">
+                {activeTab === 'businesses' ? 'Click on any business to edit information, status, and login' : 'Manage and review all signups'}
+              </p>
+            </div>
 
           {getFilteredItems().length === 0 ? (
             <div className="p-8 text-center">
@@ -532,16 +873,18 @@ export default function AdminDashboard() {
                         <div className="flex flex-col">
                           <div className="text-sm font-medium text-gray-900">
                             {activeTab === 'signups' 
-                              ? `${(item as Signup).firstName} ${(item as Signup).lastName}`
+                              ? (item as SignupItem).type === 'business' 
+                                ? (item as BusinessAsSignup).firstName // This is the business name
+                                : `${(item as Signup).firstName} ${(item as Signup).lastName}`
                               : (item as Business).name
                             }
                           </div>
                           <div className="text-sm text-gray-500">
                             {item.email}
                           </div>
-                          {activeTab === 'signups' && (item as Signup).phone && (
+                          {activeTab === 'signups' && (item as SignupItem).phone && (
                             <div className="text-sm text-gray-500">
-                              {(item as Signup).phone}
+                              {(item as SignupItem).phone}
                             </div>
                           )}
                           {activeTab === 'businesses' && (item as Business).phone && (
@@ -554,13 +897,17 @@ export default function AdminDashboard() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">
                           {activeTab === 'signups' 
-                            ? `${(item as Signup).businessCity}, ${(item as Signup).businessState}`
+                            ? (item as SignupItem).type === 'business'
+                              ? `${(item as BusinessAsSignup).businessCity}, ${(item as BusinessAsSignup).businessState}`
+                              : `${(item as Signup).businessCity}, ${(item as Signup).businessState}`
                             : `${(item as Business).city}, ${(item as Business).state}`
                           }
                         </div>
                         <div className="text-sm text-gray-500">
                           {activeTab === 'signups' 
-                            ? (item as Signup).businessAddress
+                            ? (item as SignupItem).type === 'business'
+                              ? (item as BusinessAsSignup).businessAddress
+                              : (item as Signup).businessAddress
                             : (item as Business).address
                           }
                         </div>
@@ -578,7 +925,8 @@ export default function AdminDashboard() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              openActionModal(item, 'signup');
+                              const itemType = (item as SignupItem).type === 'business' ? 'business' : 'signup';
+                              openActionModal(item, itemType);
                             }}
                             className="text-green-600 hover:text-green-900"
                           >
@@ -593,6 +941,7 @@ export default function AdminDashboard() {
             </div>
           )}
         </div>
+        )}
       </div>
 
       {/* Action Modal for Signups */}
@@ -623,28 +972,28 @@ export default function AdminDashboard() {
                 <button
                   onClick={() => handleStatusUpdate(selectedItem.type, selectedItem.data.id, 'approved')}
                   disabled={isProcessing}
-                  className="bg-gray-700 text-white px-3 py-2 rounded text-sm hover:bg-gray-800 disabled:opacity-50"
+                  className="bg-emerald-500 text-white px-3 py-2 rounded text-sm hover:bg-emerald-600 disabled:opacity-50"
                 >
                   Approve
                 </button>
                 <button
                   onClick={() => handleStatusUpdate(selectedItem.type, selectedItem.data.id, 'rejected')}
                   disabled={isProcessing}
-                  className="bg-gray-700 text-white px-3 py-2 rounded text-sm hover:bg-gray-800 disabled:opacity-50"
+                  className="bg-rose-500 text-white px-3 py-2 rounded text-sm hover:bg-rose-600 disabled:opacity-50"
                 >
                   Reject
                 </button>
                 <button
                   onClick={() => handleStatusUpdate(selectedItem.type, selectedItem.data.id, 'paused')}
                   disabled={isProcessing}
-                  className="bg-gray-700 text-white px-3 py-2 rounded text-sm hover:bg-gray-800 disabled:opacity-50"
+                  className="bg-amber-500 text-white px-3 py-2 rounded text-sm hover:bg-amber-600 disabled:opacity-50"
                 >
                   Pause
                 </button>
                 <button
                   onClick={() => handleDelete(selectedItem.type, selectedItem.data.id)}
                   disabled={isProcessing}
-                  className="bg-gray-600 text-white px-3 py-2 rounded text-sm hover:bg-gray-700 disabled:opacity-50"
+                  className="bg-slate-500 text-white px-3 py-2 rounded text-sm hover:bg-slate-600 disabled:opacity-50"
                 >
                   Delete
                 </button>
@@ -699,28 +1048,28 @@ export default function AdminDashboard() {
                   <button
                     onClick={() => handleStatusUpdate('business', editingBusiness.id, 'approved')}
                     disabled={isProcessing || editingBusiness.status === 'approved'}
-                    className="bg-gray-700 text-white px-3 py-2 rounded text-sm hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-emerald-500 text-white px-3 py-2 rounded text-sm hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Approve
                   </button>
                   <button
                     onClick={() => handleStatusUpdate('business', editingBusiness.id, 'rejected')}
                     disabled={isProcessing || editingBusiness.status === 'rejected'}
-                    className="bg-gray-700 text-white px-3 py-2 rounded text-sm hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-rose-500 text-white px-3 py-2 rounded text-sm hover:bg-rose-600 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Reject
                   </button>
                   <button
                     onClick={() => handleStatusUpdate('business', editingBusiness.id, 'paused')}
                     disabled={isProcessing || editingBusiness.status === 'paused'}
-                    className="bg-gray-700 text-white px-3 py-2 rounded text-sm hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-amber-500 text-white px-3 py-2 rounded text-sm hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Pause
                   </button>
                   <button
                     onClick={() => handleStatusUpdate('business', editingBusiness.id, 'pending_approval')}
                     disabled={isProcessing || editingBusiness.status === 'pending_approval'}
-                    className="bg-gray-700 text-white px-3 py-2 rounded text-sm hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-sky-500 text-white px-3 py-2 rounded text-sm hover:bg-sky-600 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Set Pending
                   </button>
@@ -860,14 +1209,14 @@ export default function AdminDashboard() {
                 <div className="flex space-x-3">
                   <button
                     onClick={handleLoginAsBusiness}
-                    className="px-6 py-3 bg-gray-700 text-white rounded-md hover:bg-gray-800 transition-colors"
+                    className="px-6 py-3 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition-colors"
                   >
                     🔐 Login As Business
                   </button>
                   <button
                     onClick={() => handleDelete('business', editingBusiness.id)}
                     disabled={isProcessing}
-                    className="px-6 py-3 bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:opacity-50 transition-colors"
+                    className="px-6 py-3 bg-slate-500 text-white rounded-md hover:bg-slate-600 disabled:opacity-50 transition-colors"
                   >
                     🗑️ Delete Business
                   </button>
@@ -885,7 +1234,7 @@ export default function AdminDashboard() {
                   <button
                     onClick={handleEditBusiness}
                     disabled={isProcessing || !editFormData.name.trim() || !editFormData.email.trim()}
-                    className="px-6 py-3 bg-gray-800 text-white rounded-md hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="px-6 py-3 bg-teal-500 text-white rounded-md hover:bg-teal-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     {isProcessing ? 'Updating...' : '💾 Save Changes'}
                   </button>
