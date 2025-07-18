@@ -61,7 +61,7 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('signups');
   const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(null);
   const [showActionModal, setShowActionModal] = useState(false);
-  const [showEditBusinessModal, setShowEditBusinessModal] = useState(false);
+  const [showBusinessEditModal, setShowBusinessEditModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [editingBusiness, setEditingBusiness] = useState<Business | null>(null);
@@ -75,7 +75,8 @@ export default function AdminDashboard() {
     city: '',
     state: '',
     website: '',
-    description: ''
+    description: '',
+    status: ''
   });
   const router = useRouter();
 
@@ -144,8 +145,10 @@ export default function AdminDashboard() {
       if (response.ok) {
         // Refresh the data
         await fetchAllSignups();
-        setShowActionModal(false);
-        setSelectedItem(null);
+        if (type === 'business' && editingBusiness) {
+          setEditingBusiness(prev => prev ? { ...prev, status } : null);
+          setEditFormData(prev => ({ ...prev, status }));
+        }
         alert(`${type} status updated to ${status} successfully!`);
       } else {
         const errorData = await response.json();
@@ -177,8 +180,13 @@ export default function AdminDashboard() {
       if (response.ok) {
         // Refresh the data
         await fetchAllSignups();
-        setShowActionModal(false);
-        setSelectedItem(null);
+        if (type === 'business') {
+          setShowBusinessEditModal(false);
+          setEditingBusiness(null);
+        } else {
+          setShowActionModal(false);
+          setSelectedItem(null);
+        }
         alert(`${type} deleted successfully!`);
       } else {
         const errorData = await response.json();
@@ -197,7 +205,7 @@ export default function AdminDashboard() {
     setShowActionModal(true);
   };
 
-  const openEditBusinessModal = (business: Business) => {
+  const openBusinessEditModal = (business: Business) => {
     setEditingBusiness(business);
     setEditFormData({
       name: business.name || '',
@@ -209,9 +217,10 @@ export default function AdminDashboard() {
       city: business.city || '',
       state: business.state || '',
       website: business.website || '',
-      description: business.description || ''
+      description: business.description || '',
+      status: business.status || ''
     });
-    setShowEditBusinessModal(true);
+    setShowBusinessEditModal(true);
   };
 
   const handleEditBusiness = async () => {
@@ -232,8 +241,6 @@ export default function AdminDashboard() {
 
       if (response.ok) {
         await fetchAllSignups();
-        setShowEditBusinessModal(false);
-        setEditingBusiness(null);
         alert('Business information updated successfully!');
       } else {
         const errorData = await response.json();
@@ -247,8 +254,10 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleLoginAsBusiness = async (business: Business) => {
-    if (!confirm(`Are you sure you want to log in as ${business.name}?`)) {
+  const handleLoginAsBusiness = async () => {
+    if (!editingBusiness) return;
+    
+    if (!confirm(`Are you sure you want to log in as ${editingBusiness.name}?`)) {
       return;
     }
 
@@ -259,7 +268,7 @@ export default function AdminDashboard() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ businessId: business.id }),
+        body: JSON.stringify({ businessId: editingBusiness.id }),
       });
 
       if (response.ok) {
@@ -267,7 +276,7 @@ export default function AdminDashboard() {
         if (data.user) {
           // Store the business user data in session storage
           sessionStorage.setItem('businessUser', JSON.stringify(data.user));
-          sessionStorage.setItem('businessData', JSON.stringify(business));
+          sessionStorage.setItem('businessData', JSON.stringify(editingBusiness));
           
           // Redirect to business dashboard
           router.push('/business/dashboard');
@@ -467,7 +476,7 @@ export default function AdminDashboard() {
               {activeTab === 'signups' ? 'All Signups' : 'All Businesses'} ({getFilteredItems().length})
             </h2>
             <p className="text-sm text-gray-600 mt-1">
-              Manage and review all {activeTab}
+              {activeTab === 'businesses' ? 'Click on any business to edit information, status, and login' : 'Manage and review all signups'}
             </p>
           </div>
 
@@ -499,14 +508,26 @@ export default function AdminDashboard() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Created
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
+                    {activeTab === 'signups' && (
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    )}
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {getFilteredItems().map((item) => (
-                    <tr key={item.id} className="hover:bg-gray-50">
+                    <tr 
+                      key={item.id} 
+                      className={`hover:bg-gray-50 ${
+                        activeTab === 'businesses' ? 'cursor-pointer' : ''
+                      }`}
+                      onClick={() => {
+                        if (activeTab === 'businesses') {
+                          openBusinessEditModal(item as Business);
+                        }
+                      }}
+                    >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex flex-col">
                           <div className="text-sm font-medium text-gray-900">
@@ -552,37 +573,19 @@ export default function AdminDashboard() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {formatDate(item.createdAt)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        {activeTab === 'businesses' ? (
-                          <div className="flex space-x-2">
-                            <button
-                              onClick={() => openActionModal(item, 'business')}
-                              className="text-green-600 hover:text-green-900"
-                            >
-                              Actions
-                            </button>
-                            <button
-                              onClick={() => openEditBusinessModal(item as Business)}
-                              className="text-blue-600 hover:text-blue-900"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => handleLoginAsBusiness(item as Business)}
-                              className="text-purple-600 hover:text-purple-900"
-                            >
-                              Login As
-                            </button>
-                          </div>
-                        ) : (
+                      {activeTab === 'signups' && (
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <button
-                            onClick={() => openActionModal(item, 'signup')}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openActionModal(item, 'signup');
+                            }}
                             className="text-green-600 hover:text-green-900"
                           >
                             Actions
                           </button>
-                        )}
-                      </td>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -592,7 +595,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Action Modal */}
+      {/* Action Modal for Signups */}
       {showActionModal && selectedItem && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
           <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
@@ -661,18 +664,18 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* Edit Business Modal */}
-      {showEditBusinessModal && editingBusiness && (
+      {/* Comprehensive Business Edit Modal */}
+      {showBusinessEditModal && editingBusiness && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-10 mx-auto p-6 border w-full max-w-2xl shadow-lg rounded-md bg-white">
+          <div className="relative top-4 mx-auto p-6 border w-full max-w-4xl shadow-lg rounded-md bg-white max-h-[95vh] overflow-y-auto">
             <div className="mt-3">
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-lg font-medium text-gray-900">
+                <h3 className="text-xl font-medium text-gray-900">
                   Edit Business: {editingBusiness.name}
                 </h3>
                 <button
                   onClick={() => {
-                    setShowEditBusinessModal(false);
+                    setShowBusinessEditModal(false);
                     setEditingBusiness(null);
                   }}
                   className="text-gray-400 hover:text-gray-600"
@@ -683,147 +686,210 @@ export default function AdminDashboard() {
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Business Name *
-                  </label>
-                  <input
-                    type="text"
-                    value={editFormData.name}
-                    onChange={(e) => setEditFormData(prev => ({ ...prev, name: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                    required
-                  />
+              {/* Status Management Section */}
+              <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                <h4 className="text-lg font-medium text-gray-900 mb-4">Status Management</h4>
+                <div className="flex items-center space-x-4 mb-4">
+                  <span className="text-sm font-medium text-gray-700">Current Status:</span>
+                  <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getStatusColor(editingBusiness.status)}`}>
+                    {editingBusiness.status.replace('_', ' ')}
+                  </span>
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Phone
-                  </label>
-                  <input
-                    type="tel"
-                    value={editFormData.phone}
-                    onChange={(e) => setEditFormData(prev => ({ ...prev, phone: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Email *
-                  </label>
-                  <input
-                    type="email"
-                    value={editFormData.email}
-                    onChange={(e) => setEditFormData(prev => ({ ...prev, email: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Zip Code
-                  </label>
-                  <input
-                    type="text"
-                    value={editFormData.zipCode}
-                    onChange={(e) => setEditFormData(prev => ({ ...prev, zipCode: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Category
-                  </label>
-                  <input
-                    type="text"
-                    value={editFormData.category}
-                    onChange={(e) => setEditFormData(prev => ({ ...prev, category: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Website
-                  </label>
-                  <input
-                    type="url"
-                    value={editFormData.website}
-                    onChange={(e) => setEditFormData(prev => ({ ...prev, website: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Address
-                  </label>
-                  <input
-                    type="text"
-                    value={editFormData.address}
-                    onChange={(e) => setEditFormData(prev => ({ ...prev, address: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    City
-                  </label>
-                  <input
-                    type="text"
-                    value={editFormData.city}
-                    onChange={(e) => setEditFormData(prev => ({ ...prev, city: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    State
-                  </label>
-                  <input
-                    type="text"
-                    value={editFormData.state}
-                    onChange={(e) => setEditFormData(prev => ({ ...prev, state: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Description
-                  </label>
-                  <textarea
-                    value={editFormData.description}
-                    onChange={(e) => setEditFormData(prev => ({ ...prev, description: e.target.value }))}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  <button
+                    onClick={() => handleStatusUpdate('business', editingBusiness.id, 'approved')}
+                    disabled={isProcessing || editingBusiness.status === 'approved'}
+                    className="bg-green-600 text-white px-3 py-2 rounded text-sm hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Approve
+                  </button>
+                  <button
+                    onClick={() => handleStatusUpdate('business', editingBusiness.id, 'rejected')}
+                    disabled={isProcessing || editingBusiness.status === 'rejected'}
+                    className="bg-red-600 text-white px-3 py-2 rounded text-sm hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Reject
+                  </button>
+                  <button
+                    onClick={() => handleStatusUpdate('business', editingBusiness.id, 'paused')}
+                    disabled={isProcessing || editingBusiness.status === 'paused'}
+                    className="bg-yellow-600 text-white px-3 py-2 rounded text-sm hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Pause
+                  </button>
+                  <button
+                    onClick={() => handleStatusUpdate('business', editingBusiness.id, 'pending_approval')}
+                    disabled={isProcessing || editingBusiness.status === 'pending_approval'}
+                    className="bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Set Pending
+                  </button>
                 </div>
               </div>
 
-              <div className="flex justify-end space-x-3">
-                <button
-                  onClick={() => {
-                    setShowEditBusinessModal(false);
-                    setEditingBusiness(null);
-                  }}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleEditBusiness}
-                  disabled={isProcessing || !editFormData.name.trim() || !editFormData.email.trim()}
-                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isProcessing ? 'Updating...' : 'Update Business'}
-                </button>
+              {/* Business Information Form */}
+              <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+                <h4 className="text-lg font-medium text-gray-900 mb-4">Business Information</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Business Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={editFormData.name}
+                      onChange={(e) => setEditFormData(prev => ({ ...prev, name: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Phone
+                    </label>
+                    <input
+                      type="tel"
+                      value={editFormData.phone}
+                      onChange={(e) => setEditFormData(prev => ({ ...prev, phone: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Email *
+                    </label>
+                    <input
+                      type="email"
+                      value={editFormData.email}
+                      onChange={(e) => setEditFormData(prev => ({ ...prev, email: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Zip Code
+                    </label>
+                    <input
+                      type="text"
+                      value={editFormData.zipCode}
+                      onChange={(e) => setEditFormData(prev => ({ ...prev, zipCode: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Category
+                    </label>
+                    <input
+                      type="text"
+                      value={editFormData.category}
+                      onChange={(e) => setEditFormData(prev => ({ ...prev, category: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Website
+                    </label>
+                    <input
+                      type="url"
+                      value={editFormData.website}
+                      onChange={(e) => setEditFormData(prev => ({ ...prev, website: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Address
+                    </label>
+                    <input
+                      type="text"
+                      value={editFormData.address}
+                      onChange={(e) => setEditFormData(prev => ({ ...prev, address: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      City
+                    </label>
+                    <input
+                      type="text"
+                      value={editFormData.city}
+                      onChange={(e) => setEditFormData(prev => ({ ...prev, city: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      State
+                    </label>
+                    <input
+                      type="text"
+                      value={editFormData.state}
+                      onChange={(e) => setEditFormData(prev => ({ ...prev, state: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Description
+                    </label>
+                    <textarea
+                      value={editFormData.description}
+                      onChange={(e) => setEditFormData(prev => ({ ...prev, description: e.target.value }))}
+                      rows={3}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row justify-between space-y-3 sm:space-y-0 sm:space-x-3">
+                <div className="flex space-x-3">
+                  <button
+                    onClick={handleLoginAsBusiness}
+                    className="px-6 py-3 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+                  >
+                    🔐 Login As Business
+                  </button>
+                  <button
+                    onClick={() => handleDelete('business', editingBusiness.id)}
+                    disabled={isProcessing}
+                    className="px-6 py-3 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 transition-colors"
+                  >
+                    🗑️ Delete Business
+                  </button>
+                </div>
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => {
+                      setShowBusinessEditModal(false);
+                      setEditingBusiness(null);
+                    }}
+                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleEditBusiness}
+                    disabled={isProcessing || !editFormData.name.trim() || !editFormData.email.trim()}
+                    className="px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {isProcessing ? 'Updating...' : '💾 Save Changes'}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
