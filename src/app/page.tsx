@@ -1,5 +1,6 @@
 "use client";
 
+// QRewards Homepage - Apple-inspired design with business and customer flows
 import { useState, useEffect } from "react";
 import LogoVideo from "@/components/LogoVideo";
 import BusinessSignupForm, { BusinessSignupData } from "@/components/BusinessSignupForm";
