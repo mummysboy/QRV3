@@ -40,7 +40,54 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return NextResponse.json(
+        { error: "Invalid email format" },
+        { status: 400 }
+      );
+    }
+
     const client = generateClient();
+
+    // Check if signup already exists with this email
+    const existingSignup = await client.graphql({
+      query: `
+        query GetSignupByEmail($email: String!) {
+          listSignups(filter: {
+            email: { eq: $email }
+          }) {
+            items {
+              id
+              email
+              status
+              createdAt
+            }
+          }
+        }
+      `,
+      variables: {
+        email: email,
+      },
+    });
+
+    const signups = (existingSignup as { data: { listSignups: { items: Array<{ id: string; email: string; status: string; createdAt: string }> } } }).data.listSignups.items;
+    
+    if (signups.length > 0) {
+      const existing = signups[0];
+      return NextResponse.json(
+        { 
+          error: "An account with this email already exists. Please use a different email or sign in.",
+          existingSignup: {
+            id: existing.id,
+            status: existing.status,
+            createdAt: existing.createdAt
+          }
+        },
+        { status: 409 }
+      );
+    }
 
     // Create signup record
     const result = await client.graphql({
@@ -89,6 +136,20 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error("Error creating signup:", error);
+    console.error("Error details:", {
+      message: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
+      error: error
+    });
+    
+    // Check if it's a unique constraint error
+    if (error instanceof Error && error.message.includes("unique")) {
+      return NextResponse.json(
+        { error: "An account with this email already exists. Please use a different email or sign in." },
+        { status: 409 }
+      );
+    }
+    
     return NextResponse.json(
       { error: "Failed to submit signup" },
       { status: 500 }
