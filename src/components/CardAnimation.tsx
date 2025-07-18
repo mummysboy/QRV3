@@ -249,7 +249,7 @@ export default function CardAnimation({ card, playbackRate = 1, isPreview = fals
             <>
               <div className={`space-y-2 flex flex-col items-center w-full ${isPreview ? 'px-2' : 'px-1'}`}>
                 {logoUrl ? (
-                  <div className="relative w-full flex justify-center mb-2" style={{ marginTop: '-12.5%' }}>
+                  <div className="relative w-full flex justify-center mb-2" style={{ marginTop: '-5%' }}>
                     <img
                       src={logoUrl}
                       alt="Business Logo"
@@ -287,7 +287,7 @@ export default function CardAnimation({ card, playbackRate = 1, isPreview = fals
                       minHeight: '50.3125px', 
                       maxWidth: '129.375px', 
                       maxHeight: '71.875px',
-                      marginTop: '-12.5%'
+                      marginTop: '-5%'
                     }}
                   >
                     <span className="text-gray-500 text-base">🏢</span>

@@ -172,7 +172,12 @@ export default function BusinessLogin() {
             </div>
 
             <div className="text-center">
-              {/* Removed sign up link at bottom of form */}
+              <p className="text-sm text-gray-600">
+                Don&apos;t have an account?{" "}
+                <Link href="/business/signup" className="font-medium text-green-600 hover:text-green-500">
+                  Sign up
+                </Link>
+              </p>
             </div>
           </form>
         </div>
