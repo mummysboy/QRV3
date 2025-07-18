@@ -455,7 +455,7 @@ export default function DemoDashboard() {
           <div className="text-sm text-gray-600">Total Views</div>
         </div>
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-          <div className="text-2xl mb-2">👆</div>
+          <div className="text-2xl mb-2">✅</div>
           <div className="text-3xl font-light text-gray-900 mb-1">892</div>
           <div className="text-sm text-gray-600">Total Claims</div>
         </div>

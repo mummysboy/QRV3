@@ -239,12 +239,11 @@ export default function BusinessDashboard() {
     if (!confirm('Are you sure you want to delete this reward?')) return;
 
     try {
-      const response = await fetch('/api/business/rewards', {
+      const response = await fetch(`/api/business/rewards?cardid=${encodeURIComponent(cardid)}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ cardid }),
       });
 
       if (response.ok) {
@@ -473,7 +472,7 @@ export default function BusinessDashboard() {
           <div className="text-sm text-gray-600">Total Views</div>
         </div>
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-          <div className="text-2xl mb-2">👆</div>
+          <div className="text-2xl mb-2">✅</div>
           <div className="text-3xl font-light text-gray-900 mb-1">
             {isLoadingData ? "..." : analytics?.totalClaims || 0}
           </div>
@@ -487,7 +486,7 @@ export default function BusinessDashboard() {
           <div className="text-sm text-gray-600">Conversion Rate</div>
         </div>
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-          <div className="text-2xl mb-2">✅</div>
+          <div className="text-2xl mb-2">🎉</div>
           <div className="text-3xl font-light text-gray-900 mb-1">
             {isLoadingData ? "..." : analytics?.totalRedeemed || 0}
           </div>
@@ -902,9 +901,9 @@ export default function BusinessDashboard() {
                   const stats = getTodayStats(analytics);
                   return [
                     { icon: '📊', label: 'Total Views', value: stats.todayViews },
-                    { icon: '👆', label: 'Total Claims', value: stats.todayClaims },
+                    { icon: '✅', label: 'Total Claims', value: stats.todayClaims },
                     { icon: '🎯', label: 'Conversion Rate', value: `${stats.conversionRate}%` },
-                    { icon: '✅', label: 'Total Redeemed', value: stats.todayRedeemed },
+                    { icon: '🎉', label: 'Total Redeemed', value: stats.todayRedeemed },
                     { icon: '📈', label: 'Redemption Rate', value: `${stats.redemptionRate}%` },
                     { icon: '🎁', label: 'Total Rewards', value: stats.totalRewards },
                   ].map((card, idx) => (
