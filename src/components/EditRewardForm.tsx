@@ -27,7 +27,7 @@ export default function EditRewardForm({ card, onClose, onSuccess }: EditRewardF
   
   const [formData, setFormData] = useState({
     subheader: card.subheader || "",
-    quantity: card.quantity || "",
+    quantity: card.quantity || 0,
     expires: card.expires || "",
   });
   
@@ -102,7 +102,7 @@ export default function EditRewardForm({ card, onClose, onSuccess }: EditRewardF
     if (name === "subheader" || name === "quantity" || name === "expires") {
       setFormData(prev => ({
         ...prev,
-        [name]: name === "quantity" ? (value === "" ? "" : parseInt(value)) : value
+        [name]: name === "quantity" ? (value === "" ? 0 : parseInt(value)) : value
       }));
     }
   };
@@ -350,13 +350,13 @@ export default function EditRewardForm({ card, onClose, onSuccess }: EditRewardF
                     <p className="text-xs text-gray-500 mt-1">Tell customers what they&apos;ll receive</p>
                   </div>
 
-                  {/* Preview Section - Mobile */}
-                  <div className="block lg:hidden">
-                    <h4 className="text-sm font-medium text-gray-700 mb-3">Preview</h4>
-                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 overflow-hidden">
-                      <div className="max-w-xs mx-auto flex justify-center">
-                        <div className="bg-gradient-to-r from-yellow-400 via-red-500 to-green-500 p-0.5 rounded-lg inline-block">
-                          <div className="bg-white rounded-lg overflow-hidden w-full h-full">
+                  {/* Preview Section - Under Description */}
+                  <div className="mt-6">
+                    <h4 className="text-sm font-medium text-gray-700 mb-4 text-center">Preview</h4>
+                    <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+                      <div className="flex justify-center items-center">
+                        <div className="bg-gradient-to-r from-yellow-400 via-red-500 to-green-500 p-1 rounded-xl shadow-lg">
+                          <div className="bg-white rounded-lg overflow-hidden">
                             <CardAnimation 
                               card={{
                                 cardid: "preview",
@@ -366,7 +366,34 @@ export default function EditRewardForm({ card, onClose, onSuccess }: EditRewardF
                                 addressurl: "",
                                 subheader: formData.subheader || "Reward description will appear here",
                                 expires: formData.expires ? new Date(formData.expires).toISOString() : "Demo Reward Not Valid",
-                                quantity: formData.quantity
+                                quantity: typeof formData.quantity === 'number' ? formData.quantity : 0
+                              }}
+                              playbackRate={1}
+                              isPreview={true}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Preview Section - Mobile */}
+                  <div className="block lg:hidden mt-6">
+                    <h4 className="text-sm font-medium text-gray-700 mb-4 text-center">Preview</h4>
+                    <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+                      <div className="flex justify-center items-center">
+                        <div className="bg-gradient-to-r from-yellow-400 via-red-500 to-green-500 p-1 rounded-xl shadow-lg">
+                          <div className="bg-white rounded-lg overflow-hidden">
+                            <CardAnimation 
+                              card={{
+                                cardid: "preview",
+                                header: businessInfo.name,
+                                logokey: businessInfo.logo,
+                                addresstext: businessInfo.address,
+                                addressurl: "",
+                                subheader: formData.subheader || "Reward description will appear here",
+                                expires: formData.expires ? new Date(formData.expires).toISOString() : "Demo Reward Not Valid",
+                                quantity: typeof formData.quantity === 'number' ? formData.quantity : 0
                               }}
                               playbackRate={1}
                               isPreview={true}
@@ -465,7 +492,7 @@ export default function EditRewardForm({ card, onClose, onSuccess }: EditRewardF
                 <div className="pt-4 sm:pt-6">
                   <button
                     type="submit"
-                    disabled={isSubmitting || !formData.subheader.trim() || formData.quantity <= 0}
+                    disabled={isSubmitting || !formData.subheader.trim() || (typeof formData.quantity === 'number' && formData.quantity <= 0)}
                     className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-medium py-3 sm:py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 active:scale-95 disabled:transform-none text-base"
                   >
                     {isSubmitting ? "Updating..." : "Update Reward"}
@@ -474,32 +501,7 @@ export default function EditRewardForm({ card, onClose, onSuccess }: EditRewardF
               </form>
             </div>
 
-            {/* Preview Section */}
-            <div className="hidden lg:block order-2">
-              <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4">Preview</h3>
-              <div className="bg-gray-50 rounded-lg p-6 border border-gray-200 overflow-hidden">
-                <div className="max-w-sm mx-auto flex justify-center">
-                  <div className="bg-gradient-to-r from-yellow-400 via-red-500 to-green-500 p-0.5 rounded-lg inline-block">
-                    <div className="bg-white rounded-lg overflow-hidden w-full h-full">
-                      <CardAnimation 
-                        card={{
-                          cardid: "preview",
-                          header: businessInfo.name,
-                          logokey: businessInfo.logo,
-                          addresstext: businessInfo.address,
-                          addressurl: "",
-                          subheader: formData.subheader || "Reward description will appear here",
-                          expires: formData.expires ? new Date(formData.expires).toISOString() : "Demo Reward Not Valid",
-                          quantity: formData.quantity
-                        }}
-                        playbackRate={1}
-                        isPreview={true}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+
           </div>
         </div>
       </div>
