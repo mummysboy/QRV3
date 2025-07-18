@@ -85,6 +85,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const businessId = searchParams.get('businessId');
+    const timeRange = searchParams.get('timeRange') || 'month'; // Default to month if not specified
 
     if (!businessId) {
       return NextResponse.json(
@@ -94,6 +95,28 @@ export async function GET(request: NextRequest) {
     }
 
     const client = generateClient();
+
+    // Calculate date range based on timeRange parameter
+    const now = new Date();
+    let startDate: Date;
+    
+    switch (timeRange) {
+      case 'day':
+        // For day, we want today only
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        break;
+      case 'week':
+        // For week, we want last 7 days
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case 'month':
+        // For month, we want last 30 days
+        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        break;
+      default:
+        // Default to month
+        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    }
 
     // Get all cards for this business
     const cardsResult = await client.graphql({
@@ -169,12 +192,23 @@ export async function GET(request: NextRequest) {
 
     const cardViews = (cardViewsResult as { data: { listCardViews: { items: CardView[] } } }).data.listCardViews.items;
 
-    // Calculate analytics
+    // Filter data based on time range
+    const filteredClaimedRewards = claimedRewards.filter(claim => {
+      const claimDate = new Date(claim.claimed_at);
+      return claimDate >= startDate;
+    });
+
+    const filteredCardViews = cardViews.filter(view => {
+      const viewDate = new Date(view.viewed_at);
+      return viewDate >= startDate;
+    });
+
+    // Calculate analytics based on filtered data
     const totalRewards = cards.length;
     const activeRewards = cards.filter(card => card.quantity > 0).length;
-    const totalClaims = claimedRewards.length;
-    const totalViews = cardViews.length;
-    const totalRedeemed = claimedRewards.filter(claim => claim.redeemed_at).length;
+    const totalClaims = filteredClaimedRewards.length;
+    const totalViews = filteredCardViews.length;
+    const totalRedeemed = filteredClaimedRewards.filter(claim => claim.redeemed_at).length;
 
     // Calculate conversion rate (claims / views * 100)
     const conversionRate = totalViews > 0 ? Math.round((totalClaims / totalViews) * 100) : 0;
@@ -182,10 +216,10 @@ export async function GET(request: NextRequest) {
     // Calculate redemption rate (redeemed / claims * 100)
     const redemptionRate = totalClaims > 0 ? Math.round((totalRedeemed / totalClaims) * 100) : 0;
 
-    // Calculate individual reward analytics
+    // Calculate individual reward analytics based on filtered data
     const rewardAnalytics = cards.map(card => {
-      const cardClaims = claimedRewards.filter(claim => claim.cardid === card.cardid);
-      const cardViewsForReward = cardViews.filter((view: CardView) => view.cardid === card.cardid);
+      const cardClaims = filteredClaimedRewards.filter(claim => claim.cardid === card.cardid);
+      const cardViewsForReward = filteredCardViews.filter((view: CardView) => view.cardid === card.cardid);
       const cardRedeemed = cardClaims.filter(claim => claim.redeemed_at);
       
       const cardClaimsCount = cardClaims.length;
@@ -218,8 +252,8 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    // Get recent claims (last 10)
-    const recentClaims = claimedRewards
+    // Get recent claims (last 10) from filtered data
+    const recentClaims = filteredClaimedRewards
       .sort((a, b) => new Date(b.claimed_at).getTime() - new Date(a.claimed_at).getTime())
       .slice(0, 10)
       .map(claim => ({
@@ -236,9 +270,8 @@ export async function GET(request: NextRequest) {
       inactive: totalRewards - activeRewards,
     };
 
-    // Calculate claims by month (last 6 months)
+    // Calculate claims by month (last 6 months) - use all data for historical charts
     const claimsByMonth = [];
-    const now = new Date();
     for (let i = 5; i >= 0; i--) {
       const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
       const monthKey = date.toISOString().slice(0, 7); // YYYY-MM format
@@ -255,7 +288,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Calculate claims by week (last 8 weeks)
+    // Calculate claims by week (last 8 weeks) - use all data for historical charts
     const claimsByWeek = [];
     for (let i = 7; i >= 0; i--) {
       const startOfWeek = new Date(now);
@@ -279,7 +312,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Calculate claims by day (last 7 days)
+    // Calculate claims by day (last 7 days) - use all data for historical charts
     const claimsByDay = [];
     for (let i = 6; i >= 0; i--) {
       const date = new Date(now);
@@ -298,7 +331,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Calculate views by day (last 7 days)
+    // Calculate views by day (last 7 days) - use all data for historical charts
     const viewsByDay = [];
     for (let i = 6; i >= 0; i--) {
       const date = new Date(now);
@@ -317,7 +350,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Calculate redeemed by day (last 7 days)
+    // Calculate redeemed by day (last 7 days) - use all data for historical charts
     const redeemedByDay = [];
     for (let i = 6; i >= 0; i--) {
       const date = new Date(now);

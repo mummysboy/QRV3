@@ -107,10 +107,7 @@ interface AnalyticsData {
 type TimeRange = 'day' | 'week' | 'month';
 
 // Helper to get today's date in YYYY-MM-DD format
-function getTodayString() {
-  const today = new Date();
-  return today.toISOString().slice(0, 10);
-}
+
 
 export default function BusinessDashboard() {
   const [user, setUser] = useState<BusinessUser | null>(null);
@@ -169,7 +166,7 @@ export default function BusinessDashboard() {
     if (business?.id) {
       fetchDashboardData();
     }
-  }, [business?.id]);
+  }, [business?.id, currentView, timeRange]);
 
   useEffect(() => {
     if (user?.email) {
@@ -217,8 +214,9 @@ export default function BusinessDashboard() {
         setCards(rewardsData.cards || []);
       }
 
-      // Fetch analytics data
-      const analyticsResponse = await fetch(`/api/business/analytics?businessId=${business.id}&timeRange=${timeRange}`);
+      // Fetch analytics data - use 'day' for dashboard view, selected timeRange for analytics view
+      const analyticsTimeRange = currentView === 'dashboard' ? 'day' : timeRange;
+      const analyticsResponse = await fetch(`/api/business/analytics?businessId=${business.id}&timeRange=${analyticsTimeRange}`);
       const analyticsData = await analyticsResponse.json();
       
       if (analyticsData.success) {
@@ -411,13 +409,15 @@ export default function BusinessDashboard() {
   };
 
   // Helper to get today's stats from analytics
+  // When timeRange is 'day', analytics already contains only today's data
   function getTodayStats(analytics: AnalyticsData | null) {
-    const todayStr = getTodayString();
-    const todayClaims = analytics?.claimsByDay?.find((day: { date: string; count: number }) => day.date === todayStr)?.count || 0;
-    const todayViews = analytics?.viewsByDay?.find((day: { date: string; count: number }) => day.date === todayStr)?.count || 0;
-    const todayRedeemed = analytics?.redeemedByDay?.find((day: { date: string; count: number }) => day.date === todayStr)?.count || 0;
-    const conversionRate = todayViews > 0 ? Math.round((todayClaims / todayViews) * 100) : 0;
-    const redemptionRate = todayClaims > 0 ? Math.round((todayRedeemed / todayClaims) * 100) : 0;
+    // For dashboard view, analytics is already filtered for today only
+    const todayViews = analytics?.totalViews || 0;
+    const todayClaims = analytics?.totalClaims || 0;
+    const todayRedeemed = analytics?.totalRedeemed || 0;
+    const conversionRate = analytics?.conversionRate || 0;
+    const redemptionRate = analytics?.redemptionRate || 0;
+    
     return {
       todayViews,
       todayClaims,
@@ -929,11 +929,11 @@ export default function BusinessDashboard() {
                 {(() => {
                   const stats = getTodayStats(analytics);
                   return [
-                    { icon: '📊', label: 'Total Views', value: stats.todayViews },
-                    { icon: '✅', label: 'Total Claims', value: stats.todayClaims },
-                    { icon: '🎯', label: 'Conversion Rate', value: `${stats.conversionRate}%` },
-                    { icon: '🎉', label: 'Total Redeemed', value: stats.todayRedeemed },
-                    { icon: '📈', label: 'Redemption Rate', value: `${stats.redemptionRate}%` },
+                    { icon: '📊', label: 'Today\'s Views', value: stats.todayViews },
+                    { icon: '✅', label: 'Today\'s Claims', value: stats.todayClaims },
+                    { icon: '🎯', label: 'Today\'s Conversion', value: `${stats.conversionRate}%` },
+                    { icon: '🎉', label: 'Today\'s Redeemed', value: stats.todayRedeemed },
+                    { icon: '📈', label: 'Today\'s Redemption', value: `${stats.redemptionRate}%` },
                     { icon: '🎁', label: 'Total Rewards', value: stats.totalRewards },
                   ].map((card, idx) => (
                     <div key={idx} className="bg-white rounded-2xl p-6 shadow-md border border-gray-100">
