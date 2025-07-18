@@ -3,10 +3,17 @@ frontend:
   phases:
     preBuild:
       commands:
-        - npm ci
+        - echo "Starting preBuild phase..."
+        - npm cache clean --force
+        - rm -rf node_modules package-lock.json
+        - echo "Installing dependencies with legacy peer deps..."
+        - npm install --legacy-peer-deps --no-audit --no-fund
+        - echo "PreBuild phase completed successfully"
     build:
       commands:
+        - echo "Starting build phase..."
         - npm run build
+        - echo "Build phase completed successfully"
   artifacts:
     baseDirectory: .next
     files:
