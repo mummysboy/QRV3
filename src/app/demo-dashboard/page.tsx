@@ -255,15 +255,21 @@ export default function DemoDashboard() {
   const handleCreateRewardSubmit = async (rewardData: {
     businessName: string;
     subheader: string;
-    quantity: number;
+    quantity: number | "";
     expires: string;
   }) => {
+    // Validate quantity
+    if (rewardData.quantity === "" || rewardData.quantity <= 0) {
+      alert("Please enter a valid quantity greater than 0");
+      return;
+    }
+
     // Add new reward to the cards array
     const newCard = {
       cardid: `demo-${Date.now()}`,
       header: rewardData.businessName || business.name,
       subheader: rewardData.subheader,
-      quantity: rewardData.quantity,
+      quantity: rewardData.quantity as number, // Type assertion since we validated it above
       logokey: "/mummy-cafe-logo.svg",
       addresstext: `${business.address}, ${business.city}, ${business.state} ${business.zipCode}`,
       addressurl: "",
