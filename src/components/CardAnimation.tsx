@@ -249,7 +249,7 @@ export default function CardAnimation({ card, playbackRate = 1, isPreview = fals
             <>
               <div className={`space-y-2 flex flex-col items-center w-full ${isPreview ? 'px-2' : 'px-1'}`}>
                 {logoUrl ? (
-                  <div className="relative w-full flex justify-center mb-2">
+                  <div className="relative w-full flex justify-center mb-2" style={{ marginTop: '-12.5%' }}>
                     <img
                       src={logoUrl}
                       alt="Business Logo"
@@ -258,7 +258,7 @@ export default function CardAnimation({ card, playbackRate = 1, isPreview = fals
                         // Replace with a fallback div instead of hiding
                         const fallbackDiv = document.createElement('div');
                         fallbackDiv.className = 'mx-auto bg-gray-200 rounded-lg flex items-center justify-center';
-                        fallbackDiv.style.cssText = 'width: 70px !important; height: 45px !important; min-width: 50px; min-height: 35px; max-width: 90px; max-height: 50px;';
+                        fallbackDiv.style.cssText = 'width: 100.625px !important; height: 64.6875px !important; min-width: 71.875px; min-height: 50.3125px; max-width: 129.375px; max-height: 71.875px;';
                         fallbackDiv.innerHTML = '<span class="text-gray-500 text-base">🏢</span>';
                         e.currentTarget.parentNode?.replaceChild(fallbackDiv, e.currentTarget);
                       }}
@@ -269,10 +269,10 @@ export default function CardAnimation({ card, playbackRate = 1, isPreview = fals
                       style={{ 
                         width: 'auto', 
                         height: 'auto', 
-                        minWidth: '50px', 
-                        minHeight: '35px', 
-                        maxWidth: '90px', 
-                        maxHeight: '50px',
+                        minWidth: '71.875px', 
+                        minHeight: '50.3125px', 
+                        maxWidth: '129.375px', 
+                        maxHeight: '71.875px',
                         objectFit: 'contain'
                       }}
                     />
@@ -281,12 +281,13 @@ export default function CardAnimation({ card, playbackRate = 1, isPreview = fals
                   <div 
                     className="mx-auto bg-gray-200 rounded-lg flex items-center justify-center mb-2"
                     style={{ 
-                      width: '70px', 
-                      height: '45px', 
-                      minWidth: '50px', 
-                      minHeight: '35px', 
-                      maxWidth: '90px', 
-                      maxHeight: '50px'
+                      width: '100.625px', 
+                      height: '64.6875px', 
+                      minWidth: '71.875px', 
+                      minHeight: '50.3125px', 
+                      maxWidth: '129.375px', 
+                      maxHeight: '71.875px',
+                      marginTop: '-12.5%'
                     }}
                   >
                     <span className="text-gray-500 text-base">🏢</span>
