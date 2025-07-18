@@ -1,43 +1,34 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { uploadData } from 'aws-amplify/storage';
 
 interface LogoUploadProps {
-  currentLogo?: string;
-  onUpload: (logoUrl: string) => void;
   businessName: string;
+  onUpload: (logoUrl: string) => void;
+  currentLogo?: string;
 }
 
-export default function LogoUpload({ currentLogo, onUpload, businessName }: LogoUploadProps) {
+export default function LogoUpload({ businessName, onUpload, currentLogo }: LogoUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
-  const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleFile(file);
     }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFile(e.dataTransfer.files[0]);
-    }
-  };
-
-  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      handleFile(e.target.files[0]);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      handleFile(file);
     }
   };
 
@@ -60,146 +51,100 @@ export default function LogoUpload({ currentLogo, onUpload, businessName }: Logo
     setIsUploading(true);
 
     try {
-      // Generate unique filename
-      const fileName = `logos/${businessName.replace(/[^a-zA-Z0-9]/g, '-')}-${Date.now()}.${file.name.split('.').pop()}`;
+      // Use server-side API instead of direct client-side upload
+      const formData = new FormData();
+      formData.append('logo', file);
+      formData.append('businessName', businessName);
 
-      // Upload using Amplify Storage
-      const result = await uploadData({
-        key: fileName,
-        data: file,
-        options: {
-          contentType: file.type,
-        }
+      const response = await fetch('/api/business/upload-logo', {
+        method: 'POST',
+        body: formData,
       });
 
-      // Get the URL for the uploaded file
-      await result.result;
-      
-      // Construct the URL using the key
-      const logoUrl = fileName;
-
-      onUpload(logoUrl);
+      if (response.ok) {
+        const result = await response.json();
+        onUpload(result.logoUrl);
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to upload logo');
+      }
     } catch (error) {
       console.error('Error uploading logo:', error);
-      setError('Failed to upload logo. Please try again.');
+      setError(error instanceof Error ? error.message : 'Failed to upload logo. Please try again.');
     } finally {
       setIsUploading(false);
     }
   };
 
-  const triggerFileInput = () => {
-    fileInputRef.current?.click();
-  };
-
   return (
-    <div className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Business Logo *
-        </label>
-        <p className="text-sm text-gray-500 mb-4">
-          Upload your business logo to complete your profile and start creating rewards.
-        </p>
-      </div>
-
-      {/* Current Logo Display */}
-      {currentLogo && (
-        <div className="mb-4">
-          <p className="text-sm font-medium text-gray-700 mb-2">Current Logo:</p>
-          <div className="flex items-center space-x-4">
-            <img 
-              src={currentLogo} 
-              alt={`${businessName} logo`}
-              className="h-16 w-16 object-contain border border-gray-200 rounded-lg"
-            />
-            <button
-              onClick={triggerFileInput}
-              className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-            >
-              Change Logo
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Upload Area */}
+    <div className="w-full">
       <div
-        className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-          dragActive 
-            ? 'border-blue-400 bg-blue-50' 
-            : currentLogo 
-              ? 'border-gray-300 bg-gray-50' 
-              : 'border-gray-300 bg-white hover:border-gray-400'
+        className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
+          isUploading
+            ? "border-gray-300 bg-gray-50"
+            : "border-gray-300 hover:border-blue-400 hover:bg-blue-50"
         }`}
-        onDragEnter={handleDrag}
-        onDragLeave={handleDrag}
-        onDragOver={handleDrag}
+        onDragOver={handleDragOver}
         onDrop={handleDrop}
+        onClick={() => fileInputRef.current?.click()}
       >
         <input
           ref={fileInputRef}
           type="file"
           accept="image/*"
-          onChange={handleFileInput}
+          onChange={handleFileSelect}
           className="hidden"
+          disabled={isUploading}
         />
         
-        <div className="space-y-2">
-          <div className="text-4xl mb-2">
-            {currentLogo ? "🖼️" : "📁"}
+        {isUploading ? (
+          <div className="space-y-2">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="text-sm text-gray-600">Uploading logo...</p>
           </div>
-          
-          {currentLogo ? (
+        ) : (
+          <div className="space-y-2">
+            <svg
+              className="mx-auto h-12 w-12 text-gray-400"
+              stroke="currentColor"
+              fill="none"
+              viewBox="0 0 48 48"
+            >
+              <path
+                d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
             <div>
               <p className="text-sm text-gray-600">
-                Logo uploaded successfully!
+                <span className="font-medium text-blue-600 hover:text-blue-500">
+                  Click to upload
+                </span>{" "}
+                or drag and drop
               </p>
-              <button
-                onClick={triggerFileInput}
-                className="text-sm text-blue-600 hover:text-blue-700 font-medium mt-2"
-              >
-                Upload new logo
-              </button>
+              <p className="text-xs text-gray-500">PNG, JPG, GIF, WebP up to 5MB</p>
             </div>
-          ) : (
-            <div>
-              <p className="text-sm font-medium text-gray-700">
-                {dragActive ? "Drop your logo here" : "Drag and drop your logo here"}
-              </p>
-              <p className="text-xs text-gray-500 mt-1">
-                or click to browse
-              </p>
-              <button
-                type="button"
-                onClick={triggerFileInput}
-                className="mt-3 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                disabled={isUploading}
-              >
-                {isUploading ? "Uploading..." : "Choose File"}
-              </button>
-            </div>
-          )}
-        </div>
-
-        {isUploading && (
-          <div className="mt-4">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="text-sm text-gray-600 mt-2">Uploading...</p>
           </div>
         )}
       </div>
-
-      {/* File Requirements */}
-      <div className="bg-gray-50 rounded-lg p-3">
-        <p className="text-xs text-gray-600">
-          <strong>Requirements:</strong> JPEG, PNG, GIF, or WebP format. Max 5MB.
-        </p>
-      </div>
-
-      {/* Error Display */}
+      
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-          <p className="text-sm text-red-600">{error}</p>
+        <p className="mt-2 text-sm text-red-600">{error}</p>
+      )}
+      
+      {currentLogo && !isUploading && (
+        <div className="mt-4">
+          <p className="text-sm text-gray-600 mb-2">Current logo:</p>
+          <img
+            src={currentLogo.startsWith('http') ? currentLogo : `https://${currentLogo}`}
+            alt="Current logo"
+            className="h-16 w-16 object-contain border border-gray-200 rounded"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+            }}
+          />
         </div>
       )}
     </div>

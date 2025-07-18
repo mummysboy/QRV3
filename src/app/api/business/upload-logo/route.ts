@@ -1,7 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { uploadData } from 'aws-amplify/storage';
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { v4 as uuidv4 } from "uuid";
 import sharp from "sharp";
+
+// Create S3 client with proper configuration
+const s3Client = new S3Client({
+  region: "us-west-1",
+  // Use default credential provider chain
+});
+
+const BUCKET_NAME = "qrewards-media6367c-dev";
 
 export async function POST(request: NextRequest) {
   try {
@@ -52,17 +60,21 @@ export async function POST(request: NextRequest) {
     // Generate unique filename
     const fileName = `logos/${businessName.replace(/[^a-zA-Z0-9]/g, '-')}-${uuidv4()}.png`;
 
-    // Upload using Amplify Storage
-    const result = await uploadData({
-      key: fileName,
-      data: processedBuffer,
-      options: {
-        contentType: 'image/png',
-      }
+    // Upload directly to S3 using the S3 client
+    const uploadCommand = new PutObjectCommand({
+      Bucket: BUCKET_NAME,
+      Key: fileName,
+      Body: processedBuffer,
+      ContentType: 'image/png',
+      // Remove ACL since the bucket doesn't allow it
+      // Note: Files will be accessible if bucket has public read policy
     });
 
-    // Get the URL for the uploaded file
-    const logoUrl = await result.result;
+    await s3Client.send(uploadCommand);
+
+    // Construct the public URL
+    // Note: This URL will work if the bucket has a public read policy
+    const logoUrl = `https://${BUCKET_NAME}.s3.us-west-1.amazonaws.com/${fileName}`;
 
     console.log('Logo uploaded successfully:', {
       fileName,

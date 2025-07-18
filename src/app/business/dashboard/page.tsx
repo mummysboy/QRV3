@@ -725,29 +725,51 @@ export default function BusinessDashboard() {
             <label className="block text-sm font-medium text-gray-700 mb-2">Business Logo</label>
             <div className="flex items-center space-x-4">
               {business?.logo && business.logo.trim() !== '' ? (
-                <img 
-                  src={business.logo.startsWith("data:") || business.logo.startsWith("http")
-                    ? business.logo
-                    : getStorageUrlSync(business.logo)
-                  } 
-                  alt="Business Logo" 
-                  className="w-32 h-32 object-contain rounded-xl border-2 border-gray-200"
-                  onError={(e) => {
-                    // Show fallback if image fails to load
-                    const target = e.currentTarget;
-                    target.style.display = 'none';
-                    const fallback = target.parentElement?.querySelector('.logo-fallback');
-                    if (fallback) {
-                      (fallback as HTMLElement).style.display = 'flex';
+                <div className="relative">
+                  <img
+                    src={business.logo.startsWith("data:") || business.logo.startsWith("http")
+                      ? business.logo
+                      : getStorageUrlSync(business.logo)
                     }
-                  }}
-                />
+                    alt="Business Logo"
+                    className="w-32 h-32 object-contain rounded-xl border-2 border-gray-200"
+                    onError={(e) => {
+                      console.error('Logo failed to load:', business.logo);
+                      console.error('Logo URL:', business.logo.startsWith("data:") || business.logo.startsWith("http")
+                        ? business.logo
+                        : getStorageUrlSync(business.logo)
+                      );
+                      // Show fallback if image fails to load
+                      const target = e.currentTarget;
+                      target.style.display = 'none';
+                      const fallback = target.parentElement?.querySelector('.logo-fallback');
+                      if (fallback) {
+                        (fallback as HTMLElement).style.display = 'flex';
+                      }
+                    }}
+                    onLoad={() => {
+                      console.log('Logo loaded successfully:', business.logo);
+                    }}
+                  />
+                  <div 
+                    className="w-32 h-32 bg-gray-100 rounded-xl flex items-center justify-center border-2 border-dashed border-gray-300 logo-fallback absolute top-0 left-0"
+                    style={{ display: 'none' }}
+                  >
+                    <div className="text-center">
+                      <span className="text-gray-500 text-4xl block">🏢</span>
+                      <span className="text-gray-400 text-xs block mt-1">Logo not found</span>
+                    </div>
+                  </div>
+                </div>
               ) : null}
               <div 
                 className="w-32 h-32 bg-gray-100 rounded-xl flex items-center justify-center border-2 border-dashed border-gray-300 logo-fallback"
                 style={{ display: business?.logo && business.logo.trim() !== '' ? 'none' : 'flex' }}
               >
-                <span className="text-gray-500">No Logo</span>
+                <div className="text-center">
+                  <span className="text-gray-500 text-4xl block">🏢</span>
+                  <span className="text-gray-400 text-xs block mt-1">No logo</span>
+                </div>
               </div>
               <button
                 onClick={() => setShowLogoUpload(true)}
@@ -756,6 +778,7 @@ export default function BusinessDashboard() {
                 Upload Logo
               </button>
             </div>
+
           </div>
 
         </div>
@@ -872,17 +895,23 @@ export default function BusinessDashboard() {
                         alt="Business Logo"
                         className="w-full h-full object-contain rounded-xl"
                         onError={(e) => {
+                          console.error('Logo failed to load:', business.logo);
                           // Fallback to emoji if image fails to load
                           const target = e.currentTarget;
                           target.style.display = 'none';
-                          const fallback = target.parentElement?.querySelector('.fallback-icon');
+                          const fallback = target.parentElement?.querySelector('.logo-fallback');
                           if (fallback) {
                             (fallback as HTMLElement).style.display = 'flex';
                           }
                         }}
                       />
                     ) : null}
-                    <span className="text-2xl fallback-icon text-gray-600" style={{ display: business.logo && business.logo.trim() !== '' ? 'none' : 'flex' }}>🏪</span>
+                    <div 
+                      className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center logo-fallback"
+                      style={{ display: business?.logo && business.logo.trim() !== '' ? 'none' : 'flex' }}
+                    >
+                      <span className="text-gray-500 text-2xl">🏢</span>
+                    </div>
                   </div>
                   <div>
                     <h2 className="text-3xl font-light text-gray-900">Welcome back, {user.firstName}!</h2>
