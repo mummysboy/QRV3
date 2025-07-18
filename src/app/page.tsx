@@ -3,18 +3,15 @@
 import { useState, useEffect } from "react";
 import LogoVideo from "@/components/LogoVideo";
 import BusinessSignupForm, { BusinessSignupData } from "@/components/BusinessSignupForm";
-// Remove import of BusinessSignupSuccess
 
 export default function Home() {
-  const [zipCode, setZipCode] = useState("");
   const [isVisible, setIsVisible] = useState(false);
-  const [currentSection, setCurrentSection] = useState(0);
   const [currentReview, setCurrentReview] = useState(0);
   const [showBusinessSignupForm, setShowBusinessSignupForm] = useState(false);
-  // Remove showBusinessSignupSuccess state
+  const [showCustomerDemo, setShowCustomerDemo] = useState(false);
+  const [customerZipCode, setCustomerZipCode] = useState("");
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
-  const [isHowItWorksVisible, setIsHowItWorksVisible] = useState(false);
 
   const reviews = [
     {
@@ -55,46 +52,11 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Intersection Observer for "How it works" section
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsHowItWorksVisible(true);
-        } else {
-          setIsHowItWorksVisible(false);
-        }
-      },
-      { threshold: 0.3 } // Trigger when 30% of the section is visible
-    );
-
-    const howItWorksSection = document.getElementById('how-it-works-section');
-    if (howItWorksSection) {
-      observer.observe(howItWorksSection);
-    }
-
-    return () => {
-      if (howItWorksSection) {
-        observer.unobserve(howItWorksSection);
-      }
-    };
-  }, []);
-
-  // Auto-advance sections for demo effect - only when visible
-  useEffect(() => {
-    if (!isHowItWorksVisible) return;
-    
-    const interval = setInterval(() => {
-      setCurrentSection((prev) => (prev + 1) % 4);
-    }, 6000); // Slower timing - increased from 4000ms to 6000ms
-    return () => clearInterval(interval);
-  }, [isHowItWorksVisible]);
-
-  // Auto-advance reviews for demo effect - slower timing
+  // Auto-advance reviews for demo effect
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentReview((prev) => (prev + 1) % reviews.length);
-    }, 12000); // Increased from 8000ms to 12000ms
+    }, 12000);
     return () => clearInterval(interval);
   }, [reviews.length]);
 
@@ -115,21 +77,40 @@ export default function Home() {
       const responseData = await response.json();
 
       if (!response.ok) {
-        // Throw error with the specific message from the API
         throw new Error(responseData.error || 'Failed to submit business signup');
       }
 
-      setShowBusinessSignupForm(false); // Optionally close the form, or leave open for overlay
-      // Do not show BusinessSignupSuccess
+      setShowBusinessSignupForm(false);
     } catch (error) {
       console.error('Error submitting business signup:', error);
-      // Re-throw the error so the form component can handle it
       throw error;
     }
   };
 
   const handleCloseBusinessSignupForm = () => {
     setShowBusinessSignupForm(false);
+  };
+
+  const handleCustomerDemoSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmedZipCode = customerZipCode.trim();
+    if (trimmedZipCode) {
+      const zipCodeRegex = /^\d{5}(-\d{4})?$/;
+      if (zipCodeRegex.test(trimmedZipCode)) {
+        window.open(`/claim-reward/${trimmedZipCode}`, '_blank');
+        setShowCustomerDemo(false);
+        setCustomerZipCode("");
+      } else {
+        alert('Please enter a valid zip code (e.g., 12345 or 12345-6789)');
+      }
+    } else {
+      alert('Please enter a zip code');
+    }
+  };
+
+  const handleCloseCustomerDemo = () => {
+    setShowCustomerDemo(false);
+    setCustomerZipCode("");
   };
 
   // Swipe handlers for reviews carousel
@@ -157,47 +138,47 @@ export default function Home() {
     }
   };
 
-  // Restore handleEnterZipCode for the zip code demo form
-  const handleEnterZipCode = (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmedZipCode = zipCode.trim();
-    if (trimmedZipCode) {
-      // Basic zip code validation (5 digits or 5+4 format)
-      const zipCodeRegex = /^\d{5}(-\d{4})?$/;
-      if (zipCodeRegex.test(trimmedZipCode)) {
-        window.open(`/claim-reward/${trimmedZipCode}`, '_blank');
-      } else {
-        alert('Please enter a valid zip code (e.g., 12345 or 12345-6789)');
-      }
-    } else {
-      alert('Please enter a zip code');
-    }
-  };
 
-  const sections = [
+
+  const businessSteps = [
     {
-      title: "Scan",
-      subtitle: "A simple QR code",
-      description: "Customers scan with their phone camera",
-      icon: "📱"
+      title: "Sign up",
+      caption: "Create your business profile and enter your location and brand info.",
+      icon: "📝",
+      color: "bg-blue-500/10 text-blue-600"
     },
     {
-      title: "Claim",
-      subtitle: "Instant reward",
-      description: "No apps, no accounts, just tap to claim",
-      icon: "✨"
+      title: "Get Approved",
+      caption: "We verify your business to keep the platform clean and trustworthy.",
+      icon: "✅",
+      color: "bg-green-500/10 text-green-600"
     },
     {
-      title: "Visit",
-      subtitle: "Bring them in",
-      description: "Customers come to redeem their reward",
-      icon: "🏪"
+      title: "Start Creating Rewards",
+      caption: "Make compelling QR or geo-rewards your customers can redeem in-store.",
+      icon: "🎁",
+      color: "bg-purple-500/10 text-purple-600"
+    }
+  ];
+
+  const customerSteps = [
+    {
+      title: "Discover Rewards",
+      caption: "Customers scan a QR code or tap on a geo-targeted ad.",
+      icon: "📱",
+      color: "bg-indigo-500/10 text-indigo-600"
     },
     {
-      title: "Grow",
-      subtitle: "Build relationships",
-      description: "Turn one-time visitors into loyal customers",
-      icon: "📈"
+      title: "Claim via Email or SMS",
+      caption: "They receive the reward directly to their inbox or phone.",
+      icon: "📧",
+      color: "bg-pink-500/10 text-pink-600"
+    },
+    {
+      title: "Redeem In-Store",
+      caption: "Fast, easy redemption with a few taps in-store.",
+      icon: "🏪",
+      color: "bg-orange-500/10 text-orange-600"
     }
   ];
 
@@ -218,132 +199,139 @@ export default function Home() {
       </div>
       
       {/* Hero Section */}
-      <div className="relative z-10 container mx-auto px-6 py-20">
+      <div className="relative z-10 container mx-auto px-6 py-16 md:py-24">
         <div className="text-center max-w-4xl mx-auto">
-          {/* Main headline with staggered animation */}
+          {/* Main headline */}
           <div className={`transition-all duration-1000 delay-300 ease-out ${
             isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
           }`}>
-            <h1 className="text-6xl md:text-8xl font-light text-gray-900 mb-6 tracking-tight">
-              Get more customers with rewards
+            <h1 className="text-5xl md:text-7xl font-light text-gray-900 mb-6 tracking-tight">
+              QRewards helps small businesses do big things
             </h1>
-            <p className="text-2xl md:text-3xl text-gray-600 font-light mb-12 tracking-wide">
-              Join thousands of businesses using QR Rewards to attract and retain customers
+            <p className="text-xl md:text-2xl text-gray-600 font-light mb-8 tracking-wide">
+              Low-cost, high-impact tools to attract and retain customers
             </p>
           </div>
 
-          {/* Subtitle with fade-in */}
+          {/* Subtitle */}
           <div className={`transition-all duration-1000 delay-600 ease-out ${
             isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           }`}>
-            <p className="text-lg md:text-xl text-gray-700 mb-16 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-lg text-gray-700 mb-12 max-w-2xl mx-auto leading-relaxed">
               Create instant rewards that customers can claim with a simple QR code scan. 
               No apps, no complicated setup - just more customers walking through your door.
             </p>
           </div>
 
-          {/* Interactive demo section */}
-          <div className={`transition-all duration-1000 delay-900 ease-out ${
-            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-          }`}>
-            <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 border border-gray-200 shadow-xl max-w-md mx-auto mb-8">
-              <p className="text-gray-800 mb-6 text-lg font-medium">See how it works</p>
-              <form onSubmit={handleEnterZipCode} className="space-y-4">
-                <input
-                  type="text"
-                  placeholder="Enter any zip code"
-                  value={zipCode}
-                  onChange={(e) => setZipCode(e.target.value)}
-                  className="w-full px-6 py-4 text-lg bg-white border border-gray-300 rounded-2xl text-gray-900 placeholder-gray-500 focus:border-green-500 focus:outline-none transition-all duration-300 shadow-sm"
-                  maxLength={10}
-                />
-                <button
-                  type="submit"
-                  className="w-full bg-green-600 hover:bg-green-700 text-white text-lg font-medium px-8 py-4 rounded-2xl transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg"
-                >
-                  Try It Now
-                </button>
-              </form>
-            </div>
-            {/* Preview Business Dashboard Button */}
-            <div className="flex justify-center mb-16">
-              <a
-                href="/demo-dashboard"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center space-x-3 bg-black/80 hover:bg-black text-white px-8 py-4 rounded-2xl shadow-xl font-medium text-lg transition-all duration-300 backdrop-blur-xl border border-gray-900/10"
-                style={{ fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
-              >
-                <span>Preview Business Dashboard</span>
-                <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 7l-10 10M17 17V7H7"/></svg>
-              </a>
-            </div>
-          </div>
-        </div>
 
-        {/* How it works - Minimalist carousel */}
-        <div 
-          id="how-it-works-section"
-          className={`transition-all duration-1000 delay-1200 ease-out ${
-            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-          }`}
-        >
-          <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-light mb-16 tracking-tight">
-              How it works
+        </div>
+      </div>
+
+      {/* Section 1: How Businesses Use QRewards */}
+      <div className={`transition-all duration-1000 delay-1200 ease-out ${
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+      }`}>
+        <div className="container mx-auto px-6 py-20">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-light mb-6 tracking-tight">
+              How Businesses Use QRewards
             </h2>
-            
-            {/* Section indicators */}
-            <div className="flex justify-center mb-12">
-              <div className="flex space-x-3">
-                {sections.map((_, index) => (
-                  <div
-                    key={index}
-                    className={`w-3 h-3 rounded-full transition-all duration-700 ${
-                      currentSection === index 
-                        ? 'bg-green-500 scale-125' 
-                        : 'bg-gray-300'
-                    }`}
-                  />
-                ))}
-              </div>
-            </div>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Simple steps to start attracting more customers to your business
+            </p>
+          </div>
 
-            {/* Content carousel */}
-            <div className="relative h-64 mb-8">
-              {sections.map((section, index) => (
-                <div
-                  key={index}
-                  className={`absolute inset-0 transition-all duration-2000 ease-in-out ${
-                    currentSection === index
-                      ? 'opacity-100 translate-y-0'
-                      : 'opacity-0 translate-y-8'
-                  }`}
-                >
-                  <div className="text-center">
-                    <div className="text-6xl mb-6 animate-pulse">
-                      {section.icon}
-                    </div>
-                    <h3 className="text-3xl font-light mb-4 tracking-wide">
-                      {section.title}
-                    </h3>
-                    <p className="text-xl text-green-500 mb-3 font-medium">
-                      {section.subtitle}
-                    </p>
-                    <p className="text-lg text-gray-600 max-w-md mx-auto">
-                      {section.description}
-                    </p>
-                  </div>
+          {/* Business Steps */}
+          <div className="grid md:grid-cols-3 gap-8 mb-12">
+            {businessSteps.map((step, index) => (
+              <div 
+                key={index}
+                className="text-center p-8 bg-white/60 backdrop-blur-sm rounded-3xl border border-gray-100 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-105"
+              >
+                <div className={`w-20 h-20 ${step.color} rounded-full flex items-center justify-center mx-auto mb-6 text-3xl`}>
+                  {step.icon}
                 </div>
-              ))}
-            </div>
+                <h3 className="text-2xl font-medium mb-4 text-gray-900">
+                  {step.title}
+                </h3>
+                <p className="text-gray-600 leading-relaxed">
+                  {step.caption}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* Business CTA */}
+          <div className="text-center">
+            <a
+              href="/demo-dashboard"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center space-x-3 bg-black hover:bg-gray-800 text-white px-8 py-4 rounded-2xl shadow-xl font-medium text-lg transition-all duration-300 transform hover:scale-105"
+            >
+              <span>Demo the Business Dashboard</span>
+              <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17 7l-10 10M17 17V7H7"/>
+              </svg>
+            </a>
           </div>
         </div>
+      </div>
 
-        {/* Benefits section - Clean grid */}
-        <div className={`transition-all duration-1000 delay-1500 ease-out ${
-          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-        }`}>
+      {/* Section 2: How Customers Redeem Rewards */}
+      <div className={`transition-all duration-1000 delay-1500 ease-out ${
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+      }`}>
+        <div className="container mx-auto px-6 py-20 bg-gray-50/50">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-light mb-6 tracking-tight">
+              How Customers Redeem Rewards
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Seamless experience from discovery to redemption
+            </p>
+          </div>
+
+          {/* Customer Steps */}
+          <div className="grid md:grid-cols-3 gap-8 mb-12">
+            {customerSteps.map((step, index) => (
+              <div 
+                key={index}
+                className="text-center p-8 bg-white/80 backdrop-blur-sm rounded-3xl border border-gray-100 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-105"
+              >
+                <div className={`w-20 h-20 ${step.color} rounded-full flex items-center justify-center mx-auto mb-6 text-3xl`}>
+                  {step.icon}
+                </div>
+                <h3 className="text-2xl font-medium mb-4 text-gray-900">
+                  {step.title}
+                </h3>
+                <p className="text-gray-600 leading-relaxed">
+                  {step.caption}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* Customer CTA */}
+          <div className="text-center">
+            <button
+              onClick={() => setShowCustomerDemo(true)}
+              className="inline-flex items-center space-x-3 bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-2xl shadow-xl font-medium text-lg transition-all duration-300 transform hover:scale-105"
+            >
+              <span>Demo the Customer Experience</span>
+              <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17 7l-10 10M17 17V7H7"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Benefits section - Clean grid */}
+      <div className={`transition-all duration-1000 delay-1800 ease-out ${
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+      }`}>
+        <div className="container mx-auto px-6 py-20">
           <div className="grid md:grid-cols-3 gap-8 mb-20">
             <div className="text-center p-8">
               <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -376,11 +364,13 @@ export default function Home() {
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Reviews section - Carousel */}
-        <div className={`transition-all duration-1000 delay-1800 ease-out ${
-          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-        }`}>
+      {/* Reviews section - Carousel */}
+      <div className={`transition-all duration-1000 delay-2100 ease-out ${
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+      }`}>
+        <div className="container mx-auto px-6 py-20">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-light mb-8 tracking-tight">
               Loved by businesses
@@ -446,11 +436,13 @@ export default function Home() {
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Final CTA - Minimalist */}
-        <div className={`transition-all duration-1000 delay-2100 ease-out ${
-          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-        }`}>
+      {/* Final CTA - Minimalist */}
+      <div className={`transition-all duration-1000 delay-2400 ease-out ${
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+      }`}>
+        <div className="container mx-auto px-6 py-20">
           <div className="text-center">
             <h2 className="text-4xl md:text-5xl font-light mb-8 tracking-tight">
               Ready to get more customers?
@@ -480,13 +472,50 @@ export default function Home() {
         </div>
       </footer>
 
+      {/* Customer Demo Modal */}
+      {showCustomerDemo && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-8 border border-gray-200 shadow-2xl max-w-md w-full">
+            <div className="text-center mb-6">
+              <h3 className="text-2xl font-medium text-gray-900 mb-2">See the Customer Experience</h3>
+              <p className="text-gray-600">Enter any zip code to explore rewards in that area</p>
+            </div>
+            <form onSubmit={handleCustomerDemoSubmit} className="space-y-4">
+              <input
+                type="text"
+                placeholder="Enter any zip code"
+                value={customerZipCode}
+                onChange={(e) => setCustomerZipCode(e.target.value)}
+                className="w-full px-6 py-4 text-lg bg-white border border-gray-300 rounded-2xl text-gray-900 placeholder-gray-500 focus:border-green-500 focus:outline-none transition-all duration-300 shadow-sm"
+                maxLength={10}
+                autoFocus
+              />
+              <div className="flex space-x-3">
+                <button
+                  type="button"
+                  onClick={handleCloseCustomerDemo}
+                  className="flex-1 px-6 py-4 text-lg font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-2xl transition-all duration-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white text-lg font-medium px-6 py-4 rounded-2xl transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg"
+                >
+                  Try It Now
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Business Signup Form Modal */}
       <BusinessSignupForm
         isOpen={showBusinessSignupForm}
         onClose={handleCloseBusinessSignupForm}
         onSubmit={handleBusinessSignupSubmit}
       />
-      {/* Remove BusinessSignupSuccess modal */}
     </main>
   );
 }
