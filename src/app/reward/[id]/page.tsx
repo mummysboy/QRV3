@@ -32,6 +32,7 @@ export default function RewardPage() {
   const [phone, setPhone] = useState("");
   const [deliveryMethod, setDeliveryMethod] = useState("email");
   const [showModal, setShowModal] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
   const [redeeming, setRedeeming] = useState(false);
   const [redeemed, setRedeemed] = useState(false);
   const [redeemError, setRedeemError] = useState("");
@@ -42,6 +43,16 @@ export default function RewardPage() {
       return () => clearTimeout(timeout);
     }
   }, [card, error]);
+
+  useEffect(() => {
+    if (showModal) {
+      // Small delay to ensure the modal container is rendered before starting animation
+      const timeout = setTimeout(() => setModalVisible(true), 10);
+      return () => clearTimeout(timeout);
+    } else {
+      setModalVisible(false);
+    }
+  }, [showModal]);
 
   useEffect(() => {
     const fetchCard = async () => {
@@ -195,8 +206,14 @@ export default function RewardPage() {
           </div>
           {/* Modal Popout */}
           {showModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 transition-opacity duration-1000">
-              <div className="bg-white rounded-lg shadow-lg p-8 max-w-sm w-full mx-4 text-center">
+            <div className={`fixed inset-0 z-50 flex items-center justify-center transition-all duration-700 ease-out ${
+              modalVisible ? 'bg-neutral-100/80' : 'bg-neutral-100/0'
+            }`}
+                 style={{ backdropFilter: 'blur(4px)' }}>
+              <div className={`bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 text-center transition-all duration-700 ease-out ${
+                modalVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+              }`}
+                   style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.10)' }}>
                 <h2 className="text-xl font-bold mb-4">Are you sure?</h2>
                 <p className="mb-6 text-gray-700">Once you redeem your reward you cannot use it again.</p>
                 {redeemError && <p className="text-red-600 mb-3">{redeemError}</p>}
