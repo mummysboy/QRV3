@@ -61,8 +61,22 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('signups');
   const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(null);
   const [showActionModal, setShowActionModal] = useState(false);
+  const [showEditBusinessModal, setShowEditBusinessModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [editingBusiness, setEditingBusiness] = useState<Business | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    name: '',
+    phone: '',
+    email: '',
+    zipCode: '',
+    category: '',
+    address: '',
+    city: '',
+    state: '',
+    website: '',
+    description: ''
+  });
   const router = useRouter();
 
   useEffect(() => {
@@ -181,6 +195,93 @@ export default function AdminDashboard() {
   const openActionModal = (item: Signup | Business, type: 'signup' | 'business') => {
     setSelectedItem({ type, data: item });
     setShowActionModal(true);
+  };
+
+  const openEditBusinessModal = (business: Business) => {
+    setEditingBusiness(business);
+    setEditFormData({
+      name: business.name || '',
+      phone: business.phone || '',
+      email: business.email || '',
+      zipCode: business.zipCode || '',
+      category: business.category || '',
+      address: business.address || '',
+      city: business.city || '',
+      state: business.state || '',
+      website: business.website || '',
+      description: business.description || ''
+    });
+    setShowEditBusinessModal(true);
+  };
+
+  const handleEditBusiness = async () => {
+    if (!editingBusiness) return;
+
+    setIsProcessing(true);
+    try {
+      const response = await fetch('/api/admin/update-business', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          businessId: editingBusiness.id,
+          ...editFormData
+        }),
+      });
+
+      if (response.ok) {
+        await fetchAllSignups();
+        setShowEditBusinessModal(false);
+        setEditingBusiness(null);
+        alert('Business information updated successfully!');
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || 'Failed to update business information');
+      }
+    } catch (error) {
+      console.error('Error updating business:', error);
+      alert('Failed to update business information');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleLoginAsBusiness = async (business: Business) => {
+    if (!confirm(`Are you sure you want to log in as ${business.name}?`)) {
+      return;
+    }
+
+    try {
+      // Get the first business user for this business
+      const response = await fetch('/api/admin/get-business-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ businessId: business.id }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.user) {
+          // Store the business user data in session storage
+          sessionStorage.setItem('businessUser', JSON.stringify(data.user));
+          sessionStorage.setItem('businessData', JSON.stringify(business));
+          
+          // Redirect to business dashboard
+          router.push('/business/dashboard');
+        } else {
+          alert('No business user found for this business');
+        }
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || 'Failed to get business user');
+      }
+    } catch (error) {
+      console.error('Error logging in as business:', error);
+      alert('Failed to log in as business');
+    }
   };
 
   const handleLogout = async () => {
@@ -452,12 +553,35 @@ export default function AdminDashboard() {
                         {formatDate(item.createdAt)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button
-                          onClick={() => openActionModal(item, activeTab === 'signups' ? 'signup' : 'business')}
-                          className="text-green-600 hover:text-green-900 mr-3"
-                        >
-                          Actions
-                        </button>
+                        {activeTab === 'businesses' ? (
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => openActionModal(item, 'business')}
+                              className="text-green-600 hover:text-green-900"
+                            >
+                              Actions
+                            </button>
+                            <button
+                              onClick={() => openEditBusinessModal(item as Business)}
+                              className="text-blue-600 hover:text-blue-900"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleLoginAsBusiness(item as Business)}
+                              className="text-purple-600 hover:text-purple-900"
+                            >
+                              Login As
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => openActionModal(item, 'signup')}
+                            className="text-green-600 hover:text-green-900"
+                          >
+                            Actions
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -476,52 +600,52 @@ export default function AdminDashboard() {
               <h3 className="text-lg font-medium text-gray-900 mb-4">
                 Manage {selectedItem.type === 'signup' ? 'Signup' : 'Business'}
               </h3>
-                             <div className="mb-4">
-                 <p className="text-sm text-gray-600">
-                   <strong>Name:</strong> {
-                     selectedItem.type === 'signup' 
-                       ? `${(selectedItem.data as Signup).firstName} ${(selectedItem.data as Signup).lastName}`
-                       : (selectedItem.data as Business).name
-                   }
-                 </p>
-                 <p className="text-sm text-gray-600">
-                   <strong>Email:</strong> {selectedItem.data.email}
-                 </p>
-                 <p className="text-sm text-gray-600">
-                   <strong>Status:</strong> {selectedItem.data.status}
-                 </p>
-               </div>
-               
-               <div className="grid grid-cols-2 gap-2 mb-4">
-                 <button
-                   onClick={() => handleStatusUpdate(selectedItem.type, selectedItem.data.id, 'approved')}
-                   disabled={isProcessing}
-                   className="bg-green-600 text-white px-3 py-2 rounded text-sm hover:bg-green-700 disabled:opacity-50"
-                 >
-                   Approve
-                 </button>
-                 <button
-                   onClick={() => handleStatusUpdate(selectedItem.type, selectedItem.data.id, 'rejected')}
-                   disabled={isProcessing}
-                   className="bg-red-600 text-white px-3 py-2 rounded text-sm hover:bg-red-700 disabled:opacity-50"
-                 >
-                   Reject
-                 </button>
-                 <button
-                   onClick={() => handleStatusUpdate(selectedItem.type, selectedItem.data.id, 'paused')}
-                   disabled={isProcessing}
-                   className="bg-yellow-600 text-white px-3 py-2 rounded text-sm hover:bg-yellow-700 disabled:opacity-50"
-                 >
-                   Pause
-                 </button>
-                 <button
-                   onClick={() => handleDelete(selectedItem.type, selectedItem.data.id)}
-                   disabled={isProcessing}
-                   className="bg-gray-600 text-white px-3 py-2 rounded text-sm hover:bg-gray-700 disabled:opacity-50"
-                 >
-                   Delete
-                 </button>
-               </div>
+              <div className="mb-4">
+                <p className="text-sm text-gray-600">
+                  <strong>Name:</strong> {
+                    selectedItem.type === 'signup' 
+                      ? `${(selectedItem.data as Signup).firstName} ${(selectedItem.data as Signup).lastName}`
+                      : (selectedItem.data as Business).name
+                  }
+                </p>
+                <p className="text-sm text-gray-600">
+                  <strong>Email:</strong> {selectedItem.data.email}
+                </p>
+                <p className="text-sm text-gray-600">
+                  <strong>Status:</strong> {selectedItem.data.status}
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-2 mb-4">
+                <button
+                  onClick={() => handleStatusUpdate(selectedItem.type, selectedItem.data.id, 'approved')}
+                  disabled={isProcessing}
+                  className="bg-green-600 text-white px-3 py-2 rounded text-sm hover:bg-green-700 disabled:opacity-50"
+                >
+                  Approve
+                </button>
+                <button
+                  onClick={() => handleStatusUpdate(selectedItem.type, selectedItem.data.id, 'rejected')}
+                  disabled={isProcessing}
+                  className="bg-red-600 text-white px-3 py-2 rounded text-sm hover:bg-red-700 disabled:opacity-50"
+                >
+                  Reject
+                </button>
+                <button
+                  onClick={() => handleStatusUpdate(selectedItem.type, selectedItem.data.id, 'paused')}
+                  disabled={isProcessing}
+                  className="bg-yellow-600 text-white px-3 py-2 rounded text-sm hover:bg-yellow-700 disabled:opacity-50"
+                >
+                  Pause
+                </button>
+                <button
+                  onClick={() => handleDelete(selectedItem.type, selectedItem.data.id)}
+                  disabled={isProcessing}
+                  className="bg-gray-600 text-white px-3 py-2 rounded text-sm hover:bg-gray-700 disabled:opacity-50"
+                >
+                  Delete
+                </button>
+              </div>
               
               <button
                 onClick={() => {
@@ -532,6 +656,175 @@ export default function AdminDashboard() {
               >
                 Cancel
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Business Modal */}
+      {showEditBusinessModal && editingBusiness && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-10 mx-auto p-6 border w-full max-w-2xl shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-medium text-gray-900">
+                  Edit Business: {editingBusiness.name}
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowEditBusinessModal(false);
+                    setEditingBusiness(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Business Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={editFormData.name}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, name: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Phone
+                  </label>
+                  <input
+                    type="tel"
+                    value={editFormData.phone}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, phone: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Email *
+                  </label>
+                  <input
+                    type="email"
+                    value={editFormData.email}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, email: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Zip Code
+                  </label>
+                  <input
+                    type="text"
+                    value={editFormData.zipCode}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, zipCode: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Category
+                  </label>
+                  <input
+                    type="text"
+                    value={editFormData.category}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, category: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Website
+                  </label>
+                  <input
+                    type="url"
+                    value={editFormData.website}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, website: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Address
+                  </label>
+                  <input
+                    type="text"
+                    value={editFormData.address}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, address: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    City
+                  </label>
+                  <input
+                    type="text"
+                    value={editFormData.city}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, city: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    State
+                  </label>
+                  <input
+                    type="text"
+                    value={editFormData.state}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, state: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Description
+                  </label>
+                  <textarea
+                    value={editFormData.description}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, description: e.target.value }))}
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => {
+                    setShowEditBusinessModal(false);
+                    setEditingBusiness(null);
+                  }}
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleEditBusiness}
+                  disabled={isProcessing || !editFormData.name.trim() || !editFormData.email.trim()}
+                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isProcessing ? 'Updating...' : 'Update Business'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
