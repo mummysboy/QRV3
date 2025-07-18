@@ -12,6 +12,8 @@ export async function POST(req: Request) {
   try {
     const { type, id, status } = await req.json();
     
+    console.log("Update signup status request:", { type, id, status });
+    
     if (!type || !id || !status) {
       return NextResponse.json(
         { error: "Missing required fields: type, id, status" },
@@ -23,6 +25,8 @@ export async function POST(req: Request) {
     let result;
 
     if (type === 'signup') {
+      console.log("Updating signup with ID:", id, "to status:", status);
+      
       // Update Signup model
       const updateResult = await client.graphql({
         query: `
@@ -42,6 +46,8 @@ export async function POST(req: Request) {
         },
       });
 
+      console.log("Signup update result:", updateResult);
+
       result = (updateResult as { data: { updateSignup: { 
         id: string; 
         status: string; 
@@ -49,21 +55,30 @@ export async function POST(req: Request) {
       } } }).data.updateSignup;
 
     } else if (type === 'business') {
-      // Get business details first
+      console.log("Updating business with ID:", id, "to status:", status);
+      
+      // Get business details first - fetch all required fields
       const businessResult = await client.graphql({
         query: `
-          query GetBusiness($id: ID!) {
+          query GetBusiness($id: String!) {
             getBusiness(id: $id) {
               id
               name
               email
               phone
               status
+              zipCode
+              category
+              address
+              city
+              state
             }
           }
         `,
         variables: { id },
       });
+
+      console.log("Business query result:", businessResult);
 
       const business = (businessResult as { data: { getBusiness: {
         id: string;
@@ -71,7 +86,14 @@ export async function POST(req: Request) {
         email: string;
         phone: string;
         status: string;
-      } } }).data.getBusiness;
+        zipCode: string;
+        category: string;
+        address: string;
+        city: string;
+        state: string;
+      } | null } }).data.getBusiness;
+      
+      console.log("Business data:", business);
       
       if (!business) {
         return NextResponse.json(
@@ -80,16 +102,32 @@ export async function POST(req: Request) {
         );
       }
 
-      // Update Business model
+      // Update Business model - include all required fields from the existing business
       const updateData: {
         id: string;
+        name: string;
+        phone: string;
+        email: string;
+        zipCode: string;
+        category: string;
         status: string;
+        address: string;
+        city: string;
+        state: string;
         updatedAt: string;
         approvedAt?: string;
         approvedBy?: string;
       } = {
         id: id,
+        name: business.name,
+        phone: business.phone,
+        email: business.email,
+        zipCode: business.zipCode,
+        category: business.category,
         status: status,
+        address: business.address,
+        city: business.city,
+        state: business.state,
         updatedAt: new Date().toISOString(),
       };
 
@@ -99,22 +137,37 @@ export async function POST(req: Request) {
         updateData.approvedBy = 'admin'; // You can pass actual admin ID here
       }
 
-      const updateResult = await client.graphql({
-        query: `
-          mutation UpdateBusinessStatus($input: UpdateBusinessInput!) {
-            updateBusiness(input: $input) {
-              id
-              status
-              updatedAt
-              approvedAt
-              approvedBy
+      console.log("Business update data:", updateData);
+
+      let updateResult;
+      try {
+        updateResult = await client.graphql({
+          query: `
+            mutation UpdateBusinessStatus($input: UpdateBusinessInput!) {
+              updateBusiness(input: $input) {
+                id
+                status
+                updatedAt
+                approvedAt
+                approvedBy
+              }
             }
-          }
-        `,
-        variables: {
-          input: updateData,
-        },
-      });
+          `,
+          variables: {
+            input: updateData,
+          },
+        });
+
+        console.log("Business update result:", updateResult);
+      } catch (graphqlError) {
+        console.error("GraphQL mutation error:", graphqlError);
+        console.error("GraphQL error details:", {
+          message: graphqlError instanceof Error ? graphqlError.message : "Unknown error",
+          stack: graphqlError instanceof Error ? graphqlError.stack : undefined,
+          error: graphqlError
+        });
+        throw graphqlError;
+      }
 
       result = (updateResult as { data: { updateBusiness: { 
         id: string; 
@@ -181,6 +234,32 @@ export async function POST(req: Request) {
 
   } catch (error) {
     console.error("Error updating signup status:", error);
+    console.error("Error details:", {
+      message: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
+      error: error
+    });
+    
+    // Provide more specific error messages
+    if (error instanceof Error) {
+      if (error.message.includes("not found")) {
+        return NextResponse.json(
+          { error: "Record not found" },
+          { status: 404 }
+        );
+      } else if (error.message.includes("unauthorized") || error.message.includes("permission")) {
+        return NextResponse.json(
+          { error: "Unauthorized to perform this action" },
+          { status: 403 }
+        );
+      } else if (error.message.includes("validation")) {
+        return NextResponse.json(
+          { error: "Invalid data provided" },
+          { status: 400 }
+        );
+      }
+    }
+    
     return NextResponse.json(
       { error: "Failed to update signup status" },
       { status: 500 }

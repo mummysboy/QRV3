@@ -19,15 +19,31 @@ export default function AdminLogin() {
     setIsSubmitting(true);
     setError("");
 
-    // Simple admin authentication (in production, use proper auth)
-    if (formData.username === "admin" && formData.password === "admin123") {
-      sessionStorage.setItem('adminLoggedIn', 'true');
-      router.push('/admin');
-    } else {
-      setError("Invalid credentials");
+    try {
+      const response = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Store minimal info in sessionStorage for UI state
+        sessionStorage.setItem('adminLoggedIn', 'true');
+        sessionStorage.setItem('adminUser', JSON.stringify(data.user));
+        router.push('/admin');
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || "Login failed");
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setError("Login failed. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
-    
-    setIsSubmitting(false);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

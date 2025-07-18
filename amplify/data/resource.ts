@@ -102,6 +102,7 @@ const schema = a.schema({
       createdAt: a.string(),
       updatedAt: a.string(),
       approvedAt: a.string(),
+      approvedBy: a.string(),
     })
     .identifier(["id"])
     .authorization((allow) => [allow.publicApiKey()]),

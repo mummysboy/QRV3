@@ -1,5 +1,5 @@
 // Test script for admin API endpoints
-const BASE_URL = 'http://localhost:3003';
+const BASE_URL = 'http://localhost:3000';
 
 async function testAdminAPI() {
   console.log('🧪 Testing Admin API Endpoints...\n');

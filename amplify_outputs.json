@@ -774,6 +774,13 @@
               "type": "String",
               "isRequired": false,
               "attributes": []
+            },
+            "approvedBy": {
+              "name": "approvedBy",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
+              "attributes": []
             }
           },
           "syncable": true,

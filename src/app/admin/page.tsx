@@ -66,14 +66,37 @@ export default function AdminDashboard() {
   const router = useRouter();
 
   useEffect(() => {
-    // Check if admin is logged in
+    // Validate admin session with server
+    const validateSession = async () => {
+      try {
+        const response = await fetch('/api/admin/validate-session');
+        if (!response.ok) {
+          // Session is invalid, redirect to login
+          sessionStorage.removeItem('adminLoggedIn');
+          sessionStorage.removeItem('adminUser');
+          router.push('/admin/login');
+          return;
+        }
+        
+        // Session is valid, fetch data
+        fetchAllSignups();
+      } catch (error) {
+        console.error('Session validation error:', error);
+        // On error, redirect to login
+        sessionStorage.removeItem('adminLoggedIn');
+        sessionStorage.removeItem('adminUser');
+        router.push('/admin/login');
+      }
+    };
+
+    // Check if we have a session in sessionStorage first
     const adminLoggedIn = sessionStorage.getItem('adminLoggedIn');
     if (!adminLoggedIn) {
       router.push('/admin/login');
       return;
     }
-    
-    fetchAllSignups();
+
+    validateSession();
   }, [router]);
 
   const fetchAllSignups = async () => {
@@ -160,9 +183,18 @@ export default function AdminDashboard() {
     setShowActionModal(true);
   };
 
-  const handleLogout = () => {
-    sessionStorage.removeItem('adminLoggedIn');
-    router.push('/admin/login');
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/admin/logout', {
+        method: 'POST',
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      sessionStorage.removeItem('adminLoggedIn');
+      sessionStorage.removeItem('adminUser');
+      router.push('/admin/login');
+    }
   };
 
   const getStatusColor = (status: string) => {
