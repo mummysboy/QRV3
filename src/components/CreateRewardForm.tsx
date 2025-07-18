@@ -511,7 +511,7 @@ export default function CreateRewardForm({
                 <div className="pt-4 sm:pt-6">
                   <button
                     type="submit"
-                    disabled={isSubmitting || !isProfileComplete || !formData.subheader.trim()}
+                    disabled={isSubmitting || !isProfileComplete || !formData.subheader.trim() || !formData.expires.trim()}
                     className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-medium py-3 sm:py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 active:scale-95 disabled:transform-none text-base"
                   >
                     {isSubmitting ? "Creating..." : "Create Reward"}
@@ -535,7 +535,7 @@ export default function CreateRewardForm({
                           addresstext: `${formData.businessAddress}, ${formData.businessCity}, ${formData.businessState} ${formData.businessZipCode}`,
                           addressurl: "",
                           subheader: formData.subheader || "Reward description will appear here",
-                          expires: formData.expires ? new Date(formData.expires).toISOString() : "Demo Reward Not Valid",
+                          expires: formData.expires || "",
                           quantity: formData.quantity
                         }}
                         playbackRate={1}

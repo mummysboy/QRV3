@@ -1,33 +1,44 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
-import CreateRewardForm, { RewardData } from "@/components/CreateRewardForm";
+import CreateRewardForm from "@/components/CreateRewardForm";
+import EditRewardForm from "@/components/EditRewardForm";
+import LogoUpload from "@/components/LogoUpload";
 import CardAnimation from "@/components/CardAnimation";
+import AddBusinessForm, { AddBusinessData } from "@/components/AddBusinessForm";
 
 // Mock business user and business info
 const mockBusiness = {
   id: "demo-business-1",
-  name: "Demo Coffee Shop",
+  name: "Mummy's Cafe",
   phone: "(415) 555-1234",
-  email: "demo@coffeeshop.com",
+  email: "hello@mummys-cafe.com",
   zipCode: "94105",
   category: "Cafe",
   status: "Active",
-  logo: undefined, // Optionally use a public asset
+  logo: "/mummy-cafe-logo.svg", // Mummy's Cafe logo
   address: "123 Main St",
   city: "San Francisco",
   state: "CA",
-  website: "https://demo-coffee.com",
-  socialMedia: "@democoffee",
+  website: "https://mummys-cafe.com",
+  socialMedia: "@mummys_cafe",
   businessHours: "7am - 7pm",
   description: "A cozy spot for coffee lovers.",
   photos: "",
-  primaryContactEmail: "demo@coffeeshop.com",
+  primaryContactEmail: "hello@mummys-cafe.com",
   primaryContactPhone: "(415) 555-1234",
   createdAt: "2024-01-01",
   updatedAt: "2024-06-01",
   approvedAt: "2024-01-02",
+};
+
+const mockUser = {
+  id: "demo-user-1",
+  email: "hello@mummys-cafe.com",
+  firstName: "Isaac",
+  lastName: "Johnson",
+  role: "owner",
+  status: "active",
 };
 
 // Mock analytics data
@@ -38,8 +49,8 @@ const mockAnalytics = {
   totalViews: 320,
   totalRedeemed: 89,
   recentClaims: [
-    { id: "1", cardid: "demo-1", header: "Free Coffee", claimed_at: new Date().toISOString(), delivery_method: "Email" },
-    { id: "2", cardid: "demo-2", header: "20% Off Lunch", claimed_at: new Date(Date.now() - 86400000).toISOString(), delivery_method: "SMS" },
+    { id: "1", cardid: "demo-1", header: "Mummy's Cafe", claimed_at: new Date().toISOString(), delivery_method: "Email" },
+    { id: "2", cardid: "demo-2", header: "Mummy's Cafe", claimed_at: new Date(Date.now() - 86400000).toISOString(), delivery_method: "SMS" },
   ],
   rewardsByStatus: { active: 2, inactive: 1 },
   claimsByMonth: [
@@ -61,8 +72,8 @@ const mockAnalytics = {
   rewardAnalytics: [
     {
       cardid: "demo-1",
-      header: "Free Coffee",
-      subheader: "Get a free coffee with any purchase!",
+      header: "Mummy's Cafe",
+      subheader: "Sweetie, treat yourself to a free coffee on us! 💕",
       quantity: 100,
       claims: 56,
       views: 120,
@@ -74,8 +85,8 @@ const mockAnalytics = {
     },
     {
       cardid: "demo-2",
-      header: "20% Off Lunch",
-      subheader: "Enjoy 20% off your lunch order.",
+      header: "Mummy's Cafe",
+      subheader: "Darling, save 20% on your lunch - you deserve it! 🌟",
       quantity: 50,
       claims: 30,
       views: 80,
@@ -87,8 +98,8 @@ const mockAnalytics = {
     },
     {
       cardid: "demo-3",
-      header: "Weekend Special",
-      subheader: "Buy one get one free on weekends!",
+      header: "Mummy's Cafe",
+      subheader: "Honey, bring a friend this weekend - buy one, get one free! 💝",
       quantity: 30,
       claims: 10,
       views: 30,
@@ -109,322 +120,105 @@ const mockAnalytics = {
   ],
 };
 
+// Mock cards data with dynamic expiration dates
+const getMockCards = () => {
+  const now = new Date();
+  const oneHour = new Date(now.getTime() + 60 * 60 * 1000);
+  const oneWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const oneMonth = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+  return [
+    {
+      cardid: "demo-1",
+      header: "Mummy's Cafe",
+      subheader: "Sweetie, treat yourself to a free coffee on us! 💕",
+      quantity: 100,
+      logokey: "/mummy-cafe-logo.svg",
+      addresstext: "123 Main St, San Francisco, CA 94105",
+      addressurl: "",
+      expires: oneHour.toISOString(),
+    },
+    {
+      cardid: "demo-2",
+      header: "Mummy's Cafe",
+      subheader: "Darling, save 20% on your lunch - you deserve it! 🌟",
+      quantity: 50,
+      logokey: "/mummy-cafe-logo.svg",
+      addresstext: "123 Main St, San Francisco, CA 94105",
+      addressurl: "",
+      expires: oneWeek.toISOString(),
+    },
+    {
+      cardid: "demo-3",
+      header: "Mummy's Cafe",
+      subheader: "Honey, bring a friend this weekend - buy one, get one free! 💝",
+      quantity: 30,
+      logokey: "/mummy-cafe-logo.svg",
+      addresstext: "123 Main St, San Francisco, CA 94105",
+      addressurl: "",
+      expires: oneMonth.toISOString(),
+    },
+  ];
+};
+
 export default function DemoDashboard() {
   const [isVisible, setIsVisible] = useState(false);
   const [currentView, setCurrentView] = useState<'dashboard' | 'analytics' | 'settings'>('dashboard');
-  const [showCreate, setShowCreate] = useState(false);
-  const [editIndex, setEditIndex] = useState<number | null>(null);
-  const [editRewardData, setEditRewardData] = useState<RewardData | null>(null);
-  // Use mock business and analytics
+  const [showCreateReward, setShowCreateReward] = useState(false);
+  const [showEditReward, setShowEditReward] = useState(false);
+  const [editingCard, setEditingCard] = useState<ReturnType<typeof getMockCards>[0] | null>(null);
+  const [showLogoUpload, setShowLogoUpload] = useState(false);
+  const [showAddBusiness, setShowAddBusiness] = useState(false);
+  const [timeRange, setTimeRange] = useState<'day' | 'week' | 'month'>('month');
+  
+  // Use mock data
   const business = mockBusiness;
-  // Demo rewards state from mock analytics
-  const [rewards, setRewards] = useState<RewardData[]>([
-    ...mockAnalytics.rewardAnalytics.map((r) => ({
-      businessId: business.id,
-      businessName: business.name,
-      businessAddress: business.address,
-      businessCity: business.city,
-      businessState: business.state,
-      businessZipCode: business.zipCode,
-      businessCategory: business.category,
-      businessLogo: business.logo,
-      subheader: r.subheader,
-      quantity: r.quantity,
-      expires: r.lastClaimed || '',
-    })),
-  ]);
+  const user = mockUser;
+  const analytics = mockAnalytics;
+  const [cards, setCards] = useState(getMockCards());
 
-  // For edit reward form
-  const [isEnhancingEdit, setIsEnhancingEdit] = useState(false);
-  const [prevEditDescription, setPrevEditDescription] = useState<string | null>(null);
-  const [hasEnhancedEdit, setHasEnhancedEdit] = useState(false);
+  // Check if profile is complete - for demo, always allow creation
+  const isProfileComplete = true;
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsVisible(true), 300);
+    const timer = setTimeout(() => setIsVisible(true), 100);
     return () => clearTimeout(timer);
   }, []);
 
-  const stats = [
-    { label: "Total Rewards", value: "24", change: "+12%", icon: "🎁" },
-    { label: "Active Offers", value: "8", change: "+3", icon: "✨" },
-    { label: "Claims Today", value: "156", change: "+23%", icon: "📱" },
-    { label: "New Customers", value: "89", change: "+18%", icon: "👥" }
-  ];
-
-  // Handlers for create/edit
-  const handleCreateReward = (data: RewardData) => {
-    setRewards((prev) => [...prev, data]);
-    setShowCreate(false);
-  };
-  const openEditReward = (idx: number) => {
-    console.log('openEditReward called with index:', idx);
-    console.log('Current rewards:', rewards);
-    console.log('Reward to edit:', rewards[idx]);
-    setEditIndex(idx);
-    setEditRewardData(rewards[idx]);
-    console.log('Edit state set - editIndex:', idx, 'editRewardData:', rewards[idx]);
-  };
-
-  // Handle edit form submission
-  const handleEditSubmit = (data: { subheader: string; quantity: number; expires: string }) => {
-    if (editIndex !== null) {
-      setRewards((prev) => prev.map((r, i) => 
-        i === editIndex ? { 
-          ...r, 
-          subheader: data.subheader,
-          quantity: data.quantity,
-          expires: data.expires
-        } : r
-      ));
-      setEditIndex(null);
-      setEditRewardData(null);
+  // Helper function to get today's stats
+  function getTodayStats(analytics: typeof mockAnalytics | null) {
+    if (!analytics) {
+      return {
+        todayViews: "0",
+        todayClaims: "0",
+        conversionRate: "0",
+        todayRedeemed: "0",
+        redemptionRate: "0",
+        totalRewards: "0"
+      };
     }
-  };
 
-  // Enhance logic for edit
-  const handleEnhanceEditDescription = async (desc: string, setDesc: (d: string) => void) => {
-    console.log('🔍 DemoDashboard: Enhance button clicked');
-    console.log('🔍 DemoDashboard: Current description:', desc);
-    
-    setIsEnhancingEdit(true);
-    setPrevEditDescription(desc);
-    
-    // Use fallback description if empty
-    const testDescription = desc || "Get a free coffee";
-    console.log('🔍 DemoDashboard: Using description for API:', testDescription);
-    
-    try {
-      const res = await fetch("/api/enhance-description", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ description: testDescription }),
-      });
-      
-      console.log('🔍 DemoDashboard: Response status:', res.status);
-      console.log('🔍 DemoDashboard: Response ok:', res.ok);
-      
-      const data = await res.json();
-      console.log('🔍 DemoDashboard: API response:', data);
-      
-      if (res.ok && data.enhancedDescription) {
-        setDesc(data.enhancedDescription);
-        setHasEnhancedEdit(true);
-        console.log('🔍 DemoDashboard: Enhanced description set successfully');
-      } else {
-        console.log('🔍 DemoDashboard: API response not ok or no enhanced description');
-        console.log('🔍 DemoDashboard: res.ok:', res.ok);
-        console.log('🔍 DemoDashboard: data.enhancedDescription:', data.enhancedDescription);
-      }
-    } catch (error) {
-      console.error('🔍 DemoDashboard: Error during enhancement:', error);
-    } finally {
-      setIsEnhancingEdit(false);
-    }
-  };
-  const handleUndoEnhanceEdit = (setDesc: (d: string) => void) => {
-    if (prevEditDescription !== null) {
-      setDesc(prevEditDescription);
-      setPrevEditDescription(null);
-      setHasEnhancedEdit(false);
-    }
-  };
+    const todayViews = analytics.viewsByDay?.[0]?.count || 0;
+    const todayClaims = analytics.claimsByDay?.[0]?.count || 0;
+    const todayRedeemed = analytics.redeemedByDay?.[0]?.count || 0;
+    const conversionRate = todayViews > 0 ? Math.round((todayClaims / todayViews) * 100) : 0;
+    const redemptionRate = todayClaims > 0 ? Math.round((todayRedeemed / todayClaims) * 100) : 0;
 
-  // Custom edit form component for demo
-  const DemoEditForm = ({ card, onClose }: { 
-    card: {
-      cardid: string;
-      header: string;
-      logokey?: string;
-      addresstext: string;
-      addressurl: string;
-      subheader: string;
-      expires: string;
-      quantity: number;
-    }; 
-    onClose: () => void 
-  }) => {
-    const [formData, setFormData] = useState({
-      subheader: card.subheader || "",
-      quantity: card.quantity || 100,
-      expires: card.expires || "",
-    });
-    const [isSubmitting, setIsSubmitting] = useState(false);
-
-    const handleSubmit = (e: React.FormEvent) => {
-      e.preventDefault();
-      setIsSubmitting(true);
-      
-      // Simulate API delay
-      setTimeout(() => {
-        handleEditSubmit(formData);
-        setIsSubmitting(false);
-      }, 500);
+    return {
+      todayViews: todayViews.toString(),
+      todayClaims: todayClaims.toString(),
+      conversionRate: conversionRate.toString(),
+      todayRedeemed: todayRedeemed.toString(),
+      redemptionRate: redemptionRate.toString(),
+      totalRewards: analytics.totalRewards.toString()
     };
+  }
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      const { name, value } = e.target;
-      if (name === "subheader" || name === "quantity" || name === "expires") {
-        setFormData(prev => ({
-          ...prev,
-          [name]: value
-        }));
-      }
-    };
-
-    const handleBackdropClick = (e: React.MouseEvent) => {
-      if (e.target === e.currentTarget) {
-        onClose();
-      }
-    };
-
-    return (
-      <div 
-        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4"
-        onClick={handleBackdropClick}
-      >
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto mx-2 sm:mx-4">
-          <div className="p-4 sm:p-6 lg:p-8">
-            <div className="flex justify-between items-center mb-4 sm:mb-6">
-              <h2 className="text-xl sm:text-2xl font-semibold text-gray-900">Edit Reward</h2>
-              <button
-                onClick={onClose}
-                className="text-gray-400 hover:text-gray-600 transition-colors p-2 -m-2"
-                aria-label="Close form"
-              >
-                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Business Information (Read-only) */}
-              <div className="space-y-4">
-                <h3 className="text-base sm:text-lg font-medium text-gray-900">Business Information</h3>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Business Name
-                  </label>
-                  <input
-                    type="text"
-                    value={card.header}
-                    disabled
-                    className="w-full px-3 sm:px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600 cursor-not-allowed"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Full Address
-                  </label>
-                  <input
-                    type="text"
-                    value={card.addresstext}
-                    disabled
-                    className="w-full px-3 sm:px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600 cursor-not-allowed"
-                  />
-                </div>
-              </div>
-
-              {/* Editable Reward Information */}
-              <div className="space-y-4 pt-4">
-                <h3 className="text-base sm:text-lg font-medium text-gray-900">Reward Details</h3>
-                
-                <div className="relative">
-                  <textarea
-                    id="subheader"
-                    name="subheader"
-                    value={formData.subheader}
-                    onChange={handleInputChange}
-                    required
-                    rows={4}
-                    className="w-full px-3 sm:px-4 py-3 border border-gray-300 rounded-xl focus:border-green-500 focus:outline-none transition-colors text-base resize-none"
-                    placeholder="Describe your reward offer (e.g., Get a free coffee with any purchase, 20% off your next visit, Buy one get one free)"
-                    disabled={isEnhancingEdit}
-                    maxLength={80}
-                  />
-                  <div className="flex items-center justify-between mt-1">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleEnhanceEditDescription(formData.subheader, (desc) => setFormData(prev => ({ ...prev, subheader: desc })))}
-                        disabled={isEnhancingEdit}
-                        className="px-2 py-1 text-xs rounded flex items-center text-gray-400 border border-gray-200 hover:text-gray-600 hover:border-gray-300 transition bg-white disabled:opacity-60"
-                        aria-label="Enhance with AI"
-                      >
-                        {isEnhancingEdit ? (
-                          <span className="animate-spin mr-1 w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full"></span>
-                        ) : (
-                          <span className="flex items-center">✨<span className="ml-1 hidden sm:inline">Enhance</span></span>
-                        )}
-                      </button>
-                      {hasEnhancedEdit && (
-                        <button
-                          type="button"
-                          className="px-2 py-1 text-xs rounded text-gray-400 border border-gray-200 hover:text-gray-600 hover:border-gray-300 transition bg-white"
-                          onClick={() => handleUndoEnhanceEdit((desc) => setFormData(prev => ({ ...prev, subheader: desc })))}
-                        >Undo</button>
-                      )}
-                    </div>
-                    <span className={`text-xs ${formData.subheader.length > 70 ? 'text-red-500' : 'text-gray-500'}`}>
-                      {formData.subheader.length}/80
-                    </span>
-                  </div>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">Tell customers what they&rsquo;ll receive</p>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Quantity Available
-                  </label>
-                  <input
-                    type="number"
-                    name="quantity"
-                    value={formData.quantity}
-                    onChange={handleInputChange}
-                    min="1"
-                    max="1000"
-                    className="w-full px-3 sm:px-4 py-3 border border-gray-300 rounded-xl focus:border-green-500 focus:outline-none transition-colors text-base"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Number of rewards available</p>
-                </div>
-
-                <div>
-                  <label htmlFor="expires" className="block text-sm font-medium text-gray-700 mb-1">
-                    Expiration Date & Time
-                  </label>
-                  <input
-                    type="datetime-local"
-                    id="expires"
-                    name="expires"
-                    value={formData.expires}
-                    onChange={handleInputChange}
-                    className="w-full px-3 sm:px-4 py-3 border border-gray-300 rounded-xl focus:border-green-500 focus:outline-none transition-colors text-base"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Leave empty for no expiration</p>
-                </div>
-              </div>
-
-              <div className="pt-4 sm:pt-6">
-                <button
-                  type="submit"
-                  disabled={isSubmitting || !formData.subheader.trim()}
-                  className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-medium py-3 sm:py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 active:scale-95 disabled:transform-none text-base"
-                >
-                  {isSubmitting ? 'Updating...' : 'Update Reward'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const handleQuickAction = (action: 'create' | 'analytics' | 'settings') => {
+  // Handlers
+  const handleQuickAction = (action: 'create' | 'analytics' | 'settings' | 'add-business') => {
     switch (action) {
       case 'create':
-        setShowCreate(true);
+        setShowCreateReward(true);
         break;
       case 'analytics':
         setCurrentView('analytics');
@@ -432,10 +226,67 @@ export default function DemoDashboard() {
       case 'settings':
         setCurrentView('settings');
         break;
+      case 'add-business':
+        setShowAddBusiness(true);
+        break;
     }
   };
 
-  // Analytics view component
+  const handleEditReward = (card: ReturnType<typeof getMockCards>[0]) => {
+    setEditingCard(card);
+    setShowEditReward(true);
+  };
+
+  const handleEditRewardSuccess = () => {
+    setShowEditReward(false);
+    setEditingCard(null);
+  };
+
+  const handleCloseEditReward = () => {
+    setShowEditReward(false);
+    setEditingCard(null);
+  };
+
+  const handleLogoUpload = async (_logoUrl: string) => {
+    // In demo, just close the modal
+    setShowLogoUpload(false);
+  };
+
+  const handleCreateRewardSubmit = async (rewardData: {
+    businessName: string;
+    subheader: string;
+    quantity: number;
+    expires: string;
+  }) => {
+    // Add new reward to the cards array
+    const newCard = {
+      cardid: `demo-${Date.now()}`,
+      header: rewardData.businessName || business.name,
+      subheader: rewardData.subheader,
+      quantity: rewardData.quantity,
+      logokey: "/mummy-cafe-logo.svg",
+      addresstext: `${business.address}, ${business.city}, ${business.state} ${business.zipCode}`,
+      addressurl: "",
+      expires: rewardData.expires,
+    };
+    
+    setCards((prev: ReturnType<typeof getMockCards>) => [...prev, newCard]);
+    setShowCreateReward(false);
+  };
+
+  const handleAddBusinessSubmit = async (_data: AddBusinessData) => {
+    // In demo, just close the modal
+    setShowAddBusiness(false);
+  };
+
+  const handleDeleteReward = async (cardid: string) => {
+    if (!confirm('Are you sure you want to delete this reward?')) return;
+    
+    // Remove the reward from the cards array
+    setCards((prev: ReturnType<typeof getMockCards>) => prev.filter(card => card.cardid !== cardid));
+  };
+
+  // Analytics View Component
   const AnalyticsView = () => (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -448,53 +299,215 @@ export default function DemoDashboard() {
         </button>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Time Range Selector */}
+      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-light text-gray-900">Time Range</h3>
+          <div className="flex space-x-2">
+            {(['day', 'week', 'month'] as const).map((range) => (
+              <button
+                key={range}
+                onClick={() => setTimeRange(range)}
+                className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+                  timeRange === range
+                    ? 'bg-green-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {range.charAt(0).toUpperCase() + range.slice(1)}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
           <div className="text-2xl mb-2">📊</div>
-          <div className="text-3xl font-light text-gray-900 mb-1">1,247</div>
+          <div className="text-3xl font-light text-gray-900 mb-1">
+            {analytics?.totalViews || 0}
+          </div>
           <div className="text-sm text-gray-600">Total Views</div>
         </div>
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
           <div className="text-2xl mb-2">✅</div>
-          <div className="text-3xl font-light text-gray-900 mb-1">892</div>
+          <div className="text-3xl font-light text-gray-900 mb-1">
+            {analytics?.totalClaims || 0}
+          </div>
           <div className="text-sm text-gray-600">Total Claims</div>
         </div>
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
           <div className="text-2xl mb-2">🎯</div>
-          <div className="text-3xl font-light text-gray-900 mb-1">71.5%</div>
+          <div className="text-3xl font-light text-gray-900 mb-1">
+            {`${analytics?.conversionRate || 0}%`}
+          </div>
           <div className="text-sm text-gray-600">Conversion Rate</div>
         </div>
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-          <div className="text-2xl mb-2">💰</div>
-          <div className="text-3xl font-light text-gray-900 mb-1">$12,450</div>
-          <div className="text-sm text-gray-600">Revenue Generated</div>
+          <div className="text-2xl mb-2">🎉</div>
+          <div className="text-3xl font-light text-gray-900 mb-1">
+            {analytics?.totalRedeemed || 0}
+          </div>
+          <div className="text-sm text-gray-600">Total Redeemed</div>
+        </div>
+        <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+          <div className="text-2xl mb-2">📈</div>
+          <div className="text-3xl font-light text-gray-900 mb-1">
+            {`${analytics?.redemptionRate || 0}%`}
+          </div>
+          <div className="text-sm text-gray-600">Redemption Rate</div>
+        </div>
+        <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+          <div className="text-2xl mb-2">🎁</div>
+          <div className="text-3xl font-light text-gray-900 mb-1">
+            {analytics?.totalRewards || 0}
+          </div>
+          <div className="text-sm text-gray-600">Total Rewards</div>
         </div>
       </div>
 
-      <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
+          <h3 className="text-2xl font-light text-gray-900 mb-6">Claims Over Time</h3>
+          <div className="h-64 flex items-end justify-center space-x-2">
+            {timeRange === 'day' && analytics?.claimsByDay?.map((day, idx) => (
+              <div key={idx} className="flex flex-col items-center">
+                <div 
+                  className="bg-green-500 rounded-t-lg w-8 transition-all duration-300"
+                  style={{ height: `${Math.min(Math.max(day.count * 8, 4), 200)}px` }}
+                ></div>
+                <span className="text-xs text-gray-500 mt-2">{day.date}</span>
+              </div>
+            ))}
+            {timeRange === 'week' && analytics?.claimsByWeek?.map((week, idx) => (
+              <div key={idx} className="flex flex-col items-center">
+                <div 
+                  className="bg-green-500 rounded-t-lg w-8 transition-all duration-300"
+                  style={{ height: `${Math.min(Math.max(week.count * 8, 4), 200)}px` }}
+                ></div>
+                <span className="text-xs text-gray-500 mt-2">{week.week}</span>
+              </div>
+            ))}
+            {timeRange === 'month' && analytics?.claimsByMonth?.map((month, idx) => (
+              <div key={idx} className="flex flex-col items-center">
+                <div 
+                  className="bg-green-500 rounded-t-lg w-8 transition-all duration-300"
+                  style={{ height: `${Math.min(Math.max(month.count * 8, 4), 200)}px` }}
+                ></div>
+                <span className="text-xs text-gray-500 mt-2">{month.month}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
+          <h3 className="text-2xl font-light text-gray-900 mb-6">Reward Status</h3>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-4 bg-green-50 rounded-2xl">
+              <div className="flex items-center space-x-3">
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <span className="font-medium text-gray-900">Active Rewards</span>
+              </div>
+              <span className="text-2xl font-light text-gray-900">
+                {analytics?.activeRewards || 0}
+              </span>
+            </div>
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl">
+              <div className="flex items-center space-x-3">
+                <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
+                <span className="font-medium text-gray-900">Inactive Rewards</span>
+              </div>
+              <span className="text-2xl font-light text-gray-900">
+                {(analytics?.totalRewards || 0) - (analytics?.activeRewards || 0)}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Individual Reward Analytics */}
+      <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
+        <h3 className="text-2xl font-light text-gray-900 mb-6">Reward Performance</h3>
+        <div className="space-y-4">
+          {analytics?.rewardAnalytics?.length ? (
+            analytics.rewardAnalytics.map((reward, idx) => (
+              <div key={idx} className="p-6 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h4 className="text-lg font-medium text-gray-900">{reward.header}</h4>
+                    <p className="text-sm text-gray-600">{reward.subheader}</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm text-gray-600">Quantity</div>
+                    <div className="text-lg font-medium text-gray-900">{reward.quantity}</div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-6 gap-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-light text-gray-900 mb-1">{reward.views}</div>
+                    <div className="text-sm text-gray-600">Views</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-light text-gray-900 mb-1">{reward.claims}</div>
+                    <div className="text-sm text-gray-600">Claims</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-light text-gray-900 mb-1">{reward.redeemed}</div>
+                    <div className="text-sm text-gray-600">Redeemed</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-light text-gray-900 mb-1">{reward.conversionRate}%</div>
+                    <div className="text-sm text-gray-600">Conversion</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-light text-gray-900 mb-1">{reward.redemptionRate}%</div>
+                    <div className="text-sm text-gray-600">Redemption</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-light text-gray-900 mb-1">
+                      {reward.lastRedeemed ? new Date(reward.lastRedeemed).toLocaleDateString() : 'Never'}
+                    </div>
+                    <div className="text-sm text-gray-600">Last Redeemed</div>
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              No rewards found
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
         <h3 className="text-2xl font-light text-gray-900 mb-6">Recent Activity</h3>
         <div className="space-y-4">
-          {[
-            { time: "2 minutes ago", action: "New reward claimed", user: "Sarah M.", reward: "Free Coffee" },
-            { time: "5 minutes ago", action: "New reward claimed", user: "Mike R.", reward: "20% Off Lunch" },
-            { time: "12 minutes ago", action: "Reward created", user: "You", reward: "Weekend Special" },
-            { time: "1 hour ago", action: "New reward claimed", user: "Lisa K.", reward: "Free Coffee" },
-          ].map((activity, idx) => (
-            <div key={idx} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-2xl">
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              <div className="flex-1">
-                <div className="font-medium text-gray-900">{activity.action}</div>
-                <div className="text-sm text-gray-600">{activity.user} • {activity.reward}</div>
+          {analytics?.recentClaims?.length ? (
+            analytics.recentClaims.map((claim, idx) => (
+              <div key={idx} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-2xl">
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <div className="flex-1">
+                  <div className="font-medium text-gray-900">New reward claimed</div>
+                  <div className="text-sm text-gray-600">{claim.header} • {claim.delivery_method}</div>
+                </div>
+                <div className="text-sm text-gray-500">
+                  {new Date(claim.claimed_at).toLocaleDateString()}
+                </div>
               </div>
-              <div className="text-sm text-gray-500">{activity.time}</div>
+            ))
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              No recent activity
             </div>
-          ))}
+          )}
         </div>
       </div>
     </div>
   );
 
-  // Settings view component
+  // Settings View Component
   const SettingsView = () => (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -575,150 +588,80 @@ export default function DemoDashboard() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
       {/* Header */}
-      <div className={`transition-all duration-1000 ease-out ${
-        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+      <div className={`transition-all duration-700 ease-in-out ${
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
       }`}>
         <div className="flex justify-between items-center p-6 border-b border-gray-200 bg-white/80 backdrop-blur-xl">
           <div className="flex items-center space-x-4">
-            <Link 
-              href="/"
-              className="text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              ← Back to Home
-            </Link>
-            <div className="w-px h-6 bg-gray-300"></div>
-            <h1 className="text-2xl font-light text-gray-900">
-              {currentView === 'dashboard' ? 'Business Dashboard' : 
-               currentView === 'analytics' ? 'Analytics' : 'Settings'}
-            </h1>
+            <h1 className="text-2xl font-light text-gray-900">Demo Dashboard</h1>
           </div>
-          <div className="text-sm text-gray-500">Demo Preview</div>
         </div>
       </div>
 
       <div className="container mx-auto px-6 py-8">
+
         {currentView === 'dashboard' ? (
           <>
             {/* Welcome Section */}
-            <div className={`transition-all duration-1000 delay-300 ease-out ${
-              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+            <div className={`transition-all duration-600 delay-200 ease-in-out ${
+              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
             }`}>
-              <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100 mb-8">
+              <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100 mb-8">
                 <div className="flex items-center space-x-4 mb-6">
-                  <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center">
-                    <span className="text-2xl">🏪</span>
+                  <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center overflow-hidden">
+                    {business.logo && business.logo.trim() !== '' ? (
+                      <img
+                        src={business.logo}
+                        alt="Business Logo"
+                        className="w-full h-full object-contain rounded-xl"
+                      />
+                    ) : (
+                      <span className="text-2xl text-gray-600">🏪</span>
+                    )}
                   </div>
                   <div>
-                    <h2 className="text-3xl font-light text-gray-900">Welcome back, Demo Business</h2>
+                    <h2 className="text-3xl font-light text-gray-900">Welcome back, {user.firstName}!</h2>
                     <p className="text-gray-600">Here&rsquo;s how your rewards are performing today</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Stats Grid */}
-            <div className={`transition-all duration-1000 delay-600 ease-out ${
-              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+            {/* Today's Stats Row */}
+            <div className={`transition-all duration-600 delay-300 ease-in-out ${
+              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
             }`}>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
-                {stats.map((stat, index) => (
-                  <div key={index} className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-2xl">{stat.icon}</span>
-                      <span className="text-sm text-green-600 font-medium">{stat.change}</span>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-8">
+                {(() => {
+                  const stats = getTodayStats(analytics);
+                  return [
+                    { icon: '📊', label: 'Total Views', value: stats.todayViews },
+                    { icon: '✅', label: 'Total Claims', value: stats.todayClaims },
+                    { icon: '🎯', label: 'Conversion Rate', value: `${stats.conversionRate}%` },
+                    { icon: '🎉', label: 'Total Redeemed', value: stats.todayRedeemed },
+                    { icon: '📈', label: 'Redemption Rate', value: `${stats.redemptionRate}%` },
+                    { icon: '🎁', label: 'Total Rewards', value: stats.totalRewards },
+                  ].map((card, idx) => (
+                    <div key={idx} className="bg-white rounded-2xl p-6 shadow-md border border-gray-100">
+                      <div className="text-2xl mb-2">{card.icon}</div>
+                      <div className="text-3xl font-light text-gray-900 mb-1">{card.value}</div>
+                      <div className="text-sm text-gray-600">{card.label}</div>
                     </div>
-                    <div className="text-3xl font-light text-gray-900 mb-1">{stat.value}</div>
-                    <div className="text-sm text-gray-600">{stat.label}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Demo Rewards Section */}
-            <div className="transition-all duration-1000 delay-400 ease-out mb-12">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-2xl font-light text-gray-900">Your Rewards</h3>
-                <button
-                  onClick={() => setShowCreate(true)}
-                  className="bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-3 rounded-xl shadow transition-all duration-300"
-                >
-                  + Create Reward
-                </button>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {rewards.map((reward, idx) => (
-                  <div key={idx} className="group relative">
-                    {/* Real Card - exactly like the claim reward page */}
-                    <div className="relative w-full max-w-sm mx-auto">
-                      <CardAnimation 
-                        card={{
-                          cardid: `demo-${idx}`,
-                          header: reward.businessName,
-                          logokey: reward.businessLogo,
-                          addresstext: `${reward.businessAddress}, ${reward.businessCity}, ${reward.businessState} ${reward.businessZipCode}`,
-                          addressurl: "",
-                          subheader: reward.subheader,
-                          expires: reward.expires,
-                          quantity: reward.quantity,
-                        }}
-                      />
-                    </div>
-
-                    {/* Card Details Below */}
-                    <div className="mt-4 bg-white rounded-2xl p-4 shadow-lg border border-gray-100">
-                      <div className="space-y-3">
-                        <div className="border-b border-gray-100 pb-3">
-                          <h4 className="font-semibold text-gray-900 text-lg leading-tight mb-1">
-                            {reward.subheader}
-                          </h4>
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-gray-600 font-medium">Quantity: {reward.quantity}</span>
-                            <span className="text-gray-500">
-                              {reward.expires ? new Date(reward.expires).toLocaleDateString() : "No expiration"}
-                            </span>
-                          </div>
-                        </div>
-                        
-                        {/* Card Status Indicators */}
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                            <span className="text-xs text-green-600 font-medium">Active</span>
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            ID: DEMO-{String(idx + 1).padStart(3, '0')}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Edit Button */}
-                      <div className="mt-4">
-                        <button
-                          onClick={() => {
-                            console.log('Edit button clicked for index:', idx);
-                            openEditReward(idx);
-                          }}
-                          className="w-full bg-black/90 hover:bg-black text-white px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 backdrop-blur-sm border border-gray-800/20"
-                        >
-                          Edit Reward
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                  ));
+                })()}
               </div>
             </div>
 
             {/* Quick Actions */}
-            <div className={`transition-all duration-1000 delay-1200 ease-out ${
-              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+            <div className={`transition-all duration-600 delay-400 ease-in-out ${
+              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
             }`}>
-              <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100 mb-8">
+              <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100 mb-8">
                 <h3 className="text-2xl font-light text-gray-900 mb-6">Quick Actions</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <button 
                     onClick={() => handleQuickAction('create')}
-                    className="flex items-center space-x-4 p-4 bg-green-50 rounded-2xl hover:bg-green-100 transition-colors"
+                    className="flex items-center space-x-4 p-4 bg-green-50 rounded-2xl hover:bg-green-100 transition-all duration-200 ease-in-out"
                   >
                     <span className="text-2xl">➕</span>
                     <div className="text-left">
@@ -728,7 +671,7 @@ export default function DemoDashboard() {
                   </button>
                   <button 
                     onClick={() => handleQuickAction('analytics')}
-                    className="flex items-center space-x-4 p-4 bg-blue-50 rounded-2xl hover:bg-blue-100 transition-colors"
+                    className="flex items-center space-x-4 p-4 bg-blue-50 rounded-2xl hover:bg-blue-100 transition-all duration-200 ease-in-out"
                   >
                     <span className="text-2xl">📊</span>
                     <div className="text-left">
@@ -737,8 +680,18 @@ export default function DemoDashboard() {
                     </div>
                   </button>
                   <button 
+                    onClick={() => handleQuickAction('add-business')}
+                    className="flex items-center space-x-4 p-4 bg-orange-50 rounded-2xl hover:bg-orange-100 transition-all duration-200 ease-in-out"
+                  >
+                    <span className="text-2xl">🏢</span>
+                    <div className="text-left">
+                      <div className="font-medium text-gray-900">Add Business</div>
+                      <div className="text-sm text-gray-600">Register new location</div>
+                    </div>
+                  </button>
+                  <button 
                     onClick={() => handleQuickAction('settings')}
-                    className="flex items-center space-x-4 p-4 bg-purple-50 rounded-2xl hover:bg-purple-100 transition-colors"
+                    className="flex items-center space-x-4 p-4 bg-purple-50 rounded-2xl hover:bg-purple-100 transition-all duration-200 ease-in-out"
                   >
                     <span className="text-2xl">⚙️</span>
                     <div className="text-left">
@@ -750,59 +703,112 @@ export default function DemoDashboard() {
               </div>
             </div>
 
-            {/* CTA Section */}
-            <div className={`transition-all duration-1000 delay-1500 ease-out ${
-              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-            }`}>
-              <div className="text-center bg-gradient-to-r from-green-500 to-green-600 rounded-3xl p-8 text-white">
-                <h3 className="text-3xl font-light mb-4">Ready to get started?</h3>
-                <p className="text-xl mb-8 opacity-90">This is just a preview. Sign up to create your own dashboard.</p>
-                <Link 
-                  href="/business/signup"
-                  className="inline-block bg-white text-green-600 font-medium px-8 py-4 rounded-2xl hover:bg-gray-50 transition-colors"
-                >
-                  Start Your Free Trial
-                </Link>
+            {/* Rewards Section */}
+            <div className="transition-all duration-600 delay-500 ease-in-out mb-12">
+              <div className="mb-6">
+                <h3 className="text-2xl font-light text-gray-900">Your Rewards</h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {cards.map((card, idx) => (
+                  <div key={idx} className="group relative">
+                    {/* Real Card - exactly like the claim reward page */}
+                    <div className="relative w-full max-w-sm mx-auto">
+                      <CardAnimation 
+                        card={{
+                          cardid: card.cardid,
+                          header: card.header || business.name,
+                          logokey: card.logokey || business.logo,
+                          addresstext: card.addresstext || `${business.address}, ${business.city}, ${business.state} ${business.zipCode}`,
+                          addressurl: card.addressurl || "",
+                          subheader: card.subheader || "Reward description",
+                          expires: card.expires || "",
+                          quantity: card.quantity,
+                        }}
+                      />
+                    </div>
+                    {/* Action Buttons - side by side, mobile friendly */}
+                    <div className="mt-4 flex space-x-2">
+                      <button
+                        onClick={() => handleEditReward(card)}
+                        className="flex-1 flex items-center justify-center bg-blue-50 hover:bg-blue-100 text-blue-700 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ease-in-out shadow-sm border border-blue-100"
+                      >
+                        <span className="mr-2">✏️</span> Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteReward(card.cardid)}
+                        className="flex-1 flex items-center justify-center bg-red-50 hover:bg-red-100 text-red-600 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ease-in-out shadow-sm border border-red-100"
+                      >
+                        <span className="mr-2">🗑️</span> Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </>
         ) : currentView === 'analytics' ? (
           <AnalyticsView />
-        ) : (
+        ) : currentView === 'settings' ? (
           <SettingsView />
-        )}
+        ) : null}
 
         {/* Create Reward Modal */}
         <CreateRewardForm
-          isOpen={showCreate}
-          onClose={() => setShowCreate(false)}
-          onSubmit={handleCreateReward}
-          business={mockBusiness}
-          isProfileComplete={true}
+          isOpen={showCreateReward}
+          onClose={() => setShowCreateReward(false)}
+          onSubmit={handleCreateRewardSubmit}
+          business={{
+            id: business.id,
+            name: business.name,
+            address: business.address,
+            city: business.city,
+            state: business.state,
+            zipCode: business.zipCode,
+            category: business.category,
+            logo: business.logo,
+          }}
+          isProfileComplete={isProfileComplete}
         />
+
         {/* Edit Reward Modal */}
-        {editIndex !== null && editRewardData && (
-          <>
-            {console.log('Rendering DemoEditForm with:', { editIndex, editRewardData })}
-            <DemoEditForm
-              card={{
-                cardid: `demo-${editIndex}`,
-                header: editRewardData.businessName,
-                logokey: editRewardData.businessLogo,
-                addresstext: `${editRewardData.businessAddress}, ${editRewardData.businessCity}, ${editRewardData.businessState} ${editRewardData.businessZipCode}`,
-                addressurl: "",
-                subheader: editRewardData.subheader,
-                expires: editRewardData.expires,
-                quantity: editRewardData.quantity,
-              }}
-              onClose={() => { 
-                console.log('Closing edit modal');
-                setEditIndex(null); 
-                setEditRewardData(null); 
-              }}
-            />
-          </>
+        {showEditReward && editingCard && (
+          <EditRewardForm
+            card={editingCard}
+            onClose={handleCloseEditReward}
+            onSuccess={handleEditRewardSuccess}
+          />
         )}
+
+        {/* Logo Upload Modal */}
+        {showLogoUpload && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Upload Business Logo</h3>
+                <button
+                  onClick={() => setShowLogoUpload(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <LogoUpload
+                currentLogo={business?.logo}
+                onUpload={handleLogoUpload}
+                businessName={business?.name || "Business"}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Add Business Modal */}
+        <AddBusinessForm
+          isOpen={showAddBusiness}
+          onClose={() => setShowAddBusiness(false)}
+          onSubmit={handleAddBusinessSubmit}
+        />
       </div>
     </main>
   );

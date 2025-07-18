@@ -1,0 +1,22 @@
+<svg width="200" height="80" viewBox="0 0 200 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="40" cy="40" r="35" fill="#8B4513" stroke="#654321" stroke-width="2"/>
+  
+  <!-- Coffee cup -->
+  <path d="M25 25 L25 55 L55 55 L55 45 L65 45 L65 35 L55 35 L55 25 Z" fill="#F5F5DC" stroke="#8B4513" stroke-width="2"/>
+  
+  <!-- Coffee cup handle -->
+  <path d="M55 35 Q65 35 65 40 Q65 45 55 45" fill="none" stroke="#8B4513" stroke-width="2"/>
+  
+  <!-- Steam lines -->
+  <path d="M30 20 Q35 15 40 20" stroke="#D3D3D3" stroke-width="1.5" fill="none"/>
+  <path d="M40 18 Q45 13 50 18" stroke="#D3D3D3" stroke-width="1.5" fill="none"/>
+  <path d="M35 22 Q40 17 45 22" stroke="#D3D3D3" stroke-width="1.5" fill="none"/>
+  
+  <!-- Coffee inside cup -->
+  <path d="M27 27 L27 53 L53 53 L53 27 Z" fill="#8B4513"/>
+  
+  <!-- Business name -->
+  <text x="85" y="30" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#8B4513">Demo Coffee</text>
+  <text x="85" y="50" font-family="Arial, sans-serif" font-size="12" fill="#666666">Premium Brews</text>
+</svg> 

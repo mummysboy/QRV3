@@ -129,7 +129,7 @@ export default function CardAnimation({ card, playbackRate = 1, isPreview = fals
 
   // Construct the logo URL using the storage utility
   const logoUrl = cardData?.logokey
-    ? cardData.logokey.startsWith("data:") || cardData.logokey.startsWith("http")
+    ? cardData.logokey.startsWith("data:") || cardData.logokey.startsWith("http") || cardData.logokey.startsWith("/")
       ? cardData.logokey
       : getStorageUrlSync(cardData.logokey)
     : null;
@@ -312,7 +312,9 @@ export default function CardAnimation({ card, playbackRate = 1, isPreview = fals
                 </p>
               </div>
               <div className={`mt-2 ${isPreview ? 'px-2' : 'px-1'}`}>
-                {cardData?.expires && cardData.expires !== "Demo Reward Not Valid" ? (
+                {cardData?.expires && 
+                 cardData.expires !== "Demo Reward Not Valid" && 
+                 (typeof cardData.expires === 'string' ? cardData.expires.trim() !== "" : true) ? (
                   isExpiringSoon(cardData.expires) ? (
                     <CountdownTimer expirationDate={String(cardData.expires)} />
                   ) : (
@@ -320,11 +322,7 @@ export default function CardAnimation({ card, playbackRate = 1, isPreview = fals
                       Expires: {new Date(cardData.expires).toLocaleDateString()}
                     </p>
                   )
-                ) : (
-                  <p className={`${isPreview ? 'text-xs' : 'text-xs'} font-light leading-tight`}>
-                    Expires: {String(cardData?.expires || 'N/A')}
-                  </p>
-                )}
+                ) : null}
               </div>
             </>
           )}
