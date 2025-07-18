@@ -448,9 +448,6 @@ export default function Home() {
             <h2 className="text-4xl md:text-5xl font-light mb-8 tracking-tight">
               Ready to get more customers?
             </h2>
-            <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto">
-              Join thousands of businesses already using QR rewards to connect with their community.
-            </p>
             <button
               onClick={handleGetStarted}
               className="bg-green-600 hover:bg-green-700 text-white text-xl font-medium px-12 py-5 rounded-2xl transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-2xl"
