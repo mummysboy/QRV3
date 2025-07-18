@@ -6,13 +6,25 @@ import sharp from "sharp";
 // Create S3 client with proper configuration
 const s3Client = new S3Client({
   region: "us-west-1",
-  // Use default credential provider chain
+  // Add credentials if they exist in environment variables (for local development)
+  // When deployed on AWS, this will use the IAM role automatically
+  ...(process.env.ACCESS_KEY_ID && process.env.SECRET_ACCESS_KEY && {
+    credentials: {
+      accessKeyId: process.env.ACCESS_KEY_ID,
+      secretAccessKey: process.env.SECRET_ACCESS_KEY,
+    },
+  }),
 });
 
 const BUCKET_NAME = "qrewards-media6367c-dev";
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('🔧 Logo upload: Starting upload process...');
+    console.log('🔧 Logo upload: Environment check - ACCESS_KEY_ID exists:', !!process.env.ACCESS_KEY_ID);
+    console.log('🔧 Logo upload: Environment check - SECRET_ACCESS_KEY exists:', !!process.env.SECRET_ACCESS_KEY);
+    console.log('🔧 Logo upload: Environment check - REGION:', process.env.REGION || 'us-west-1');
+    
     const formData = await request.formData();
     const logo = formData.get('logo') as File;
     const businessName = formData.get('businessName') as string;
@@ -61,6 +73,11 @@ export async function POST(request: NextRequest) {
     const fileName = `logos/${businessName.replace(/[^a-zA-Z0-9]/g, '-')}-${uuidv4()}.png`;
 
     // Upload directly to S3 using the S3 client
+    console.log('🔧 Logo upload: Attempting S3 upload...');
+    console.log('🔧 Logo upload: Bucket:', BUCKET_NAME);
+    console.log('🔧 Logo upload: Key:', fileName);
+    console.log('🔧 Logo upload: File size:', processedBuffer.length, 'bytes');
+    
     const uploadCommand = new PutObjectCommand({
       Bucket: BUCKET_NAME,
       Key: fileName,
@@ -70,7 +87,20 @@ export async function POST(request: NextRequest) {
       // Note: Files will be accessible if bucket has public read policy
     });
 
-    await s3Client.send(uploadCommand);
+    try {
+      await s3Client.send(uploadCommand);
+      console.log('🔧 Logo upload: S3 upload successful');
+    } catch (s3Error) {
+      console.error('🔧 Logo upload: S3 upload failed:', s3Error);
+      console.error('🔧 Logo upload: S3 error details:', {
+        name: s3Error instanceof Error ? s3Error.name : 'Unknown',
+        message: s3Error instanceof Error ? s3Error.message : 'Unknown error',
+        code: s3Error && typeof s3Error === 'object' && '$metadata' in s3Error 
+          ? (s3Error as { $metadata?: { httpStatusCode?: number } }).$metadata?.httpStatusCode || 'Unknown'
+          : 'Unknown'
+      });
+      throw s3Error;
+    }
 
     // Construct the public URL
     // Note: This URL will work if the bucket has a public read policy
