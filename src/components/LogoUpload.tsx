@@ -35,14 +35,7 @@ export default function LogoUpload({ businessName, onUpload, currentLogo }: Logo
   const handleFile = async (file: File) => {
     setError("");
     
-    // Validate file type
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-    if (!validTypes.includes(file.type)) {
-      setError("Please upload a valid image file (JPEG, PNG, GIF, or WebP)");
-      return;
-    }
-
-    // Validate file size (max 5MB)
+    // Only validate file size (max 5MB) - remove strict file type validation
     if (file.size > 5 * 1024 * 1024) {
       setError("File size must be less than 5MB");
       return;
@@ -76,25 +69,54 @@ export default function LogoUpload({ businessName, onUpload, currentLogo }: Logo
     }
   };
 
+  const triggerFileInput = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
   return (
     <div className="w-full">
+      {/* Mobile-friendly upload area */}
       <div
-        className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
+        className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors touch-manipulation ${
           isUploading
             ? "border-gray-300 bg-gray-50"
-            : "border-gray-300 hover:border-blue-400 hover:bg-blue-50"
+            : "border-gray-300 hover:border-blue-400 hover:bg-blue-50 active:bg-blue-100"
         }`}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
-        onClick={() => fileInputRef.current?.click()}
+        onClick={triggerFileInput}
+        onTouchStart={(e) => {
+          // Prevent double-tap zoom on mobile
+          e.preventDefault();
+        }}
+        style={{
+          minHeight: '120px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}
       >
         <input
           ref={fileInputRef}
           type="file"
           accept="image/*"
+          capture="environment"
           onChange={handleFileSelect}
           className="hidden"
           disabled={isUploading}
+          style={{
+            position: 'absolute',
+            width: '1px',
+            height: '1px',
+            padding: 0,
+            margin: '-1px',
+            overflow: 'hidden',
+            clip: 'rect(0, 0, 0, 0)',
+            whiteSpace: 'nowrap',
+            border: 0
+          }}
         />
         
         {isUploading ? (
@@ -120,11 +142,11 @@ export default function LogoUpload({ businessName, onUpload, currentLogo }: Logo
             <div>
               <p className="text-sm text-gray-600">
                 <span className="font-medium text-blue-600 hover:text-blue-500">
-                  Click to upload
+                  Tap to upload
                 </span>{" "}
                 or drag and drop
               </p>
-              <p className="text-xs text-gray-500">PNG, JPG, GIF, WebP up to 5MB</p>
+              <p className="text-xs text-gray-500">Any image file up to 5MB</p>
             </div>
           </div>
         )}

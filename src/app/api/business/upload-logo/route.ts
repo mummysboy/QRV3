@@ -18,6 +18,18 @@ const s3Client = new S3Client({
 
 const BUCKET_NAME = "qrewards-media6367c-dev";
 
+// Helper function to add CORS headers
+function addCorsHeaders(response: NextResponse) {
+  response.headers.set('Access-Control-Allow-Origin', '*');
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  return response;
+}
+
+export async function OPTIONS() {
+  return addCorsHeaders(new NextResponse(null, { status: 200 }));
+}
+
 export async function POST(request: NextRequest) {
   try {
     console.log('🔧 Logo upload: Starting upload process...');
@@ -30,43 +42,49 @@ export async function POST(request: NextRequest) {
     const businessName = formData.get('businessName') as string;
 
     if (!logo) {
-      return NextResponse.json(
+      const errorResponse = NextResponse.json(
         { error: "No logo file provided" },
         { status: 400 }
       );
+      return addCorsHeaders(errorResponse);
     }
 
     if (!businessName) {
-      return NextResponse.json(
+      const errorResponse = NextResponse.json(
         { error: "Business name is required" },
         { status: 400 }
       );
+      return addCorsHeaders(errorResponse);
     }
 
     // Validate file size (max 5MB)
     if (logo.size > 5 * 1024 * 1024) {
-      return NextResponse.json(
+      const errorResponse = NextResponse.json(
         { error: "File size must be less than 5MB" },
         { status: 400 }
       );
+      return addCorsHeaders(errorResponse);
     }
 
     // Convert file to buffer
     const inputBuffer = Buffer.from(await logo.arrayBuffer());
 
     // Use sharp to process the image: auto-orient, resize, convert to PNG
+    // More flexible processing that handles various input formats
     let processedBuffer;
     try {
       processedBuffer = await sharp(inputBuffer)
         .rotate() // auto-orient based on EXIF
         .resize(512, 512, { fit: 'inside', withoutEnlargement: true })
-        .png()
+        .png({ quality: 90 }) // Ensure good quality
         .toBuffer();
-    } catch {
-      return NextResponse.json(
-        { error: "Failed to process image. Please upload a valid image file." },
+    } catch (sharpError) {
+      console.error('🔧 Logo upload: Sharp processing error:', sharpError);
+      const errorResponse = NextResponse.json(
+        { error: "Failed to process image. Please try uploading a different image file." },
         { status: 400 }
       );
+      return addCorsHeaders(errorResponse);
     }
 
     // Generate unique filename
@@ -77,14 +95,14 @@ export async function POST(request: NextRequest) {
     console.log('🔧 Logo upload: Bucket:', BUCKET_NAME);
     console.log('🔧 Logo upload: Key:', fileName);
     console.log('🔧 Logo upload: File size:', processedBuffer.length, 'bytes');
+    console.log('🔧 Logo upload: Original file type:', logo.type);
     
     const uploadCommand = new PutObjectCommand({
       Bucket: BUCKET_NAME,
       Key: fileName,
       Body: processedBuffer,
       ContentType: 'image/png',
-      // Remove ACL since the bucket doesn't allow it
-      // Note: Files will be accessible if bucket has public read policy
+      CacheControl: 'public, max-age=31536000', // Cache for 1 year
     });
 
     try {
@@ -111,10 +129,11 @@ export async function POST(request: NextRequest) {
       logoUrl,
       businessName,
       fileSize: logo.size,
-      contentType: logo.type
+      contentType: logo.type,
+      processedSize: processedBuffer.length
     });
 
-    return NextResponse.json(
+    const successResponse = NextResponse.json(
       { 
         success: true, 
         logoUrl: logoUrl,
@@ -122,6 +141,7 @@ export async function POST(request: NextRequest) {
       },
       { status: 200 }
     );
+    return addCorsHeaders(successResponse);
   } catch (error) {
     console.error("Error uploading logo:", error);
     
@@ -131,12 +151,13 @@ export async function POST(request: NextRequest) {
       errorMessage = `Upload failed: ${error.message}`;
     }
     
-    return NextResponse.json(
+    const errorResponse = NextResponse.json(
       { 
         error: errorMessage,
         details: error instanceof Error ? error.message : "Unknown error"
       },
       { status: 500 }
     );
+    return addCorsHeaders(errorResponse);
   }
 } 
