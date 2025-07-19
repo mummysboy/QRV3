@@ -91,18 +91,23 @@ export default function LogoUpload({ businessName, onUpload, currentLogo }: Logo
           // Prevent double-tap zoom on mobile
           e.preventDefault();
         }}
+        onTouchEnd={(e) => {
+          // Ensure touch events work properly on mobile
+          e.preventDefault();
+          triggerFileInput();
+        }}
         style={{
           minHeight: '120px',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center'
+          justifyContent: 'center',
+          touchAction: 'manipulation'
         }}
       >
         <input
           ref={fileInputRef}
           type="file"
           accept="image/*"
-          capture="environment"
           onChange={handleFileSelect}
           className="hidden"
           disabled={isUploading}
@@ -147,6 +152,7 @@ export default function LogoUpload({ businessName, onUpload, currentLogo }: Logo
                 or drag and drop
               </p>
               <p className="text-xs text-gray-500">Any image file up to 5MB</p>
+              <p className="text-xs text-gray-400 mt-1">📱 Choose from camera or photo library</p>
             </div>
           </div>
         )}
