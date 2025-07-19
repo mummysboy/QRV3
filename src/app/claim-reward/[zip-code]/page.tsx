@@ -57,8 +57,84 @@ export default function ClaimRewardPage() {
     }
   }, [zipCode]);
 
+  // Combined cooldown check and card fetching logic
   useEffect(() => {
-    const fetchCard = async () => {
+    const initializePage = async () => {
+      console.log("🚀 Page initialization starting...");
+      
+      // First, check cooldown
+      let cooldownActive = false;
+      let remainingTime = 0;
+      
+      // Try IP-based cooldown first, with better error handling
+      try {
+        const res = await fetch("https://api.ipify.org?format=json", {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+          },
+          // Add timeout to prevent hanging
+          signal: AbortSignal.timeout(5000)
+        });
+        
+        if (!res.ok) {
+          throw new Error(`IP fetch failed with status: ${res.status}`);
+        }
+        
+        const contentType = res.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          throw new Error('IP fetch returned non-JSON response');
+        }
+        
+        const { ip } = await res.json();
+        const storageKey = `rewardClaimedAt:${ip}`;
+        let claimedAt = localStorage.getItem(storageKey);
+
+        // Fallback to simple key if IP-based key doesn't exist
+        if (!claimedAt) {
+          claimedAt = localStorage.getItem("rewardClaimedAt");
+        }
+
+        if (claimedAt) {
+          const elapsed = Date.now() - parseInt(claimedAt, 10);
+          remainingTime = 900000 - elapsed; // 15 minutes in milliseconds
+          if (remainingTime > 0) {
+            console.log("⏰ Cooldown active, remaining:", Math.floor(remainingTime / 1000 / 60), "minutes");
+            cooldownActive = true;
+          }
+        }
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.log("⚠️ IP-based cooldown check failed, using fallback:", errorMessage);
+        // Fallback to simple key when IP fetch fails
+        const claimedAt = localStorage.getItem("rewardClaimedAt");
+        if (claimedAt) {
+          const elapsed = Date.now() - parseInt(claimedAt, 10);
+          remainingTime = 900000 - elapsed; // 15 minutes in milliseconds
+          if (remainingTime > 0) {
+            console.log("⏰ Cooldown active (fallback), remaining:", Math.floor(remainingTime / 1000 / 60), "minutes");
+            cooldownActive = true;
+          }
+        }
+      }
+
+      // If cooldown is active, show thank you overlay and don't fetch card
+      if (cooldownActive) {
+        console.log("⏸️ Cooldown active - showing thank you overlay, skipping card fetch");
+        setJustClaimed(false);
+        setCooldown(remainingTime);
+        setShowThankYouOverlay(true);
+        
+        const timer = setTimeout(() => {
+          setCooldown(null);
+          setShowThankYouOverlay(false);
+        }, remainingTime);
+        return () => clearTimeout(timer);
+      }
+
+      // If no cooldown, fetch the card
+      console.log("✅ No cooldown active - fetching card");
+      
       try {
         const pathname = window.location.pathname;
         const code = pathname.includes("/reward/")
@@ -146,75 +222,42 @@ export default function ClaimRewardPage() {
           }
         }
       } catch (err) {
-        // If you need to use the logo URL, handle it here or pass it to a component as needed.
         console.error("🚨 Error fetching card or logo:", err);
         setCard(null);
       }
     };
 
-    fetchCard();
-  }, []);
+    initializePage();
+  }, [zipCode]);
 
-  useEffect(() => {
-    const checkCooldown = async () => {
-      try {
-        const res = await fetch("https://api.ipify.org?format=json");
-        const { ip } = await res.json();
-        const storageKey = `rewardClaimedAt:${ip}`;
-        let claimedAt = localStorage.getItem(storageKey);
 
-        // Fallback to simple key if IP-based key doesn't exist
-        if (!claimedAt) {
-          claimedAt = localStorage.getItem("rewardClaimedAt");
-        }
-
-        if (claimedAt) {
-          const elapsed = Date.now() - parseInt(claimedAt, 10);
-          const remaining = 900000 - elapsed; // 15 minutes in milliseconds
-          if (remaining > 0) {
-            setJustClaimed(false);
-            setCooldown(remaining);
-            setShowThankYouOverlay(true);
-            const timer = setTimeout(() => {
-              setCooldown(null);
-              setShowThankYouOverlay(false);
-            }, remaining);
-            return () => clearTimeout(timer);
-          }
-        }
-      } catch (error) {
-        console.error("Failed to check cooldown via IP", error);
-        // Fallback to simple key when IP fetch fails
-        const claimedAt = localStorage.getItem("rewardClaimedAt");
-        if (claimedAt) {
-          const elapsed = Date.now() - parseInt(claimedAt, 10);
-          const remaining = 900000 - elapsed; // 15 minutes in milliseconds
-          if (remaining > 0) {
-            setJustClaimed(false);
-            setCooldown(remaining);
-            setShowThankYouOverlay(true);
-            const timer = setTimeout(() => {
-              setCooldown(null);
-              setShowThankYouOverlay(false);
-            }, remaining);
-            return () => clearTimeout(timer);
-          }
-        }
-      }
-    };
-
-    checkCooldown();
-  }, []);
 
   const handleClaimComplete = async () => {
     const now = Date.now();
     try {
-      const res = await fetch("https://api.ipify.org?format=json");
+      const res = await fetch("https://api.ipify.org?format=json", {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+        },
+        signal: AbortSignal.timeout(5000)
+      });
+      
+      if (!res.ok) {
+        throw new Error(`IP fetch failed with status: ${res.status}`);
+      }
+      
+      const contentType = res.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('IP fetch returned non-JSON response');
+      }
+      
       const { ip } = await res.json();
       const storageKey = `rewardClaimedAt:${ip}`;
       localStorage.setItem(storageKey, now.toString());
     } catch (error) {
-      console.error("Failed to get IP for storage, using fallback key", error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.log("⚠️ IP-based storage failed, using fallback key:", errorMessage);
       localStorage.setItem("rewardClaimedAt", now.toString());
     }
     
