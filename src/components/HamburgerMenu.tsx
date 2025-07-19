@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { Menu, X } from "lucide-react";
 
 interface HamburgerMenuProps {
   onContactClick: () => void;
@@ -51,12 +52,14 @@ export default function HamburgerMenu({ onContactClick }: HamburgerMenuProps) {
       )}
       <button
         onClick={() => setOpen(!open)}
-        className="flex flex-col justify-center gap-1 p-2 relative"
+        className="flex items-center justify-center p-2 relative"
         aria-label="Toggle menu"
       >
-        <span className="h-0.5 w-6 bg-gray-800 rounded opacity-80" />
-        <span className="h-0.5 w-6 bg-gray-800 rounded opacity-80" />
-        <span className="h-0.5 w-6 bg-gray-800 rounded opacity-80" />
+        {open ? (
+          <X className="w-6 h-6 text-gray-800" />
+        ) : (
+          <Menu className="w-6 h-6 text-gray-800" />
+        )}
       </button>
 
       {open && (

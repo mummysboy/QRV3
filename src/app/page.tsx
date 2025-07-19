@@ -4,6 +4,7 @@
 import { useState, useEffect } from "react";
 import LogoVideo from "@/components/LogoVideo";
 import BusinessSignupForm, { BusinessSignupData } from "@/components/BusinessSignupForm";
+import { FileText, CheckCircle, Gift, Smartphone, Mail, Building2, ArrowRight, Zap, Target, BarChart3 } from "lucide-react";
 
 export default function Home() {
   const [isVisible, setIsVisible] = useState(false);
@@ -13,6 +14,7 @@ export default function Home() {
   const [customerZipCode, setCustomerZipCode] = useState("");
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [visibleSections, setVisibleSections] = useState<Set<string>>(new Set());
 
   const reviews = [
     {
@@ -53,6 +55,31 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, []);
 
+  // Intersection Observer for scroll animations
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setVisibleSections(prev => new Set(prev).add(entry.target.id));
+          }
+        });
+      },
+      {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+      }
+    );
+
+    // Observe all sections
+    const sections = document.querySelectorAll('[data-animate]');
+    sections.forEach(section => observer.observe(section));
+
+    return () => {
+      sections.forEach(section => observer.unobserve(section));
+    };
+  }, []);
+
   // Auto-advance reviews for demo effect
   useEffect(() => {
     const interval = setInterval(() => {
@@ -63,6 +90,11 @@ export default function Home() {
 
   const handleGetStarted = () => {
     setShowBusinessSignupForm(true);
+  };
+
+  const handleDemoDashboard = () => {
+    console.log('Demo dashboard button clicked');
+    window.open('/demo-dashboard', '_blank');
   };
 
   const handleBusinessSignupSubmit = async (data: BusinessSignupData) => {
@@ -139,26 +171,24 @@ export default function Home() {
     }
   };
 
-
-
   const businessSteps = [
     {
       title: "Sign up",
       caption: "Create your business profile and enter your location and brand info.",
-      icon: "📝",
-      color: "bg-blue-500/10 text-blue-600"
+      icon: FileText,
+      color: "bg-gradient-to-br from-blue-50 to-indigo-50 text-blue-600 border border-blue-100"
     },
     {
       title: "Get Approved",
       caption: "We verify your business to keep the platform clean and trustworthy.",
-      icon: "✅",
-      color: "bg-green-500/10 text-green-600"
+      icon: CheckCircle,
+      color: "bg-gradient-to-br from-green-50 to-emerald-50 text-green-600 border border-green-100"
     },
     {
       title: "Start Creating Rewards",
       caption: "Make compelling QR or geo-rewards your customers can redeem in-store.",
-      icon: "🎁",
-      color: "bg-purple-500/10 text-purple-600"
+      icon: Gift,
+      color: "bg-gradient-to-br from-purple-50 to-violet-50 text-purple-600 border border-purple-100"
     }
   ];
 
@@ -166,50 +196,52 @@ export default function Home() {
     {
       title: "Discover Rewards",
       caption: "Customers scan a QR code or tap on a geo-targeted ad.",
-      icon: "📱",
-      color: "bg-indigo-500/10 text-indigo-600"
+      icon: Smartphone,
+      color: "bg-gradient-to-br from-cyan-50 to-blue-50 text-cyan-600 border border-cyan-100"
     },
     {
       title: "Claim via Email or SMS",
       caption: "They receive the reward directly to their inbox or phone.",
-      icon: "📧",
-      color: "bg-pink-500/10 text-pink-600"
+      icon: Mail,
+      color: "bg-gradient-to-br from-orange-50 to-amber-50 text-orange-600 border border-orange-100"
     },
     {
       title: "Redeem In-Store",
       caption: "Fast, easy redemption with a few taps in-store.",
-      icon: "🏪",
-      color: "bg-orange-500/10 text-orange-600"
+      icon: Building2,
+      color: "bg-gradient-to-br from-emerald-50 to-teal-50 text-emerald-600 border border-emerald-100"
     }
   ];
 
   return (
-    <main className="relative min-h-screen bg-white text-gray-900 overflow-hidden">
-      {/* Animated background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-50">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(34,197,94,0.05),transparent_50%)]"></div>
+    <main className="relative min-h-screen bg-white text-gray-900 overflow-hidden pt-20">
+      {/* Enhanced animated background gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-blue-50">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.08),transparent_50%)]"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(16,185,129,0.06),transparent_50%)]"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_90%_10%,rgba(168,85,247,0.04),transparent_50%)]"></div>
       </div>
 
-      {/* Header with Logo */}
-      <div className={`transition-all duration-1000 ease-out ${
+      {/* Logo Section - Positioned below header */}
+      <div className={`transition-all duration-1000 ease-out pt-4 pb-12 ${
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
       }`}>
-        <div className="flex justify-between items-center p-4">
+        <div className="flex justify-center items-center">
           <LogoVideo />
         </div>
       </div>
-      
+  
       {/* Hero Section */}
-      <div className="relative z-10 container mx-auto px-6 py-16 md:py-24">
-        <div className="text-center max-w-4xl mx-auto">
+      <section className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-20">
+        <div className="max-w-4xl mx-auto text-center">
           {/* Main headline */}
           <div className={`transition-all duration-1000 delay-300 ease-out ${
             isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
           }`}>
-            <h1 className="text-5xl md:text-7xl font-light text-gray-900 mb-6 tracking-tight">
-              QRewards helps small businesses do big things
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light text-slate-800 mb-6 tracking-tight leading-tight">
+              Helping small businesses do big things
             </h1>
-            <p className="text-xl md:text-2xl text-gray-600 font-light mb-8 tracking-wide">
+            <p className="text-lg sm:text-xl md:text-2xl text-slate-600 font-light mb-8 tracking-wide max-w-3xl mx-auto">
               Low-cost, high-impact tools to attract and retain customers
             </p>
           </div>
@@ -218,44 +250,59 @@ export default function Home() {
           <div className={`transition-all duration-1000 delay-600 ease-out ${
             isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           }`}>
-            <p className="text-lg text-gray-700 mb-12 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-base sm:text-lg text-slate-700 mb-12 max-w-2xl mx-auto leading-relaxed">
               Create instant rewards that customers can claim with a simple QR code scan. 
               No apps, no complicated setup - just more customers walking through your door.
             </p>
           </div>
 
+          {/* Hero CTA Buttons */}
+          <div className={`transition-all duration-1000 delay-900 ease-out flex flex-col sm:flex-row gap-6 justify-center items-center ${
+            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          }`}>
+     
+            <button
+              onClick={handleGetStarted}
+              className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white px-8 py-4 rounded-2xl shadow-lg font-medium text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            >
+              Start Free Trial
+            </button>
 
+          </div>
         </div>
-      </div>
+      </section>
 
       {/* Section 1: How Businesses Use QRewards */}
-      <div className={`transition-all duration-1000 delay-1200 ease-out ${
-        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-      }`}>
-        <div className="container mx-auto px-6 py-20">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-light mb-6 tracking-tight">
+      <section 
+        id="business-steps"
+        data-animate="slide-up"
+        className={`transition-all duration-1000 ease-out bg-gradient-to-br from-slate-50 to-blue-50/30 ${
+          visibleSections.has('business-steps') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
+        }`}>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20 lg:py-24 text-center">
+          <div className="text-center max-w-4xl mx-auto mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-light mb-6 tracking-tight text-slate-800">
               How Businesses Use QRewards
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto">
               Simple steps to start attracting more customers to your business
             </p>
           </div>
 
           {/* Business Steps */}
-          <div className="grid md:grid-cols-3 gap-8 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-12">
             {businessSteps.map((step, index) => (
               <div 
                 key={index}
-                className="text-center p-8 bg-white/60 backdrop-blur-sm rounded-3xl border border-gray-100 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-105"
+                className="text-center p-6 md:p-8 bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-105 hover:border-slate-300"
               >
-                <div className={`w-20 h-20 ${step.color} rounded-full flex items-center justify-center mx-auto mb-6 text-3xl`}>
-                  {step.icon}
+                <div className={`w-16 h-16 md:w-20 md:h-20 ${step.color} rounded-full flex items-center justify-center mx-auto mb-6 shadow-md`}>
+                  <step.icon size={32} />
                 </div>
-                <h3 className="text-2xl font-medium mb-4 text-gray-900">
+                <h3 className="text-xl md:text-2xl font-medium mb-4 text-slate-800">
                   {step.title}
                 </h3>
-                <p className="text-gray-600 leading-relaxed">
+                <p className="text-slate-600 leading-relaxed text-sm md:text-base">
                   {step.caption}
                 </p>
               </div>
@@ -264,49 +311,48 @@ export default function Home() {
 
           {/* Business CTA */}
           <div className="text-center">
-            <a
-              href="/demo-dashboard"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center space-x-3 bg-black hover:bg-gray-800 text-white px-8 py-4 rounded-2xl shadow-xl font-medium text-lg transition-all duration-300 transform hover:scale-105"
+            <button
+              onClick={handleDemoDashboard}
+              className="inline-flex items-center space-x-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-8 py-4 rounded-2xl shadow-lg font-medium text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
             >
               <span>Demo the Business Dashboard</span>
-              <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M17 7l-10 10M17 17V7H7"/>
-              </svg>
-            </a>
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </button>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Section 2: How Customers Redeem Rewards */}
-      <div className={`transition-all duration-1000 delay-1500 ease-out ${
-        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-      }`}>
-        <div className="container mx-auto px-6 py-20 bg-gray-50/50">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-light mb-6 tracking-tight">
+      <section 
+        id="customer-steps"
+        data-animate="slide-left"
+        className={`transition-all duration-1000 ease-out ${
+          visibleSections.has('customer-steps') ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-12'
+        }`}>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20 lg:py-24 text-center">
+          <div className="text-center max-w-4xl mx-auto mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-light mb-6 tracking-tight text-slate-800">
               How Customers Redeem Rewards
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Seamless experience from discovery to redemption
+            <p className="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto">
+              A seamless experience that keeps customers coming back
             </p>
           </div>
 
           {/* Customer Steps */}
-          <div className="grid md:grid-cols-3 gap-8 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-12">
             {customerSteps.map((step, index) => (
               <div 
                 key={index}
-                className="text-center p-8 bg-white/80 backdrop-blur-sm rounded-3xl border border-gray-100 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-105"
+                className="text-center p-6 md:p-8 bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-105 hover:border-slate-300"
               >
-                <div className={`w-20 h-20 ${step.color} rounded-full flex items-center justify-center mx-auto mb-6 text-3xl`}>
-                  {step.icon}
+                <div className={`w-16 h-16 md:w-20 md:h-20 ${step.color} rounded-full flex items-center justify-center mx-auto mb-6 shadow-md`}>
+                  <step.icon size={32} />
                 </div>
-                <h3 className="text-2xl font-medium mb-4 text-gray-900">
+                <h3 className="text-xl md:text-2xl font-medium mb-4 text-slate-800">
                   {step.title}
                 </h3>
-                <p className="text-gray-600 leading-relaxed">
+                <p className="text-slate-600 leading-relaxed text-sm md:text-base">
                   {step.caption}
                 </p>
               </div>
@@ -317,75 +363,87 @@ export default function Home() {
           <div className="text-center">
             <button
               onClick={() => setShowCustomerDemo(true)}
-              className="inline-flex items-center space-x-3 bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-2xl shadow-xl font-medium text-lg transition-all duration-300 transform hover:scale-105"
+              className="inline-flex items-center space-x-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white px-8 py-4 rounded-2xl shadow-lg font-medium text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
             >
               <span>Demo the Customer Experience</span>
-              <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M17 7l-10 10M17 17V7H7"/>
-              </svg>
+              <ArrowRight className="w-5 h-5 ml-2" />
             </button>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Benefits section - Clean grid */}
-      <div className={`transition-all duration-1000 delay-1800 ease-out ${
-        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-      }`}>
-        <div className="container mx-auto px-6 py-20">
-          <div className="grid md:grid-cols-3 gap-8 mb-20">
-            <div className="text-center p-8">
-              <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span className="text-2xl">⚡</span>
+      <section 
+        id="benefits"
+        data-animate="fade-scale"
+        className={`transition-all duration-1000 ease-out bg-gradient-to-br from-slate-50 to-purple-50/30 ${
+          visibleSections.has('benefits') ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+        }`}>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20 lg:py-24 text-center">
+          <div className="text-center max-w-4xl mx-auto mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-light mb-6 tracking-tight text-slate-800">
+              Why Choose QRewards
+            </h2>
+            <p className="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto">
+              Powerful features that make customer acquisition simple and effective
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-12">
+            <div className="text-center p-6 md:p-8 bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-105 hover:border-slate-300">
+              <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-yellow-50 to-amber-50 text-amber-600 border border-amber-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-md">
+                <Zap size={32} />
               </div>
-              <h3 className="text-xl font-medium mb-4">Instant Setup</h3>
-              <p className="text-gray-600 leading-relaxed">
+              <h3 className="text-xl md:text-2xl font-medium mb-4 text-slate-800">Instant Setup</h3>
+              <p className="text-slate-600 leading-relaxed text-sm md:text-base">
                 Get your first reward live in under 2 minutes. No technical skills required.
               </p>
             </div>
             
-            <div className="text-center p-8">
-              <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span className="text-2xl">🎯</span>
+            <div className="text-center p-6 md:p-8 bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-105 hover:border-slate-300">
+              <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-red-50 to-pink-50 text-red-600 border border-red-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-md">
+                <Target size={32} />
               </div>
-              <h3 className="text-xl font-medium mb-4">Local Customers</h3>
-              <p className="text-gray-600 leading-relaxed">
+              <h3 className="text-xl md:text-2xl font-medium mb-4 text-slate-800">Local Customers</h3>
+              <p className="text-slate-600 leading-relaxed text-sm md:text-base">
                 Attract customers already in your area with location-based rewards.
               </p>
             </div>
             
-            <div className="text-center p-8">
-              <div className="w-16 h-16 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span className="text-2xl">📊</span>
+            <div className="text-center p-6 md:p-8 bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-105 hover:border-slate-300">
+              <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-indigo-50 to-purple-50 text-indigo-600 border border-indigo-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-md">
+                <BarChart3 size={32} />
               </div>
-              <h3 className="text-xl font-medium mb-4">Track Results</h3>
-              <p className="text-gray-600 leading-relaxed">
+              <h3 className="text-xl md:text-2xl font-medium mb-4 text-slate-800">Track Results</h3>
+              <p className="text-slate-600 leading-relaxed text-sm md:text-base">
                 See exactly how many customers your rewards are bringing in with real-time analytics.
               </p>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Reviews section - Carousel */}
-      <div className={`transition-all duration-1000 delay-2100 ease-out ${
-        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-      }`}>
-        <div className="container mx-auto px-6 py-20">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-light mb-8 tracking-tight">
+      <section 
+        id="reviews"
+        data-animate="slide-right"
+        className={`transition-all duration-1000 ease-out ${
+          visibleSections.has('reviews') ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-12'
+        }`}>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20 lg:py-24 text-center">
+          <div className="text-center max-w-4xl mx-auto mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-light mb-6 tracking-tight text-slate-800">
               Loved by businesses
             </h2>
-            <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto">
+            <p className="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto">
               See what local business owners are saying about QR Rewards
             </p>
           </div>
           
           {/* Carousel container */}
-          <div className="relative max-w-4xl mx-auto mb-12">
+          <div className="relative max-w-5xl mx-auto mb-16">
             {/* Review cards with swipe functionality */}
             <div 
-              className="relative h-80 overflow-hidden cursor-grab active:cursor-grabbing"
+              className="relative h-80 md:h-96 overflow-hidden cursor-grab active:cursor-grabbing"
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
@@ -399,72 +457,68 @@ export default function Home() {
                       : 'opacity-0 translate-x-full'
                   }`}
                 >
-                  <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 h-full flex flex-col justify-center">
-                    <div className="text-center mb-6">
-                      <h4 className="font-semibold text-gray-900 text-xl mb-2">{review.name}</h4>
-                      <p className="text-sm text-gray-600">{review.role}</p>
-                    </div>
-                    <div className="flex justify-center mb-6">
-                      {[...Array(5)].map((_, i) => (
-                        <svg key={i} className="w-6 h-6 text-yellow-400 fill-current" viewBox="0 0 20 20">
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
-                      ))}
-                    </div>
-                    <p className="text-gray-700 leading-relaxed text-lg italic text-center">
+                  <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-8 md:p-12 shadow-xl border border-slate-200/60 h-full flex flex-col justify-center">
+                    <p className="text-gray-700 text-lg md:text-xl mb-8 italic leading-relaxed">
                       &ldquo;{review.text}&rdquo;
                     </p>
+                    <div className="text-center">
+                      <p className="font-semibold text-gray-900 text-lg md:text-xl">{review.name}</p>
+                      <p className="text-gray-600 text-base md:text-lg">{review.role}</p>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
-
-            {/* Navigation dots */}
-            <div className="flex justify-center mt-8">
-              <div className="flex space-x-3">
-                {reviews.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentReview(index)}
-                    className={`w-3 h-3 rounded-full transition-all duration-700 ${
-                      currentReview === index 
-                        ? 'bg-green-500 scale-125' 
-                        : 'bg-gray-300 hover:bg-gray-400'
-                    }`}
-                  />
-                ))}
-              </div>
+            
+            {/* Dots indicator */}
+            <div className="flex justify-center space-x-3 mt-8">
+              {reviews.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentReview(index)}
+                  className={`w-3 h-3 md:w-4 md:h-4 rounded-full transition-all duration-300 ${
+                    currentReview === index 
+                      ? 'bg-gradient-to-r from-blue-500 to-emerald-500 scale-125 shadow-md' 
+                      : 'bg-gray-300 hover:bg-gray-400'
+                  }`}
+                />
+              ))}
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Final CTA - Minimalist */}
-      <div className={`transition-all duration-1000 delay-2400 ease-out ${
-        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-      }`}>
-        <div className="container mx-auto px-6 py-20">
-          <div className="text-center">
-            <h2 className="text-4xl md:text-5xl font-light mb-8 tracking-tight">
+      <section 
+        id="final-cta"
+        data-animate="bounce-up"
+        className={`transition-all duration-1000 ease-out ${
+          visibleSections.has('final-cta') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-16'
+        }`}>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20 lg:py-24 text-center">
+          <div className="text-center max-w-4xl mx-auto">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-light mb-6 tracking-tight text-slate-800">
               Ready to get more customers?
             </h2>
-            <button
-              onClick={handleGetStarted}
-              className="bg-green-600 hover:bg-green-700 text-white text-xl font-medium px-12 py-5 rounded-2xl transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-2xl"
-            >
-              Start Your Free Trial
-            </button>
-            <p className="text-sm text-gray-500 mt-6">
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-8">
+              <button
+                onClick={handleGetStarted}
+                className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white text-lg font-medium px-8 py-4 rounded-2xl transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl"
+              >
+                Start Your Free Trial
+              </button>
+            </div>
+            <p className="text-base md:text-lg text-slate-500">
               Free to start • No setup fees • Cancel anytime
             </p>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Subtle footer */}
-      <footer className="relative z-10 border-t border-gray-200 py-8 mt-20">
-        <div className="container mx-auto px-6 text-center">
-          <p className="text-gray-500 text-sm">
+      <footer className="relative z-10 border-t border-slate-200/60 py-12 mt-20 bg-white/50 backdrop-blur-sm">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <p className="text-slate-500 text-base md:text-lg">
             © 2024 QR Rewards. Connecting businesses with communities.
           </p>
         </div>
@@ -472,35 +526,31 @@ export default function Home() {
 
       {/* Customer Demo Modal */}
       {showCustomerDemo && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-8 border border-gray-200 shadow-2xl max-w-md w-full">
-            <div className="text-center mb-6">
-              <h3 className="text-2xl font-medium text-gray-900 mb-2">See the Customer Experience</h3>
-              <p className="text-gray-600">Enter any zip code to explore rewards in that area</p>
-            </div>
-            <form onSubmit={handleCustomerDemoSubmit} className="space-y-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-8 max-w-md w-full shadow-2xl border border-slate-200/60">
+            <h3 className="text-2xl font-semibold mb-6 text-slate-800">Try the Customer Experience</h3>
+            <p className="text-slate-600 mb-8">Enter your zip code to see available rewards in your area:</p>
+            <form onSubmit={handleCustomerDemoSubmit} className="space-y-6">
               <input
                 type="text"
-                placeholder="Enter any zip code"
+                placeholder="Enter zip code (e.g., 12345)"
                 value={customerZipCode}
                 onChange={(e) => setCustomerZipCode(e.target.value)}
-                className="w-full px-6 py-4 text-lg bg-white border border-gray-300 rounded-2xl text-gray-900 placeholder-gray-500 focus:border-green-500 focus:outline-none transition-all duration-300 shadow-sm"
-                maxLength={10}
-                autoFocus
+                className="w-full border border-slate-300 p-4 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg bg-white/80 backdrop-blur-sm"
               />
-              <div className="flex space-x-3">
+              <div className="flex gap-4">
+                <button
+                  type="submit"
+                  className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-4 rounded-lg font-medium transition-all duration-150 text-lg shadow-md hover:shadow-lg"
+                >
+                  View Rewards
+                </button>
                 <button
                   type="button"
                   onClick={handleCloseCustomerDemo}
-                  className="flex-1 px-6 py-4 text-lg font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-2xl transition-all duration-300"
+                  className="flex-1 border border-slate-300 text-slate-700 hover:bg-slate-50 px-6 py-4 rounded-lg font-medium transition-colors duration-150 text-lg bg-white/80 backdrop-blur-sm"
                 >
                   Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white text-lg font-medium px-6 py-4 rounded-2xl transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg"
-                >
-                  Try It Now
                 </button>
               </div>
             </form>
@@ -508,12 +558,14 @@ export default function Home() {
         </div>
       )}
 
-      {/* Business Signup Form Modal */}
-      <BusinessSignupForm
-        isOpen={showBusinessSignupForm}
-        onClose={handleCloseBusinessSignupForm}
-        onSubmit={handleBusinessSignupSubmit}
-      />
+      {/* Business Signup Modal */}
+      {showBusinessSignupForm && (
+        <BusinessSignupForm
+          isOpen={showBusinessSignupForm}
+          onSubmit={handleBusinessSignupSubmit}
+          onClose={handleCloseBusinessSignupForm}
+        />
+      )}
     </main>
   );
 }

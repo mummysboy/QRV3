@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Toast from "@/components/Toast";
 import { copyToClipboard } from "@/utils/clipboard";
+import { Menu, X } from "lucide-react";
 
 export default function HamburgerMenu() {
   const [open, setOpen] = useState(false);
@@ -48,11 +49,13 @@ export default function HamburgerMenu() {
     <div className="relative z-50" ref={wrapperRef}>
       <button
         onClick={() => setOpen((prev) => !prev)}
-        className="flex flex-col justify-center gap-1 p-2"
+        className="flex items-center justify-center p-2"
       >
-        <span className="h-0.5 w-6 bg-gray-800 rounded" />
-        <span className="h-0.5 w-6 bg-gray-800 rounded" />
-        <span className="h-0.5 w-6 bg-gray-800 rounded" />
+        {open ? (
+          <X className="w-6 h-6 text-gray-800" />
+        ) : (
+          <Menu className="w-6 h-6 text-gray-800" />
+        )}
       </button>
 
       {open && (

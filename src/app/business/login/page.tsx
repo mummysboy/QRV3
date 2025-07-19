@@ -66,15 +66,14 @@ export default function BusinessLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Header */}
+    <div className="min-h-screen bg-gray-50 flex flex-col pt-20">
+      {/* Logo Section - Positioned below global header */}
       <div className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-center items-center py-4">
             <Link href="/" className="flex items-center justify-center w-full">
               <LogoVideo />
             </Link>
-            {/* Removed sign up link from header */}
           </div>
         </div>
       </div>

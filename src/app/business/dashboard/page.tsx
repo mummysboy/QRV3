@@ -8,6 +8,7 @@ import LogoUpload from "@/components/LogoUpload";
 import CardAnimation from "@/components/CardAnimation";
 import AddBusinessForm, { AddBusinessData } from "@/components/AddBusinessForm";
 import { getStorageUrlSync } from "@/lib/storage";
+import { Plus, BarChart3, Building2, Settings, Eye, ArrowRight, CheckCircle, Target, PartyPopper, TrendingUp, Gift } from "lucide-react";
 
 
 
@@ -505,42 +506,54 @@ export default function BusinessDashboard() {
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-          <div className="text-2xl mb-2">📊</div>
+          <div className="mb-2">
+            <BarChart3 size={32} className="text-blue-600" />
+          </div>
           <div className="text-3xl font-light text-gray-900 mb-1">
             {isLoadingData ? "..." : analytics?.totalViews || 0}
           </div>
           <div className="text-sm text-gray-600">Total Views</div>
         </div>
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-          <div className="text-2xl mb-2">✅</div>
+          <div className="mb-2">
+            <CheckCircle size={32} className="text-green-600" />
+          </div>
           <div className="text-3xl font-light text-gray-900 mb-1">
             {isLoadingData ? "..." : analytics?.totalClaims || 0}
           </div>
           <div className="text-sm text-gray-600">Total Claims</div>
         </div>
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-          <div className="text-2xl mb-2">🎯</div>
+          <div className="mb-2">
+            <Target size={32} className="text-orange-600" />
+          </div>
           <div className="text-3xl font-light text-gray-900 mb-1">
             {isLoadingData ? "..." : `${analytics?.conversionRate || 0}%`}
           </div>
           <div className="text-sm text-gray-600">Conversion Rate</div>
         </div>
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-          <div className="text-2xl mb-2">🎉</div>
+          <div className="mb-2">
+            <PartyPopper size={32} className="text-purple-600" />
+          </div>
           <div className="text-3xl font-light text-gray-900 mb-1">
             {isLoadingData ? "..." : analytics?.totalRedeemed || 0}
           </div>
           <div className="text-sm text-gray-600">Total Redeemed</div>
         </div>
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-          <div className="text-2xl mb-2">📈</div>
+          <div className="mb-2">
+            <TrendingUp size={32} className="text-indigo-600" />
+          </div>
           <div className="text-3xl font-light text-gray-900 mb-1">
             {isLoadingData ? "..." : `${analytics?.redemptionRate || 0}%`}
           </div>
           <div className="text-sm text-gray-600">Redemption Rate</div>
         </div>
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-          <div className="text-2xl mb-2">🎁</div>
+          <div className="mb-2">
+            <Gift size={32} className="text-pink-600" />
+          </div>
           <div className="text-3xl font-light text-gray-900 mb-1">
             {isLoadingData ? "..." : analytics?.totalRewards || 0}
           </div>
@@ -795,10 +808,10 @@ export default function BusinessDashboard() {
                     className="w-32 h-32 bg-gray-100 rounded-xl flex items-center justify-center border-2 border-dashed border-gray-300 logo-fallback absolute top-0 left-0"
                     style={{ display: 'none' }}
                   >
-                    <div className="text-center">
-                      <span className="text-gray-500 text-4xl block">🏢</span>
-                      <span className="text-gray-400 text-xs block mt-1">Logo not found</span>
-                    </div>
+                                      <div className="text-center">
+                    <Building2 className="w-8 h-8 text-gray-500 mx-auto" />
+                    <span className="text-gray-400 text-xs block mt-1">Logo not found</span>
+                  </div>
                   </div>
                 </div>
               ) : null}
@@ -807,7 +820,7 @@ export default function BusinessDashboard() {
                 style={{ display: business?.logo && business.logo.trim() !== '' ? 'none' : 'flex' }}
               >
                 <div className="text-center">
-                  <span className="text-gray-500 text-4xl block">🏢</span>
+                  <Building2 className="w-8 h-8 text-gray-500 mx-auto" />
                   <span className="text-gray-400 text-xs block mt-1">No logo</span>
                 </div>
               </div>
@@ -986,7 +999,7 @@ export default function BusinessDashboard() {
                       className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center logo-fallback"
                       style={{ display: business?.logo && business.logo.trim() !== '' ? 'none' : 'flex' }}
                     >
-                      <span className="text-gray-500 text-2xl">🏢</span>
+                      <Building2 className="w-6 h-6 text-gray-500" />
                     </div>
                   </div>
                   <div>
@@ -1005,15 +1018,15 @@ export default function BusinessDashboard() {
                 {(() => {
                   const stats = getTodayStats(analytics);
                   return [
-                    { icon: '📊', label: 'Today\'s Views', value: stats.todayViews },
-                    { icon: '✅', label: 'Today\'s Claims', value: stats.todayClaims },
-                    { icon: '🎯', label: 'Today\'s Conversion', value: `${stats.conversionRate}%` },
-                    { icon: '🎉', label: 'Today\'s Redeemed', value: stats.todayRedeemed },
-                    { icon: '📈', label: 'Today\'s Redemption', value: `${stats.redemptionRate}%` },
-                    { icon: '🎁', label: 'Total Rewards', value: stats.totalRewards },
+                    { icon: <BarChart3 size={32} className="text-blue-600" />, label: 'Today\'s Views', value: stats.todayViews },
+                    { icon: <CheckCircle size={32} className="text-green-600" />, label: 'Today\'s Claims', value: stats.todayClaims },
+                    { icon: <Target size={32} className="text-orange-600" />, label: 'Today\'s Conversion', value: `${stats.conversionRate}%` },
+                    { icon: <PartyPopper size={32} className="text-purple-600" />, label: 'Today\'s Redeemed', value: stats.todayRedeemed },
+                    { icon: <TrendingUp size={32} className="text-indigo-600" />, label: 'Today\'s Redemption', value: `${stats.redemptionRate}%` },
+                    { icon: <Gift size={32} className="text-pink-600" />, label: 'Total Rewards', value: stats.totalRewards },
                   ].map((card, idx) => (
                     <div key={idx} className="bg-white rounded-2xl p-6 shadow-md border border-gray-100">
-                      <div className="text-2xl mb-2">{card.icon}</div>
+                      <div className="mb-2">{card.icon}</div>
                       <div className="text-3xl font-light text-gray-900 mb-1">{isLoadingData ? "..." : card.value}</div>
                       <div className="text-sm text-gray-600">{card.label}</div>
                     </div>
@@ -1033,7 +1046,7 @@ export default function BusinessDashboard() {
                     onClick={() => handleQuickAction('create')}
                     className="flex items-center space-x-4 p-4 bg-green-50 rounded-2xl hover:bg-green-100 transition-all duration-200 ease-in-out"
                   >
-                    <span className="text-2xl">➕</span>
+                    <Plus size={24} className="text-green-600" />
                     <div className="text-left">
                       <div className="font-medium text-gray-900">Create Reward</div>
                       <div className="text-sm text-gray-600">New offer in seconds</div>
@@ -1043,7 +1056,7 @@ export default function BusinessDashboard() {
                     onClick={() => handleQuickAction('analytics')}
                     className="flex items-center space-x-4 p-4 bg-blue-50 rounded-2xl hover:bg-blue-100 transition-all duration-200 ease-in-out"
                   >
-                    <span className="text-2xl">📊</span>
+                    <BarChart3 size={24} className="text-blue-600" />
                     <div className="text-left">
                       <div className="font-medium text-gray-900">View Analytics</div>
                       <div className="text-sm text-gray-600">Detailed insights</div>
@@ -1053,7 +1066,7 @@ export default function BusinessDashboard() {
                     onClick={() => handleQuickAction('add-business')}
                     className="flex items-center space-x-4 p-4 bg-orange-50 rounded-2xl hover:bg-orange-100 transition-all duration-200 ease-in-out"
                   >
-                    <span className="text-2xl">🏢</span>
+                    <Building2 size={24} className="text-orange-600" />
                     <div className="text-left">
                       <div className="font-medium text-gray-900">Add Business</div>
                       <div className="text-sm text-gray-600">Register new location</div>
@@ -1063,7 +1076,7 @@ export default function BusinessDashboard() {
                     onClick={() => handleQuickAction('settings')}
                     className="flex items-center space-x-4 p-4 bg-purple-50 rounded-2xl hover:bg-purple-100 transition-all duration-200 ease-in-out"
                   >
-                    <span className="text-2xl">⚙️</span>
+                    <Settings size={24} className="text-purple-600" />
                     <div className="text-left">
                       <div className="font-medium text-gray-900">Settings</div>
                       <div className="text-sm text-gray-600">Manage account</div>
@@ -1102,13 +1115,13 @@ export default function BusinessDashboard() {
                         onClick={() => handleEditReward(card)}
                         className="flex-1 flex items-center justify-center bg-blue-50 hover:bg-blue-100 text-blue-700 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ease-in-out shadow-sm border border-blue-100"
                       >
-                        <span className="mr-2">✏️</span> Edit
+                        <Eye className="w-4 h-4 mr-2" /> Edit
                       </button>
                       <button
                         onClick={() => handleDeleteReward(card.cardid)}
                         className="flex-1 flex items-center justify-center bg-red-50 hover:bg-red-100 text-red-600 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ease-in-out shadow-sm border border-red-100"
                       >
-                        <span className="mr-2">🗑️</span> Delete
+                        <ArrowRight className="w-4 h-4 mr-2" /> Delete
                       </button>
                     </div>
                   </div>
