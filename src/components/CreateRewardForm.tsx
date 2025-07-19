@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import CardAnimation from "@/components/CardAnimation";
 
 interface CreateRewardFormProps {
@@ -46,10 +46,10 @@ export default function CreateRewardForm({
   shouldShowLogoProcessing = false
 }: CreateRewardFormProps) {
   // Ensure business.logo is never undefined
-  const businessWithLogo = {
+  const businessWithLogo = useMemo(() => ({
     ...business,
     logo: business.logo || ''
-  };
+  }), [business.id, business.name, business.address, business.city, business.state, business.zipCode, business.category, business.logo]);
 
   const [formData, setFormData] = useState<RewardData>({
     businessId: businessWithLogo.id,
@@ -65,27 +65,29 @@ export default function CreateRewardForm({
     expires: "",
   });
 
-  // Debug: Log the business logo value
-  console.log('CreateRewardForm - business.logo:', businessWithLogo.logo);
-  console.log('CreateRewardForm - formData.businessLogo:', formData.businessLogo);
-  console.log('CreateRewardForm - business object:', businessWithLogo);
-  console.log('CreateRewardForm - isProfileComplete:', isProfileComplete);
+  // Debug: Log the business logo value (only when component mounts or business changes)
+  useEffect(() => {
+    console.log('CreateRewardForm - business.logo:', business.logo);
+    console.log('CreateRewardForm - formData.businessLogo:', formData.businessLogo);
+    console.log('CreateRewardForm - business object:', business);
+    console.log('CreateRewardForm - isProfileComplete:', isProfileComplete);
+  }, [business.id, business.logo, isProfileComplete]);
 
   // Update formData when business data changes
   useEffect(() => {
-    console.log('CreateRewardForm - useEffect triggered, business.logo:', businessWithLogo.logo);
+    console.log('CreateRewardForm - useEffect triggered, business.logo:', business.logo);
     setFormData(prev => ({
       ...prev,
-      businessId: businessWithLogo.id,
-      businessName: businessWithLogo.name,
-      businessAddress: businessWithLogo.address,
-      businessCity: businessWithLogo.city,
-      businessState: businessWithLogo.state,
-      businessZipCode: businessWithLogo.zipCode,
-      businessCategory: businessWithLogo.category,
-      businessLogo: businessWithLogo.logo,
+      businessId: business.id,
+      businessName: business.name,
+      businessAddress: business.address,
+      businessCity: business.city,
+      businessState: business.state,
+      businessZipCode: business.zipCode,
+      businessCategory: business.category,
+      businessLogo: business.logo || '',
     }));
-  }, [businessWithLogo]);
+  }, [business.id, business.name, business.address, business.city, business.state, business.zipCode, business.category, business.logo]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
