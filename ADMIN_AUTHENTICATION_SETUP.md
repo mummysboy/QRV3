@@ -1,14 +1,17 @@
-# Secure Admin Authentication Setup with MFA
+# Phone-Only Admin Authentication Setup
 
 ## Overview
 
-The admin authentication system has been completely redesigned for maximum security with **Multi-Factor Authentication (MFA)**. It now uses:
+The admin authentication system has been redesigned for **phone-only login** with SMS verification. It now uses:
 
-- ✅ **Secure password hashing** with bcrypt (12 rounds)
+- ✅ **Phone-only authentication** - no username/password required
+- ✅ **SMS verification** via AWS SNS
+- ✅ **6-digit login codes** with 5-minute expiration
+- ✅ **Rate limiting** with 60-second resend cooldown
+- ✅ **Secure token storage** in HTTP-only cookies
+- ✅ **Phone number validation** and formatting
 - ✅ **JWT tokens** for session management
-- ✅ **Database-stored admin users** instead of hardcoded credentials
-- ✅ **SMS-based MFA** using AWS SNS
-- ✅ **Password change functionality** for admins
+- ✅ **Database-stored admin users** with phone numbers
 - ✅ **Server-side session validation**
 - ✅ **Secure HTTP-only cookies**
 - ✅ **Session expiration** (24 hours)
@@ -16,18 +19,13 @@ The admin authentication system has been completely redesigned for maximum secur
 
 ## Security Features
 
-### Multi-Factor Authentication (MFA)
+### Phone-Only Authentication
 - **SMS verification** via AWS SNS
 - **6-digit codes** with 5-minute expiration
 - **Rate limiting** with 60-second resend cooldown
 - **Secure token storage** in HTTP-only cookies
 - **Phone number validation** and formatting
-
-### Password Security
-- **bcrypt hashing** with 12 salt rounds
-- **Minimum 8 characters** required
-- **Password change functionality** with current password verification
-- **No plain text passwords** stored anywhere
+- **No passwords required** - phone is the credential
 
 ### Session Management
 - **JWT tokens** with 24-hour expiration
@@ -36,8 +34,8 @@ The admin authentication system has been completely redesigned for maximum secur
 - **Automatic session cleanup**
 
 ### Database Security
-- **AdminUser model** in Amplify schema
-- **Encrypted password storage**
+- **AdminUser model** in Amplify schema with phone numbers
+- **Phone number storage** for authentication
 - **User status tracking** (active/inactive)
 - **Last login tracking**
 
@@ -52,7 +50,7 @@ JWT_SECRET=your-super-secure-jwt-secret-key-change-this-in-production
 # App Configuration
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 
-# AWS Configuration (for MFA)
+# AWS Configuration (for SMS)
 AWS_REGION=us-west-1
 ```
 
@@ -75,55 +73,50 @@ The script will prompt you for:
 - Admin first name
 - Admin last name
 - Admin password (min 8 characters)
+- **Phone number** (for authentication)
 
-### 3. Test MFA Functionality
-Test the MFA system with your phone number:
+### 3. Test Phone-Only Login
+Test the phone-only login system:
 
 ```bash
-node test-mfa.js
+node test-phone-login.js
 ```
 
 This will test:
-- Sending MFA codes to your phone
+- Sending login codes to your phone
 - Verifying codes and completing login
-- Full authentication flow
+- Full phone-only authentication flow
 
 ### 4. Verify Setup
 After running the scripts, you should see:
 ```
 ✅ Admin user created successfully!
-✅ MFA code sent successfully!
-✅ MFA verification successful!
+✅ Login code sent successfully!
+✅ Phone-only login successful!
 ```
 
-## How MFA Works
+## How Phone-Only Login Works
 
-### 1. Login Process with MFA
-1. **Enter Credentials**: Username, password, and phone number
+### 1. Login Process
+1. **Enter Phone Number**: User enters their phone number
 2. **Send Code**: System sends 6-digit code via SMS
-3. **Verify Code**: Enter the code to complete authentication
+3. **Verify Code**: User enters the code to complete authentication
 4. **Access Granted**: Redirected to admin dashboard
 
-### 2. MFA Security Flow
-- **Step 1**: User enters credentials and phone number
-- **Step 2**: System validates credentials and sends SMS
+### 2. Security Flow
+- **Step 1**: User enters phone number
+- **Step 2**: System validates phone format and sends SMS
 - **Step 3**: User receives 6-digit code on their phone
 - **Step 4**: User enters code to complete verification
-- **Step 5**: System creates secure session with MFA verification
+- **Step 5**: System creates secure session with phone verification
 
 ### 3. Session Validation
 - Admin dashboard validates session with `/api/admin/validate-session`
 - All admin API endpoints check for valid JWT token
 - Sessions expire after 24 hours
-- MFA verification is included in session token
+- Phone verification is included in session token
 
-### 4. Password Change
-- Admin clicks "Change Password" in dashboard
-- Must provide current password for verification
-- New password is hashed and stored securely
-- New JWT token is issued
-
-### 5. Logout Process
+### 4. Logout Process
 - User clicks logout
 - Calls `/api/admin/logout` to clear JWT cookie
 - Redirects to login page
@@ -131,19 +124,15 @@ After running the scripts, you should see:
 ## API Endpoints
 
 ### POST /api/admin/send-mfa
-- Sends 6-digit verification code via SMS
+- Sends 6-digit login code via SMS
 - Validates phone number format
 - Creates temporary MFA token (5 minutes)
 - Returns success message
 
 ### POST /api/admin/verify-mfa
-- Validates MFA code and credentials
+- Validates login code
 - Creates authenticated session
 - Returns user info and sets cookies
-
-### POST /api/admin/login
-- **Legacy endpoint** - now redirects to MFA flow
-- For backward compatibility only
 
 ### GET /api/admin/validate-session
 - Validates JWT token
@@ -153,16 +142,9 @@ After running the scripts, you should see:
 - Clears JWT cookie
 - Returns success message
 
-### POST /api/admin/change-password
-- Validates current password
-- Updates password with new hash
-- Issues new JWT token
-- Returns success message
-
 ### POST /api/admin/create-admin
 - Creates new admin user (setup only)
-- Validates all required fields
-- Hashes password securely
+- Validates all required fields including phone number
 - Returns admin info
 
 ## Database Schema
@@ -175,6 +157,7 @@ AdminUser: {
   username: string (required)
   email: string (required)
   password: string (required, hashed)
+  phoneNumber: string (optional, for phone-only auth)
   firstName: string (required)
   lastName: string (required)
   role: string (required)
@@ -185,17 +168,17 @@ AdminUser: {
 }
 ```
 
-## MFA Configuration
+## Phone Number Configuration
 
-### Phone Number Setup
-Your phone number `4155724853` is pre-configured in the MFA form. To change it:
+### Your Phone Number Setup
+Your phone number **4155724853** is pre-configured in the login form. To change it:
 
-1. **Edit the form**: Update `src/components/AdminMFALoginForm.tsx`
+1. **Edit the form**: Update `src/components/AdminPhoneLoginForm.tsx`
 2. **Change default value**: Modify the `phoneNumber` state
 3. **Or make it editable**: Allow users to input their own number
 
 ### AWS SNS Configuration
-The MFA system uses AWS SNS for SMS delivery:
+The system uses AWS SNS for SMS delivery:
 
 1. **Region**: Configured for `us-west-1`
 2. **Credentials**: Uses default AWS credential provider chain
@@ -204,7 +187,7 @@ The MFA system uses AWS SNS for SMS delivery:
 
 ### SMS Message Format
 ```
-Your QRewards admin verification code is: 123456. This code expires in 5 minutes.
+Your QRewards admin login code is: 123456. This code expires in 5 minutes.
 ```
 
 ## Security Best Practices
@@ -212,36 +195,30 @@ Your QRewards admin verification code is: 123456. This code expires in 5 minutes
 ### Production Deployment
 1. **Change JWT_SECRET** to a strong, unique value
 2. **Enable HTTPS** for secure cookies
-3. **Use strong passwords** (12+ characters recommended)
-4. **Regular password changes** (every 90 days)
+3. **Monitor SMS delivery** and failed login attempts
+4. **Restrict phone numbers** to authorized admin numbers
 5. **Monitor login attempts** and failed authentications
-6. **Monitor SMS delivery** and failed MFA attempts
 
-### MFA Security
+### Phone-Only Security
 - **Code expiration**: 5 minutes maximum
 - **Rate limiting**: 60-second resend cooldown
 - **Secure storage**: Codes stored in encrypted JWT tokens
 - **Phone validation**: Automatic E.164 formatting
-- **Session tracking**: MFA verification included in session
-
-### Password Requirements
-- Minimum 8 characters
-- Recommended: uppercase, lowercase, numbers, symbols
-- No common passwords or dictionary words
-- Unique from other accounts
+- **Session tracking**: Phone verification included in session
+- **Authorized numbers**: Only specific phone numbers can access admin
 
 ### Session Security
 - Sessions expire after 24 hours
 - Logout clears all session data
 - JWT tokens are signed and tamper-proof
 - HTTP-only cookies prevent XSS attacks
-- MFA verification required for each login
+- Phone verification required for each login
 
 ## Testing
 
-### Test MFA System
+### Test Phone-Only Login
 ```bash
-node test-mfa.js
+node test-phone-login.js
 ```
 
 ### Test Admin Setup
@@ -251,25 +228,24 @@ node setup-admin.js
 
 ### Manual Testing
 1. Navigate to `/admin/login`
-2. Enter your credentials and phone number
-3. Click "Send Verification Code"
+2. Enter your phone number (pre-filled: 4155724853)
+3. Click "Send Login Code"
 4. Check your phone for the SMS
 5. Enter the 6-digit code
 6. Verify successful login
 
 ## Troubleshooting
 
-### Can't receive MFA codes
+### Can't receive login codes
 - Check AWS SNS configuration
 - Verify phone number format (E.164)
 - Check AWS credentials and permissions
 - Monitor AWS CloudWatch logs
 - Test with different phone number
 
-### MFA verification fails
+### Login verification fails
 - Ensure code is entered within 5 minutes
 - Check for typos in the 6-digit code
-- Verify credentials are correct
 - Check browser console for errors
 - Try requesting a new code
 
@@ -280,12 +256,6 @@ node setup-admin.js
 - Check browser console for errors
 - Verify AWS SNS is configured correctly
 
-### Password change not working
-- Ensure current password is correct
-- Check that new password meets requirements (8+ characters)
-- Verify password confirmation matches
-- Check network tab for API errors
-
 ### Session expires too quickly
 - Default session time is 24 hours
 - Can be adjusted in JWT token creation
@@ -294,7 +264,7 @@ node setup-admin.js
 
 ### API endpoints return 401
 - JWT token may be missing or expired
-- Try logging in again with MFA
+- Try logging in again with phone verification
 - Check if cookies are enabled in browser
 - Verify HTTPS is enabled in production
 
@@ -304,19 +274,19 @@ If you're upgrading from the old hardcoded system:
 
 1. **Deploy the new schema** with AdminUser model
 2. **Run the setup script** to create your admin user
-3. **Test MFA functionality** with your phone number
-4. **Test login** with new MFA flow
+3. **Test phone-only login** with your phone number
+4. **Test login** with new phone-only flow
 5. **Remove old environment variables** (ADMIN_USERNAME, ADMIN_PASSWORD)
 6. **Update documentation** for your team
 
 ## Support
 
-For issues with the admin authentication system:
+For issues with the phone-only authentication system:
 
 1. Check the browser console for errors
 2. Verify environment variables are set correctly
 3. Test the setup script with your deployment URL
 4. Check that the database schema is up to date
 5. Verify AWS SNS configuration
-6. Test MFA with the provided test script
+6. Test phone-only login with the provided test script
 7. Review the troubleshooting section above 

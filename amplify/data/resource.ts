@@ -132,6 +132,7 @@ const schema = a.schema({
       username: a.string().required(),
       email: a.string().required(),
       password: a.string().required(),
+      phoneNumber: a.string(),
       firstName: a.string().required(),
       lastName: a.string().required(),
       role: a.string().required(),

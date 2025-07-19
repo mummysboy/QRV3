@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     );
 
     // Send SMS via SNS
-    const message = `Your QRewards admin verification code is: ${mfaCode}. This code expires in 5 minutes.`;
+    const message = `Your QRewards admin login code is: ${mfaCode}. This code expires in 5 minutes.`;
     
     const publishCommand = new PublishCommand({
       Message: message,

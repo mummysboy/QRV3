@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import LogoVideo from "@/components/LogoVideo";
-import AdminMFALoginForm from "@/components/AdminMFALoginForm";
+import AdminPhoneLoginForm from "@/components/AdminPhoneLoginForm";
 
 export default function AdminLogin() {
   const [loginSuccess, setLoginSuccess] = useState(false);
@@ -33,11 +33,11 @@ export default function AdminLogin() {
               Admin Login
             </h2>
             <p className="mt-2 text-center text-sm text-gray-600">
-              Access the business approval system with MFA protection
+              Quick access with phone verification
             </p>
           </div>
 
-          <AdminMFALoginForm onSuccess={handleLoginSuccess} />
+          <AdminPhoneLoginForm onSuccess={handleLoginSuccess} />
 
           {loginSuccess && (
             <div className="bg-green-50 border border-green-200 rounded-md p-4">
