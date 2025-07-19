@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Create business
+    // Create business (neighborhood will be detected when approved)
     const businessResult = await client.graphql({
       query: `
         mutation CreateBusiness($input: CreateBusinessInput!) {
@@ -170,6 +170,7 @@ export async function POST(request: NextRequest) {
           address: businessAddress,
           city: businessCity,
           state: businessState,
+          // neighborhood will be set when approved
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         },

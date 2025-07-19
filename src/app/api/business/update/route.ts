@@ -59,7 +59,7 @@ export async function PUT(request: NextRequest) {
 
     const client = generateClient();
 
-    // Update business information
+    // Update business information (neighborhood is set during approval)
     const updateResult = await client.graphql({
       query: `
         mutation UpdateBusiness($input: UpdateBusinessInput!) {
@@ -91,13 +91,13 @@ export async function PUT(request: NextRequest) {
       variables: {
         input: {
           id: businessId,
-          ...(name && { name }),
-          ...(phone && { phone }),
-          ...(email && { email }),
+          ...(name !== undefined && { name }),
+          ...(phone !== undefined && { phone }),
+          ...(email !== undefined && { email }),
           ...(address !== undefined && { address }),
           ...(city !== undefined && { city }),
           ...(state !== undefined && { state }),
-          ...(zipCode && { zipCode }),
+          ...(zipCode !== undefined && { zipCode }),
           ...(website !== undefined && { website }),
           ...(socialMedia !== undefined && { socialMedia }),
           ...(businessHours !== undefined && { businessHours }),
@@ -106,6 +106,7 @@ export async function PUT(request: NextRequest) {
           ...(photos !== undefined && { photos }),
           ...(primaryContactEmail !== undefined && { primaryContactEmail }),
           ...(primaryContactPhone !== undefined && { primaryContactPhone }),
+          updatedAt: new Date().toISOString(),
           // Temporarily remove profileComplete until schema is deployed
           // ...(profileComplete !== undefined && { profileComplete }),
         },

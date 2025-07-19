@@ -62,6 +62,13 @@
               "isRequired": false,
               "attributes": []
             },
+            "neighborhood": {
+              "name": "neighborhood",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
+              "attributes": []
+            },
             "expires": {
               "name": "expires",
               "isArray": false,
@@ -703,6 +710,13 @@
               "isArray": false,
               "type": "String",
               "isRequired": true,
+              "attributes": []
+            },
+            "neighborhood": {
+              "name": "neighborhood",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
               "attributes": []
             },
             "website": {

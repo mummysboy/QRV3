@@ -10,6 +10,7 @@ interface Card {
   subheader?: string;
   addressurl?: string;
   addresstext?: string;
+  neighborhood?: string;
   expires?: string;
   businessId?: string;
 }
@@ -59,6 +60,7 @@ export async function GET(request: NextRequest) {
               subheader
               addressurl
               addresstext
+              neighborhood
               expires
               businessId
             }
@@ -148,6 +150,33 @@ export async function POST(request: NextRequest) {
     // Generate unique card ID
     const cardid = `${businessId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
+    // Fetch business to get neighborhood
+    let neighborhood = '';
+    try {
+      const businessResult = await client.graphql({
+        query: `
+          query GetBusiness($id: String!) {
+            getBusiness(id: $id) {
+              id
+              name
+              address
+              city
+              state
+              neighborhood
+            }
+          }
+        `,
+        variables: { id: businessId },
+      });
+      const business = (businessResult as { data: { getBusiness?: { id: string; name?: string; address?: string; city?: string; state?: string; neighborhood?: string } } }).data.getBusiness;
+      if (business) {
+        console.log('Business fetched:', business);
+        neighborhood = business.neighborhood || '';
+      }
+    } catch (err) {
+      console.error('Failed to fetch business:', err);
+    }
+
     const cardInput = {
       cardid,
       businessId,
@@ -158,6 +187,7 @@ export async function POST(request: NextRequest) {
       logokey: logokey || "",
       addressurl: addressurl || "",
       addresstext: addresstext || "",
+      neighborhood, // Store business neighborhood at card creation
     };
 
     console.log('Creating card with input:', cardInput);
@@ -174,6 +204,7 @@ export async function POST(request: NextRequest) {
             subheader
             addressurl
             addresstext
+            neighborhood
             expires
             businessId
           }

@@ -10,6 +10,7 @@ const schema = a.schema({
       subheader: a.string(),
       addressurl: a.string(),
       addresstext: a.string(),
+      neighborhood: a.string(), // Store business neighborhood at card creation
       expires: a.string(),
       businessId: a.string(), // Link to business
     })
@@ -92,6 +93,7 @@ const schema = a.schema({
       address: a.string().required(),
       city: a.string().required(),
       state: a.string().required(),
+      neighborhood: a.string(), // AI-detected neighborhood name
       website: a.string(),
       socialMedia: a.string(),
       businessHours: a.string(),

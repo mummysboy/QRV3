@@ -22,6 +22,7 @@ interface CardData {
   quantity: number;
   logokey: string;
   header: string;
+  neighborhood?: string;
   businessId?: string;
 }
 
@@ -84,6 +85,7 @@ export default function ClaimRewardPage() {
           quantity
           logokey
           header
+          neighborhood
           businessId
         }
       }
@@ -126,7 +128,8 @@ export default function ClaimRewardPage() {
             addressurl: data?.addressurl,
             subheader: data?.subheader,
             expires: data?.expires,
-            quantity: data?.quantity
+            quantity: data?.quantity,
+            neighborhood: data?.neighborhood
           });
         }
 

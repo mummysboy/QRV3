@@ -30,6 +30,7 @@ interface CardProps {
   expiration_date?: string | Date;
   quantity?: number;
   qty?: number;
+  neighborhood?: string; // AI-detected neighborhood
 }
 
 // Countdown Timer Component
@@ -87,7 +88,8 @@ export default function CardAnimation({ card, playbackRate = 1, isPreview = fals
     addressurl: card.addressurl || card.website || card.url,
     subheader: card.subheader || card.description || card.subtitle,
     expires: card.expires || card.expiry || card.expiration_date,
-    quantity: card.quantity || card.qty
+    quantity: card.quantity || card.qty,
+    neighborhood: card.neighborhood,
   } : null;
 
   // Helper function to check if expiration is less than 24 hours
@@ -141,6 +143,7 @@ export default function CardAnimation({ card, playbackRate = 1, isPreview = fals
   console.log('CardAnimation - constructed logoUrl:', logoUrl);
   console.log('CardAnimation - addresstext:', cardData?.addresstext);
   console.log('CardAnimation - addressurl:', cardData?.addressurl);
+  console.log('CardAnimation - neighborhood:', cardData?.neighborhood);
   console.log('CardAnimation - storage utility result:', getStorageUrlSync(cardData?.logokey || ''));
 
   // Debug when card prop changes
@@ -304,7 +307,34 @@ export default function CardAnimation({ card, playbackRate = 1, isPreview = fals
                   rel="noopener noreferrer"
                   className={`${isPreview ? 'text-xs' : 'text-xs'} font-light leading-tight underline hover:text-blue-600 block`}
                 >
-                  {getCityStateFromAddress(cardData?.addresstext || '')}
+                  {(() => {
+                    const city = getCityStateFromAddress(cardData?.addresstext || '').split(',')[0] || '';
+                    const district = cardData?.neighborhood || '';
+                    
+                    // If neighborhood is the same as city, just show city once
+                    if (district && district.toLowerCase() === city.toLowerCase()) {
+                      const displayText = city;
+                      console.log('CardAnimation - Display text:', displayText, 'neighborhood:', cardData?.neighborhood, 'city:', city);
+                      return displayText;
+                    }
+                    
+                    // If we have a different neighborhood, show city and district on separate lines
+                    if (district) {
+                      const displayText = `${city}\n${district}`;
+                      console.log('CardAnimation - Display text:', displayText, 'neighborhood:', cardData?.neighborhood, 'city:', city);
+                      return displayText.split('\n').map((line, index) => (
+                        <span key={index}>
+                          {line}
+                          {index < displayText.split('\n').length - 1 && <br />}
+                        </span>
+                      ));
+                    }
+                    
+                    // Fallback to original city/state format
+                    const displayText = getCityStateFromAddress(cardData?.addresstext || '');
+                    console.log('CardAnimation - Display text:', displayText, 'neighborhood:', cardData?.neighborhood, 'city:', city);
+                    return displayText;
+                  })()}
                 </a>
               </div>
               <div className={`mt-2 ${isPreview ? 'px-2' : 'px-1'}`}>

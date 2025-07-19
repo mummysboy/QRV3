@@ -422,9 +422,40 @@ export async function GET(request: Request) {
 
     console.log(`🔍 Fetching cards for zip code: ${zipCode}`);
 
-    // Fetch all cards with their associated business data
-    const cardsResult = await client.models.Card.list();
-    const cards = cardsResult.data;
+    // Fetch all cards with their associated business data using explicit GraphQL query
+    const cardsResult = await client.graphql({
+      query: `
+        query ListCards {
+          listCards {
+            items {
+              cardid
+              quantity
+              logokey
+              header
+              subheader
+              addressurl
+              addresstext
+              neighborhood
+              expires
+              businessId
+            }
+          }
+        }
+      `
+    });
+
+    const cards = (cardsResult as { data: { listCards: { items: Array<{
+      cardid: string;
+      quantity: number;
+      logokey?: string;
+      header?: string;
+      subheader?: string;
+      addressurl?: string;
+      addresstext?: string;
+      neighborhood?: string;
+      expires?: string;
+      businessId?: string;
+    }> } } }).data.listCards.items;
 
     if (!cards || cards.length === 0) {
       return NextResponse.json({ error: "No cards available" }, { status: 404 });

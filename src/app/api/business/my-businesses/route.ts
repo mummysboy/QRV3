@@ -61,66 +61,74 @@ export async function GET(request: NextRequest) {
     // Get all businesses for these business IDs
     const businessIds = businessUsers.map(user => user.businessId);
     
-    const businessesResult = await client.graphql({
-      query: `
-        query GetBusinessesByIds($ids: [String!]!) {
-          listBusinesses(filter: {
-            id: { in: $ids }
-          }) {
-            items {
-              id
-              name
-              phone
-              email
-              zipCode
-              category
-              status
-              logo
-              address
-              city
-              state
-              website
-              socialMedia
-              businessHours
-              description
-              photos
-              primaryContactEmail
-              primaryContactPhone
-              createdAt
-              updatedAt
-              approvedAt
+    // Fetch businesses individually since 'in' operator is not supported
+    const businesses = [];
+    for (const businessId of businessIds) {
+      try {
+        const businessResult = await client.graphql({
+          query: `
+            query GetBusiness($id: String!) {
+              getBusiness(id: $id) {
+                id
+                name
+                phone
+                email
+                zipCode
+                category
+                status
+                logo
+                address
+                city
+                state
+                website
+                socialMedia
+                businessHours
+                description
+                photos
+                primaryContactEmail
+                primaryContactPhone
+                createdAt
+                updatedAt
+                approvedAt
+              }
             }
-          }
-        }
-      `,
-      variables: {
-        ids: businessIds,
-      },
-    });
+          `,
+          variables: {
+            id: businessId,
+          },
+        });
 
-    const businesses = (businessesResult as { data: { listBusinesses: { items: Array<{
-      id: string;
-      name: string;
-      phone: string;
-      email: string;
-      zipCode: string;
-      category: string;
-      status: string;
-      logo: string;
-      address: string;
-      city: string;
-      state: string;
-      website: string;
-      socialMedia: string;
-      businessHours: string;
-      description: string;
-      photos: string;
-      primaryContactEmail: string;
-      primaryContactPhone: string;
-      createdAt: string;
-      updatedAt: string;
-      approvedAt: string;
-    }> } } }).data.listBusinesses.items;
+        const business = (businessResult as { data: { getBusiness?: {
+          id: string;
+          name: string;
+          phone: string;
+          email: string;
+          zipCode: string;
+          category: string;
+          status: string;
+          logo: string;
+          address: string;
+          city: string;
+          state: string;
+          website: string;
+          socialMedia: string;
+          businessHours: string;
+          description: string;
+          photos: string;
+          primaryContactEmail: string;
+          primaryContactPhone: string;
+          createdAt: string;
+          updatedAt: string;
+          approvedAt: string;
+        } } }).data.getBusiness;
+
+        if (business) {
+          businesses.push(business);
+        }
+      } catch (err) {
+        console.error(`Error fetching business ${businessId}:`, err);
+      }
+    }
 
     // Combine business data with user role information
     const businessesWithRoles = businesses.map(business => {
