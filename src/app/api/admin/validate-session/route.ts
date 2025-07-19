@@ -1,41 +1,43 @@
 import { NextRequest, NextResponse } from "next/server";
+import jwt from "jsonwebtoken";
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
 export async function GET(request: NextRequest) {
   try {
-    const adminSession = request.cookies.get('adminSession');
+    const adminToken = request.cookies.get('adminToken');
     
-    if (!adminSession) {
+    if (!adminToken) {
       return NextResponse.json(
         { error: "No admin session found" },
         { status: 401 }
       );
     }
 
-    // In production, you would validate the session token properly
-    // For now, we'll just check if the cookie exists
     try {
-      const decoded = Buffer.from(adminSession.value, 'base64').toString();
-      const [username, timestamp] = decoded.split(':');
+      // Verify JWT token
+      const decoded = jwt.verify(adminToken.value, JWT_SECRET) as {
+        id: string;
+        username: string;
+        role: string;
+        email: string;
+        iat: number;
+        exp: number;
+      };
       
-      // Check if session is not too old (24 hours)
-      const sessionTime = parseInt(timestamp);
-      const now = Date.now();
-      const maxAge = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-      
-      if (now - sessionTime > maxAge) {
-        return NextResponse.json(
-          { error: "Session expired" },
-          { status: 401 }
-        );
-      }
-
       return NextResponse.json({
         success: true,
-        user: { username, role: 'admin' }
+        user: { 
+          id: decoded.id,
+          username: decoded.username, 
+          role: decoded.role,
+          email: decoded.email
+        }
       });
-    } catch {
+    } catch (jwtError) {
+      console.error("JWT verification failed:", jwtError);
       return NextResponse.json(
-        { error: "Invalid session" },
+        { error: "Invalid or expired session" },
         { status: 401 }
       );
     }

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import LogoVideo from "@/components/LogoVideo";
+import AdminPasswordChangeForm from "@/components/AdminPasswordChangeForm";
 
 interface Signup {
   id: string;
@@ -148,6 +149,7 @@ export default function AdminDashboard() {
   const [selectedDateRange, setSelectedDateRange] = useState<string>('month');
   const [selectedBusinessId, setSelectedBusinessId] = useState<string>('all');
   const [showAllBusinesses, setShowAllBusinesses] = useState<boolean>(true);
+  const [showPasswordChangeForm, setShowPasswordChangeForm] = useState(false);
 
   const router = useRouter();
 
@@ -501,12 +503,20 @@ export default function AdminDashboard() {
                 <p className="text-sm text-gray-600">Signup Management System</p>
               </div>
             </div>
-            <button
-              onClick={handleLogout}
-              className="text-gray-600 hover:text-gray-900 font-medium text-sm"
-            >
-              Sign out
-            </button>
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => setShowPasswordChangeForm(true)}
+                className="text-gray-600 hover:text-gray-900 font-medium text-sm"
+              >
+                Change Password
+              </button>
+              <button
+                onClick={handleLogout}
+                className="text-gray-600 hover:text-gray-900 font-medium text-sm"
+              >
+                Sign out
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -1244,6 +1254,15 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
+
+      {/* Password Change Form */}
+      <AdminPasswordChangeForm
+        isOpen={showPasswordChangeForm}
+        onClose={() => setShowPasswordChangeForm(false)}
+        onSuccess={() => {
+          console.log('Password changed successfully');
+        }}
+      />
     </div>
   );
 } 

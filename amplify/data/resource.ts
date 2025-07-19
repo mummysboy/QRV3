@@ -126,6 +126,23 @@ const schema = a.schema({
     .identifier(["id"])
     .authorization((allow) => [allow.publicApiKey()]),
 
+  AdminUser: a
+    .model({
+      id: a.string().required(),
+      username: a.string().required(),
+      email: a.string().required(),
+      password: a.string().required(),
+      firstName: a.string().required(),
+      lastName: a.string().required(),
+      role: a.string().required(),
+      status: a.string().required(),
+      lastLoginAt: a.string(),
+      createdAt: a.string(),
+      updatedAt: a.string(),
+    })
+    .identifier(["id"])
+    .authorization((allow) => [allow.publicApiKey()]),
+
   BusinessAnalytics: a
     .model({
       id: a.id().required(),
