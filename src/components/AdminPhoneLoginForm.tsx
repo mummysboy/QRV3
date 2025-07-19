@@ -3,13 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-interface AdminPhoneLoginFormProps {
+interface AdminEmailLoginFormProps {
   onSuccess: () => void;
 }
 
-export default function AdminPhoneLoginForm({ onSuccess }: AdminPhoneLoginFormProps) {
-  const [step, setStep] = useState<'phone' | 'mfa'>('phone');
-  const [phoneNumber, setPhoneNumber] = useState("4155724853");
+export default function AdminEmailLoginForm({ onSuccess }: AdminEmailLoginFormProps) {
+  const [step, setStep] = useState<'email' | 'mfa'>('email');
+  const [email, setEmail] = useState("isaac@rightimagedigital.com");
   const [mfaCode, setMfaCode] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSendingCode, setIsSendingCode] = useState(false);
@@ -30,13 +30,13 @@ export default function AdminPhoneLoginForm({ onSuccess }: AdminPhoneLoginFormPr
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ phoneNumber }),
+        body: JSON.stringify({ email }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        setSuccess("Login code sent to your phone!");
+        setSuccess("Login code sent to your email!");
         setStep('mfa');
         // Start countdown for resend
         setCountdown(60);
@@ -60,7 +60,7 @@ export default function AdminPhoneLoginForm({ onSuccess }: AdminPhoneLoginFormPr
     }
   };
 
-  const handlePhoneSubmit = async (e: React.FormEvent) => {
+  const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setError("");
@@ -69,7 +69,7 @@ export default function AdminPhoneLoginForm({ onSuccess }: AdminPhoneLoginFormPr
       // Send MFA code
       await handleSendMFA();
     } catch (error) {
-      console.error('Phone submit error:', error);
+      console.error('Email submit error:', error);
       setError('Failed to process login. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -118,14 +118,14 @@ export default function AdminPhoneLoginForm({ onSuccess }: AdminPhoneLoginFormPr
 
   return (
     <div className="w-full max-w-md mx-auto">
-      {step === 'phone' ? (
-        <form onSubmit={handlePhoneSubmit} className="space-y-6">
+      {step === 'email' ? (
+        <form onSubmit={handleEmailSubmit} className="space-y-6">
           <div>
             <h2 className="text-center text-2xl font-bold text-gray-900 mb-6">
               Admin Login
             </h2>
             <p className="text-center text-sm text-gray-600 mb-6">
-              Enter your phone number to receive a login code
+              Enter your email to receive a login code
             </p>
           </div>
 
@@ -145,21 +145,21 @@ export default function AdminPhoneLoginForm({ onSuccess }: AdminPhoneLoginFormPr
           )}
 
           <div>
-            <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">
-              Phone Number
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              Email Address
             </label>
             <input
-              id="phoneNumber"
-              name="phoneNumber"
-              type="tel"
+              id="email"
+              name="email"
+              type="email"
               required
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Enter your phone number"
+              placeholder="Enter your email address"
             />
             <p className="text-xs text-gray-500 mt-1">
-              A 6-digit login code will be sent to this number
+              A 6-digit login code will be sent to this email
             </p>
           </div>
 
@@ -188,7 +188,7 @@ export default function AdminPhoneLoginForm({ onSuccess }: AdminPhoneLoginFormPr
               Enter Login Code
             </h2>
             <p className="text-center text-sm text-gray-600 mb-6">
-              Enter the 6-digit code sent to {phoneNumber}
+              Enter the 6-digit code sent to {email}
             </p>
           </div>
 
@@ -212,7 +212,7 @@ export default function AdminPhoneLoginForm({ onSuccess }: AdminPhoneLoginFormPr
               <div className="flex">
                 <div className="flex-shrink-0">
                   <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM16.707 7.293a1 1 0 00-1.414-1.414L9 12.586l-2.293-2.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l7-7z" clipRule="evenodd" />
                   </svg>
                 </div>
                 <div className="ml-3">
@@ -224,52 +224,41 @@ export default function AdminPhoneLoginForm({ onSuccess }: AdminPhoneLoginFormPr
 
           <div>
             <label htmlFor="mfaCode" className="block text-sm font-medium text-gray-700 mb-1">
-              Login Code
+              Verification Code
             </label>
             <input
               id="mfaCode"
               name="mfaCode"
               type="text"
               required
-              maxLength={6}
-              pattern="[0-9]{6}"
               value={mfaCode}
-              onChange={(e) => setMfaCode(e.target.value)}
+              onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center text-lg tracking-widest"
               placeholder="000000"
-              autoComplete="one-time-code"
+              maxLength={6}
             />
             <p className="text-xs text-gray-500 mt-1">
-              Enter the 6-digit code from your SMS
+              Enter the 6-digit code from your email
             </p>
           </div>
 
-          <div className="flex space-x-3">
-            <button
-              type="button"
-              onClick={() => setStep('phone')}
-              className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
-            >
-              Back
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting || mfaCode.length !== 6}
-              className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-            >
-              {isSubmitting ? (
-                <div className="flex items-center justify-center">
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Logging in...
-                </div>
-              ) : (
-                "Login"
-              )}
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={isSubmitting || mfaCode.length !== 6}
+            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+          >
+            {isSubmitting ? (
+              <div className="flex items-center justify-center">
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Verifying...
+              </div>
+            ) : (
+              "Login"
+            )}
+          </button>
 
           <div className="text-center">
             <button
@@ -279,6 +268,16 @@ export default function AdminPhoneLoginForm({ onSuccess }: AdminPhoneLoginFormPr
               className="text-sm text-blue-600 hover:text-blue-500 disabled:text-gray-400 disabled:cursor-not-allowed"
             >
               {countdown > 0 ? `Resend code in ${countdown}s` : "Resend code"}
+            </button>
+          </div>
+
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={() => setStep('email')}
+              className="text-sm text-gray-600 hover:text-gray-500"
+            >
+              ← Back to email
             </button>
           </div>
         </form>

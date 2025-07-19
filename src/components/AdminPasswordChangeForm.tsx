@@ -25,7 +25,7 @@ export default function AdminPasswordChangeForm({ isOpen, onClose, onSuccess }: 
     setSuccess("");
 
     try {
-      const response = await fetch('/api/admin/change-password', {
+      const response = await fetch('/api/admin/simple-change-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
