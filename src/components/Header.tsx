@@ -52,11 +52,6 @@ export default function Header({
   const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
-  // Debug logging
-  useEffect(() => {
-    console.log('Header component mounted');
-  }, []);
-
   // Check if user is logged into dashboard
   useEffect(() => {
     const userData = sessionStorage.getItem('businessUser');
@@ -126,7 +121,6 @@ export default function Header({
   };
 
   const handleMenuToggle = () => {
-    console.log('Menu toggle clicked, current state:', isMenuOpen);
     setIsMenuOpen((prev) => !prev);
   };
 
