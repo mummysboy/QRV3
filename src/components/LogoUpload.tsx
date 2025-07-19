@@ -35,6 +35,12 @@ export default function LogoUpload({ businessName, onUpload, currentLogo }: Logo
   const handleFile = async (file: File) => {
     setError("");
     
+    console.log('🔄 LogoUpload: Starting file upload...');
+    console.log('📋 LogoUpload: File name:', file.name);
+    console.log('📋 LogoUpload: File size:', file.size);
+    console.log('📋 LogoUpload: File type:', file.type);
+    console.log('📋 LogoUpload: Business name:', businessName);
+    
     // Only validate file size (max 5MB) - remove strict file type validation
     if (file.size > 5 * 1024 * 1024) {
       setError("File size must be less than 5MB");
@@ -49,20 +55,26 @@ export default function LogoUpload({ businessName, onUpload, currentLogo }: Logo
       formData.append('logo', file);
       formData.append('businessName', businessName);
 
+      console.log('🔄 LogoUpload: Calling upload API...');
       const response = await fetch('/api/business/upload-logo', {
         method: 'POST',
         body: formData,
       });
 
+      console.log('📋 LogoUpload: API response status:', response.status);
+
       if (response.ok) {
         const result = await response.json();
+        console.log('✅ LogoUpload: Upload successful:', result);
+        console.log('📋 LogoUpload: Logo URL:', result.logoUrl);
         onUpload(result.logoUrl);
       } else {
         const errorData = await response.json();
+        console.error('❌ LogoUpload: API error:', errorData);
         throw new Error(errorData.error || 'Failed to upload logo');
       }
     } catch (error) {
-      console.error('Error uploading logo:', error);
+      console.error('❌ LogoUpload: Upload error:', error);
       setError(error instanceof Error ? error.message : 'Failed to upload logo. Please try again.');
     } finally {
       setIsUploading(false);

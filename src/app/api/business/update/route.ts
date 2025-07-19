@@ -30,6 +30,8 @@ interface Business {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
+    console.log('🔧 Business update: Received request body:', body);
+    
     const {
       businessId,
       name,
@@ -50,7 +52,11 @@ export async function PUT(request: NextRequest) {
       // profileComplete, // Temporarily commented out
     } = body;
 
+    console.log('🔧 Business update: Extracted logo field:', logo);
+    console.log('🔧 Business update: Business ID:', businessId);
+
     if (!businessId) {
+      console.error('❌ Business update: No business ID provided');
       return NextResponse.json(
         { error: "Business ID is required" },
         { status: 400 }
@@ -58,6 +64,31 @@ export async function PUT(request: NextRequest) {
     }
 
     const client = generateClient();
+
+    // Build update input
+    const updateInput = {
+      id: businessId,
+      ...(name !== undefined && { name }),
+      ...(phone !== undefined && { phone }),
+      ...(email !== undefined && { email }),
+      ...(address !== undefined && { address }),
+      ...(city !== undefined && { city }),
+      ...(state !== undefined && { state }),
+      ...(zipCode !== undefined && { zipCode }),
+      ...(website !== undefined && { website }),
+      ...(socialMedia !== undefined && { socialMedia }),
+      ...(businessHours !== undefined && { businessHours }),
+      ...(description !== undefined && { description }),
+      ...(logo !== undefined && { logo }),
+      ...(photos !== undefined && { photos }),
+      ...(primaryContactEmail !== undefined && { primaryContactEmail }),
+      ...(primaryContactPhone !== undefined && { primaryContactPhone }),
+      updatedAt: new Date().toISOString(),
+      // Temporarily remove profileComplete until schema is deployed
+      // ...(profileComplete !== undefined && { profileComplete }),
+    };
+
+    console.log('🔧 Business update: Update input:', updateInput);
 
     // Update business information (neighborhood is set during approval)
     const updateResult = await client.graphql({
@@ -89,38 +120,23 @@ export async function PUT(request: NextRequest) {
         }
       `,
       variables: {
-        input: {
-          id: businessId,
-          ...(name !== undefined && { name }),
-          ...(phone !== undefined && { phone }),
-          ...(email !== undefined && { email }),
-          ...(address !== undefined && { address }),
-          ...(city !== undefined && { city }),
-          ...(state !== undefined && { state }),
-          ...(zipCode !== undefined && { zipCode }),
-          ...(website !== undefined && { website }),
-          ...(socialMedia !== undefined && { socialMedia }),
-          ...(businessHours !== undefined && { businessHours }),
-          ...(description !== undefined && { description }),
-          ...(logo !== undefined && { logo }),
-          ...(photos !== undefined && { photos }),
-          ...(primaryContactEmail !== undefined && { primaryContactEmail }),
-          ...(primaryContactPhone !== undefined && { primaryContactPhone }),
-          updatedAt: new Date().toISOString(),
-          // Temporarily remove profileComplete until schema is deployed
-          // ...(profileComplete !== undefined && { profileComplete }),
-        },
+        input: updateInput,
       },
     });
 
     const updatedBusiness = (updateResult as { data: { updateBusiness: Business } }).data.updateBusiness;
+    console.log('✅ Business update: Successfully updated business:', {
+      id: updatedBusiness.id,
+      name: updatedBusiness.name,
+      logo: updatedBusiness.logo
+    });
 
     return NextResponse.json({
       success: true,
       business: updatedBusiness,
     });
   } catch (error) {
-    console.error("Error updating business:", error);
+    console.error("❌ Business update: Error updating business:", error);
     return NextResponse.json(
       { error: "Failed to update business information" },
       { status: 500 }

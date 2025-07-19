@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import CardAnimation from "@/components/CardAnimation";
 
 interface CreateRewardFormProps {
@@ -45,23 +45,48 @@ export default function CreateRewardForm({
   isLogoProcessing = false,
   shouldShowLogoProcessing = false
 }: CreateRewardFormProps) {
+  // Ensure business.logo is never undefined
+  const businessWithLogo = {
+    ...business,
+    logo: business.logo || ''
+  };
+
   const [formData, setFormData] = useState<RewardData>({
-    businessId: business.id,
-    businessName: business.name,
-    businessAddress: business.address,
-    businessCity: business.city,
-    businessState: business.state,
-    businessZipCode: business.zipCode,
-    businessCategory: business.category,
-    businessLogo: business.logo,
+    businessId: businessWithLogo.id,
+    businessName: businessWithLogo.name,
+    businessAddress: businessWithLogo.address,
+    businessCity: businessWithLogo.city,
+    businessState: businessWithLogo.state,
+    businessZipCode: businessWithLogo.zipCode,
+    businessCategory: businessWithLogo.category,
+    businessLogo: businessWithLogo.logo,
     subheader: "",
     quantity: "", // Start blank
     expires: "",
   });
 
   // Debug: Log the business logo value
-  console.log('CreateRewardForm - business.logo:', business.logo);
+  console.log('CreateRewardForm - business.logo:', businessWithLogo.logo);
   console.log('CreateRewardForm - formData.businessLogo:', formData.businessLogo);
+  console.log('CreateRewardForm - business object:', businessWithLogo);
+  console.log('CreateRewardForm - isProfileComplete:', isProfileComplete);
+
+  // Update formData when business data changes
+  useEffect(() => {
+    console.log('CreateRewardForm - useEffect triggered, business.logo:', businessWithLogo.logo);
+    setFormData(prev => ({
+      ...prev,
+      businessId: businessWithLogo.id,
+      businessName: businessWithLogo.name,
+      businessAddress: businessWithLogo.address,
+      businessCity: businessWithLogo.city,
+      businessState: businessWithLogo.state,
+      businessZipCode: businessWithLogo.zipCode,
+      businessCategory: businessWithLogo.category,
+      businessLogo: businessWithLogo.logo,
+    }));
+  }, [businessWithLogo]);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -82,20 +107,26 @@ export default function CreateRewardForm({
       return;
     }
 
+    // Ensure we have the business logo
+    if (!formData.businessLogo || formData.businessLogo.trim() === '') {
+      console.warn('⚠️ Business logo is missing in form data, using business.logo as fallback');
+      formData.businessLogo = businessWithLogo.logo || '';
+    }
+
     setIsSubmitting(true);
     
     try {
       await onSubmit(formData);
       // Reset form
       setFormData({
-        businessId: business.id,
-        businessName: business.name,
-        businessAddress: business.address,
-        businessCity: business.city,
-        businessState: business.state,
-        businessZipCode: business.zipCode,
-        businessCategory: business.category,
-        businessLogo: business.logo,
+        businessId: businessWithLogo.id,
+        businessName: businessWithLogo.name,
+        businessAddress: businessWithLogo.address,
+        businessCity: businessWithLogo.city,
+        businessState: businessWithLogo.state,
+        businessZipCode: businessWithLogo.zipCode,
+        businessCategory: businessWithLogo.category,
+        businessLogo: businessWithLogo.logo,
         subheader: "",
         quantity: 100,
         expires: "",

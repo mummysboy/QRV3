@@ -161,6 +161,11 @@ export default function BusinessDashboard() {
       const userObj = JSON.parse(userData);
       const businessObj = JSON.parse(businessData);
       
+      console.log('🔍 Dashboard - Loaded business data:', businessObj);
+      console.log('🔍 Dashboard - Business logo:', businessObj.logo);
+      console.log('🔍 Dashboard - Business logo type:', typeof businessObj.logo);
+      console.log('🔍 Dashboard - Business logo length:', businessObj.logo ? businessObj.logo.length : 0);
+      
       setUser(userObj);
       setBusiness(businessObj);
       
@@ -179,6 +184,14 @@ export default function BusinessDashboard() {
       fetchDashboardData();
     }
   }, [business?.id, currentView, timeRange]);
+
+  // Refresh business data if logo is missing
+  useEffect(() => {
+    if (business?.id && (!business.logo || business.logo.trim() === '')) {
+      console.log('🔄 Business logo is missing, refreshing data...');
+      refreshBusinessData();
+    }
+  }, [business?.id, business?.logo]);
 
   useEffect(() => {
     if (user?.email) {
@@ -221,6 +234,32 @@ export default function BusinessDashboard() {
       }
     } catch (error) {
       console.error('Error fetching all businesses:', error);
+    }
+  };
+
+  // Add function to refresh business data from database
+  const refreshBusinessData = async () => {
+    if (!business?.id) return;
+    
+    try {
+      console.log('🔄 Refreshing business data from database...');
+      const response = await fetch(`/api/business/get-business?businessId=${business.id}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.business) {
+          console.log('✅ Business data refreshed:', data.business);
+          console.log('📋 Logo field:', data.business.logo);
+          
+          // Update session storage with fresh data
+          sessionStorage.setItem('businessData', JSON.stringify(data.business));
+          setBusiness(data.business);
+        }
+      } else {
+        console.error('❌ Failed to refresh business data:', response.status);
+      }
+    } catch (error) {
+      console.error('❌ Error refreshing business data:', error);
     }
   };
 
@@ -298,13 +337,23 @@ export default function BusinessDashboard() {
   };
 
   const handleLogoUpload = async (logoUrl: string) => {
-    if (!business?.id) return;
+    if (!business?.id) {
+      console.error('❌ handleLogoUpload: No business ID available');
+      alert('Business ID not found. Please refresh the page and try again.');
+      return;
+    }
+
+    console.log('🔄 handleLogoUpload: Starting logo update process...');
+    console.log('📋 handleLogoUpload: Business ID:', business.id);
+    console.log('📋 handleLogoUpload: Logo URL:', logoUrl);
+    console.log('📋 handleLogoUpload: Current business logo:', business.logo);
 
     // Set logo processing state
     setLogoProcessing(true);
     setLogoProcessingStartTime(Date.now());
 
     try {
+      console.log('🔄 handleLogoUpload: Calling business update API...');
       const response = await fetch('/api/business/update', {
         method: 'PUT',
         headers: {
@@ -316,29 +365,34 @@ export default function BusinessDashboard() {
         }),
       });
 
+      console.log('📋 handleLogoUpload: API response status:', response.status);
+
       if (response.ok) {
         const result = await response.json();
-        console.log('Logo updated successfully:', result);
+        console.log('✅ handleLogoUpload: Logo updated successfully:', result);
         
         // Update session storage
         const updatedBusiness = { ...business, logo: logoUrl };
+        console.log('📋 handleLogoUpload: Updated business object:', updatedBusiness);
         sessionStorage.setItem('businessData', JSON.stringify(updatedBusiness));
         setBusiness(updatedBusiness);
         
         setShowLogoUpload(false);
         
+        console.log('🔄 handleLogoUpload: Refreshing page...');
         // Refresh the page immediately
         window.location.reload();
       } else {
         const error = await response.json();
+        console.error('❌ handleLogoUpload: API error:', error);
         alert(error.error || 'Failed to upload logo');
         // Reset processing state on error
         setLogoProcessing(false);
         setLogoProcessingStartTime(null);
       }
     } catch (error) {
-      console.error('Error uploading logo:', error);
-      alert('Failed to upload logo');
+      console.error('❌ handleLogoUpload: Network error:', error);
+      alert('Failed to upload logo - network error');
       // Reset processing state on error
       setLogoProcessing(false);
       setLogoProcessingStartTime(null);
@@ -364,6 +418,10 @@ export default function BusinessDashboard() {
       return;
     }
 
+    // Ensure we have the business logo
+    const businessLogo = rewardData.businessLogo || business?.logo || '';
+    console.log('🔍 CreateReward - Using logo:', businessLogo);
+
     const constructedAddress = `${rewardData.businessAddress}, ${rewardData.businessCity}, ${rewardData.businessState} ${rewardData.businessZipCode}`;
     
     const requestBody = {
@@ -372,10 +430,12 @@ export default function BusinessDashboard() {
       subheader: rewardData.subheader,
       quantity: rewardData.quantity as number, // Type assertion since we validated it above
       expires: rewardData.expires,
-      logokey: rewardData.businessLogo || "",
+      logokey: businessLogo,
       addressurl: constructedAddress,
       addresstext: constructedAddress,
     };
+
+    console.log('🔍 CreateReward - Request body:', requestBody);
 
     try {
       const response = await fetch('/api/business/rewards', {
@@ -406,7 +466,10 @@ export default function BusinessDashboard() {
   const handleQuickAction = (action: 'create' | 'analytics' | 'settings' | 'add-business') => {
     switch (action) {
       case 'create':
-        setShowCreateReward(true);
+        // Refresh business data before opening create reward form
+        refreshBusinessData().then(() => {
+          setShowCreateReward(true);
+        });
         break;
       case 'analytics':
         setCurrentView('analytics');
