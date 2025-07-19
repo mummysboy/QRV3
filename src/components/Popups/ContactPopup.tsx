@@ -152,7 +152,7 @@ export default function ContactPopup({ onClose }: { onClose: () => void }) {
                 onClick={handleSubmit}
                 loading={submitting}
                 disabled={submitting}
-                className="flex-1"
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white"
               >
                 Submit
               </Button>

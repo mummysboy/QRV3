@@ -327,7 +327,12 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
       )}
       {!showSuccess && (
         <div className={`fixed inset-0 flex items-center justify-center z-50 p-2 sm:p-4 transition-colors duration-500 ${fadeIn ? 'bg-neutral-100/80' : 'bg-neutral-100/0'}`} style={{ backdropFilter: 'blur(4px)' }} onClick={handleBackdropClick}>
-          <div className={`bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[95vh] overflow-y-auto mx-4 transition-all duration-500 ${fadeIn ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
+          <div className={`bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[95vh] overflow-y-auto mx-4 transition-all duration-500 ${fadeIn ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            <style jsx>{`
+              div::-webkit-scrollbar {
+                display: none;
+              }
+            `}</style>
             <div className="p-4 sm:p-6 lg:p-8">
               <div className="flex justify-between items-center mb-4 sm:mb-6">
                 <h2 className="text-xl sm:text-2xl font-semibold text-gray-900">Claim Your Business</h2>

@@ -270,46 +270,137 @@ a:hover {
 }
 
 /* ===== RESPONSIVE CONTAINERS ===== */
+/* Using Tailwind's built-in container class instead of custom CSS */
+
+/* Ensure text centering works properly */
+.text-center {
+  text-align: center !important;
+}
+
+/* Force centering on all headings and paragraphs in sections */
+section h1,
+section h2,
+section h3,
+section p {
+  text-align: center !important;
+}
+
+/* Force centering on main content areas */
+main h1,
+main h2,
+main h3,
+main p {
+  text-align: center !important;
+}
+
+/* Very specific targeting for home page sections */
+section[data-animate] h2,
+section[data-animate] p,
+section h2,
+section p {
+  text-align: center !important;
+}
+
+/* Target specific sections by ID */
+#business-steps h2,
+#business-steps p,
+#customer-steps h2,
+#customer-steps p,
+#benefits h2,
+#benefits p,
+#reviews h2,
+#reviews p,
+#final-cta h2,
+#final-cta p {
+  text-align: center !important;
+}
+
+/* Force center class */
+.force-center {
+  text-align: center !important;
+}
+
+.force-center h1,
+.force-center h2,
+.force-center h3,
+.force-center p {
+  text-align: center !important;
+}
+
+/* Ultra-specific centering */
+.home-page-text-center {
+  text-align: center !important;
+}
+
+.home-page-text-center h1,
+.home-page-text-center h2,
+.home-page-text-center h3,
+.home-page-text-center p {
+  text-align: center !important;
+}
+
+/* Target all text elements in the home page */
+main h1,
+main h2,
+main h3,
+main p,
+section h1,
+section h2,
+section h3,
+section p {
+  text-align: center !important;
+}
+
+/* Use CSS custom properties for maximum specificity */
+:root {
+  --force-text-center: center;
+}
+
+main,
+section,
+.home-page-text-center,
+.force-center {
+  --text-align: var(--force-text-center);
+}
+
+main h1,
+main h2,
+main h3,
+main p,
+section h1,
+section h2,
+section h3,
+section p,
+.home-page-text-center h1,
+.home-page-text-center h2,
+.home-page-text-center h3,
+.home-page-text-center p,
+.force-center h1,
+.force-center h2,
+.force-center h3,
+.force-center p {
+  text-align: var(--text-align) !important;
+}
+
+/* Force centering using CSS Grid */
+.force-center-grid {
+  display: grid !important;
+  place-items: center !important;
+  text-align: center !important;
+}
+
+.force-center-grid h1,
+.force-center-grid h2,
+.force-center-grid h3,
+.force-center-grid p {
+  text-align: center !important;
+  justify-self: center !important;
+}
+
+/* Ensure container centering works properly */
 .container {
-  width: 100%;
-  margin-left: auto;
-  margin-right: auto;
-  padding-left: var(--space-4);
-  padding-right: var(--space-4);
-}
-
-@media (min-width: 640px) {
-  .container {
-    max-width: 640px;
-    padding-left: var(--space-6);
-    padding-right: var(--space-6);
-  }
-}
-
-@media (min-width: 768px) {
-  .container {
-    max-width: 768px;
-  }
-}
-
-@media (min-width: 1024px) {
-  .container {
-    max-width: 1024px;
-    padding-left: var(--space-8);
-    padding-right: var(--space-8);
-  }
-}
-
-@media (min-width: 1280px) {
-  .container {
-    max-width: 1280px;
-  }
-}
-
-@media (min-width: 1536px) {
-  .container {
-    max-width: 1536px;
-  }
+  margin-left: auto !important;
+  margin-right: auto !important;
 }
 
 /* ===== FOCUS STATES ===== */

@@ -169,7 +169,7 @@ export default function RewardPage() {
     if (redeemed) {
       // Show thank you
       return (
-        <div className="fixed inset-0 z-60 flex flex-col bg-white bg-opacity-95 min-h-screen overflow-y-auto pt-20">
+        <div className="fixed inset-0 z-60 flex flex-col bg-white bg-opacity-95 min-h-screen overflow-y-auto pt-24">
           <div className="flex-shrink-0 mt-10 md:mt-16 lg:mt-24">
             <LogoVideo playbackRate={1.2} />
           </div>
@@ -186,7 +186,7 @@ export default function RewardPage() {
       // Show redeem button
       return (
         <main
-          className="relative min-h-screen bg-white"
+          className="relative min-h-screen bg-white pt-24"
           style={{
             opacity: fadeIn ? 1 : 0,
             transition: 'opacity 1.2s',
@@ -243,7 +243,7 @@ export default function RewardPage() {
     // Show claim form
     return (
       <main
-        className="relative min-h-screen bg-white"
+        className="relative min-h-screen bg-white pt-24"
         style={{
           opacity: fadeIn ? 1 : 0,
           transition: 'opacity 1.2s',

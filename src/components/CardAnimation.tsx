@@ -65,7 +65,7 @@ function CountdownTimer({ expirationDate }: { expirationDate: string }) {
   }, [expirationDate]);
 
   return (
-    <div className="text-xs font-light leading-tight px-1">
+    <div className="text-xs font-light leading-tight">
       <span className="text-red-600 font-medium">Expires in: </span>
       <span className="font-semibold">
         {String(timeLeft.hours).padStart(2, '0')}:{String(timeLeft.minutes).padStart(2, '0')}:{String(timeLeft.seconds).padStart(2, '0')}
@@ -104,29 +104,28 @@ export default function CardAnimation({ card, playbackRate = 1, isPreview = fals
     return difference > 0 && difference <= twentyFourHours;
   };
 
-  // Helper function to extract city and state from full address
-  const getCityStateFromAddress = (fullAddress: string): string => {
-    if (!fullAddress) return '';
+  // Helper function to extract street address, city, and state from full address
+  const getAddressComponents = (fullAddress: string): { street: string; city: string; state: string } => {
+    if (!fullAddress) return { street: '', city: '', state: '' };
     
-    // Try to match patterns like "City, State ZIP" or "City, State"
-    const cityStateMatch = fullAddress.match(/([^,]+),\s*([A-Z]{2})\s*\d{5}/);
-    if (cityStateMatch) {
-      return `${cityStateMatch[1].trim()}, ${cityStateMatch[2]}`;
-    }
+    // Extract state from the end of the address (before zip code)
+    const stateMatch = fullAddress.match(/,\s*([A-Z]{2})\s*\d{5}(-\d{4})?$/);
+    const state = stateMatch ? stateMatch[1] : '';
     
-    // Fallback: try to extract city and state from the end of the address
-    const parts = fullAddress.split(',').map(part => part.trim());
+    // Remove zip code from the address but keep state
+    const cleanAddress = fullAddress.replace(/,\s*[A-Z]{2}\s*\d{5}(-\d{4})?$/, '');
+    
+    // Split by commas to separate street from city
+    const parts = cleanAddress.split(',').map(part => part.trim());
+    
     if (parts.length >= 2) {
-      const lastPart = parts[parts.length - 1];
-      const stateMatch = lastPart.match(/^([A-Z]{2})\s*\d{5}/);
-      if (stateMatch) {
-        const city = parts[parts.length - 2];
-        return `${city}, ${stateMatch[1]}`;
-      }
+      const street = parts[0];
+      const city = parts[1];
+      return { street, city, state };
     }
     
-    // If no pattern matches, return the original address
-    return fullAddress;
+    // If only one part, treat it as street
+    return { street: parts[0] || '', city: '', state };
   };
 
   // Construct the logo URL using the storage utility
@@ -242,7 +241,7 @@ export default function CardAnimation({ card, playbackRate = 1, isPreview = fals
         }`}
       >
         {/* Removed Status & Quantity Overlays */}
-        <div className={`bg-white text-black text-center px-3 py-3 rounded-lg ${isPreview ? 'max-w-[180px] w-full' : 'max-w-[160px] w-full'} flex flex-col justify-center transition-all duration-500 ${isPreview ? 'min-h-[160px]' : 'min-h-[130px]'}`}>
+        <div className={`bg-white text-black text-center px-1 py-1 rounded-lg ${isPreview ? 'max-w-[180px] w-full' : 'max-w-[160px] w-full'} flex flex-col justify-between transition-all duration-500 ${isPreview ? 'min-h-[160px]' : 'min-h-[130px]'} overflow-hidden`}>
           {!card ? (
             <p className="text-xs font-semibold text-gray-700 px-1 leading-tight">
               Sorry, there are no rewards available at the moment. Please try
@@ -250,9 +249,10 @@ export default function CardAnimation({ card, playbackRate = 1, isPreview = fals
             </p>
           ) : (
             <>
-              <div className={`space-y-2 flex flex-col items-center w-full ${isPreview ? 'px-2' : 'px-1'}`}>
+              {/* Logo Section - Fixed size */}
+              <div className="flex-shrink-0 mb-2">
                 {logoUrl ? (
-                  <div className="relative w-full flex justify-center mb-2" style={{ marginTop: '-5%' }}>
+                  <div className="relative w-full flex justify-center" style={{ marginTop: '-5%' }}>
                     <img
                       src={logoUrl}
                       alt="Business Logo"
@@ -282,7 +282,7 @@ export default function CardAnimation({ card, playbackRate = 1, isPreview = fals
                   </div>
                 ) : (
                   <div 
-                    className="mx-auto bg-gray-200 rounded-lg flex items-center justify-center mb-2"
+                    className="mx-auto bg-gray-200 rounded-lg flex items-center justify-center"
                     style={{ 
                       width: '100.625px', 
                       height: '64.6875px', 
@@ -296,64 +296,82 @@ export default function CardAnimation({ card, playbackRate = 1, isPreview = fals
                     <span className="text-gray-500 text-base">🏢</span>
                   </div>
                 )}
-                <p className={`${isPreview ? 'text-sm' : 'text-sm'} font-bold leading-tight break-words overflow-hidden text-ellipsis`}>
-                  {cardData?.header}
-                </p>
-                <a
-                  href={generateGoogleMapsUrl(
-                    (cardData?.header ? cardData.header + ' ' : '') + (cardData?.addresstext || '')
-                  )}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`${isPreview ? 'text-xs' : 'text-xs'} font-light leading-tight underline hover:text-blue-600 block`}
-                >
-                  {(() => {
-                    const city = getCityStateFromAddress(cardData?.addresstext || '').split(',')[0] || '';
-                    const district = cardData?.neighborhood || '';
-                    
-                    // If neighborhood is the same as city, just show city once
-                    if (district && district.toLowerCase() === city.toLowerCase()) {
-                      const displayText = city;
-                      console.log('CardAnimation - Display text:', displayText, 'neighborhood:', cardData?.neighborhood, 'city:', city);
-                      return displayText;
-                    }
-                    
-                    // If we have a different neighborhood, show city and district on separate lines
-                    if (district) {
-                      const displayText = `${city}\n${district}`;
-                      console.log('CardAnimation - Display text:', displayText, 'neighborhood:', cardData?.neighborhood, 'city:', city);
-                      return displayText.split('\n').map((line, index) => (
+              </div>
+
+              {/* Content Section - Dynamic sizing */}
+              <div className="flex-1 flex flex-col justify-between min-h-0 max-h-full">
+                {/* Header and Location */}
+                <div className={`flex flex-col items-center w-full ${isPreview ? 'px-2' : 'px-1'} mb-3`}>
+                  <p className={`${isPreview ? 'text-sm' : 'text-xs'} font-bold leading-tight break-words overflow-hidden text-ellipsis max-w-full line-clamp-2 ${(cardData?.header?.length || 0) > 30 ? 'text-xs' : (cardData?.header?.length || 0) > 15 ? 'text-sm' : 'text-base'}`}>
+                    {cardData?.header}
+                  </p>
+                  <a
+                    href={generateGoogleMapsUrl(
+                      (cardData?.header ? cardData.header + ' ' : '') + (cardData?.addresstext || '')
+                    )}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`${isPreview ? 'text-xs' : 'text-xs'} font-light leading-tight underline hover:text-blue-600 block -mt-3 text-xs`}
+                    style={{ fontSize: '0.525rem' }}
+                  >
+                    {(() => {
+                      const { street, city, state } = getAddressComponents(cardData?.addresstext || '');
+                      const neighborhood = cardData?.neighborhood || '';
+                      
+                      const addressLines = [];
+                      
+                      // Add street address (line 1)
+                      if (street) {
+                        addressLines.push(street);
+                      }
+                      
+                      // Add city and state (line 2)
+                      if (city && state) {
+                        addressLines.push(`${city}, ${state}`);
+                      } else if (city) {
+                        addressLines.push(city);
+                      } else if (state) {
+                        addressLines.push(state);
+                      }
+                      
+                      // Add neighborhood (line 3) if it exists and is different from city
+                      if (neighborhood && neighborhood.toLowerCase() !== city.toLowerCase()) {
+                        addressLines.push(neighborhood);
+                      }
+                      
+                      console.log('CardAnimation - Address lines:', addressLines, 'street:', street, 'city:', city, 'state:', state, 'neighborhood:', neighborhood);
+                      
+                      return addressLines.map((line, index) => (
                         <span key={index}>
                           {line}
-                          {index < displayText.split('\n').length - 1 && <br />}
+                          {index < addressLines.length - 1 && <br />}
                         </span>
                       ));
-                    }
-                    
-                    // Fallback to original city/state format
-                    const displayText = getCityStateFromAddress(cardData?.addresstext || '');
-                    console.log('CardAnimation - Display text:', displayText, 'neighborhood:', cardData?.neighborhood, 'city:', city);
-                    return displayText;
-                  })()}
-                </a>
-              </div>
-              <div className={`mt-2 ${isPreview ? 'px-2' : 'px-1'}`}>
-                <p className={`${isPreview ? 'text-xs' : 'text-xs'} italic leading-tight break-words overflow-hidden text-ellipsis`}>
-                  {cardData?.subheader}
-                </p>
-              </div>
-              <div className={`mt-2 ${isPreview ? 'px-2' : 'px-1'}`}>
-                {cardData?.expires && 
-                 cardData.expires !== "Demo Reward Not Valid" && 
-                 (typeof cardData.expires === 'string' ? cardData.expires.trim() !== "" : true) ? (
-                  isExpiringSoon(cardData.expires) ? (
-                    <CountdownTimer expirationDate={String(cardData.expires)} />
-                  ) : (
-                    <p className={`${isPreview ? 'text-xs' : 'text-xs'} font-light leading-tight`}>
-                      Expires: {new Date(cardData.expires).toLocaleDateString()}
-                    </p>
-                  )
-                ) : null}
+                    })()}
+                  </a>
+                </div>
+
+                {/* Description - Dynamic sizing */}
+                <div className={`flex-1 flex flex-col justify-center ${isPreview ? 'px-2' : 'px-1'}mt-2 mb-1`}>
+                  <p className={`${isPreview ? 'text-xs' : 'text-xs'} leading-tight break-words overflow-hidden text-ellipsis max-w-full line-clamp-3 ${(cardData?.subheader?.length || 0) > 80 ? 'text-xs' : (cardData?.subheader?.length || 0) > 40 ? 'text-sm' : 'text-base'}`}>
+                    {cardData?.subheader}
+                  </p>
+                </div>
+
+                {/* Expiration - Fixed at bottom */}
+                <div className={`flex-shrink-0 ${isPreview ? 'px-2' : 'px-1'}`}>
+                  {cardData?.expires && 
+                   cardData.expires !== "Demo Reward Not Valid" && 
+                   (typeof cardData.expires === 'string' ? cardData.expires.trim() !== "" : true) ? (
+                    isExpiringSoon(cardData.expires) ? (
+                      <CountdownTimer expirationDate={String(cardData.expires)} />
+                    ) : (
+                      <p className={`${isPreview ? 'text-xs' : 'text-xs'} font-light leading-tight`}>
+                        Expires: {new Date(cardData.expires).toLocaleDateString()}
+                      </p>
+                    )
+                  ) : null}
+                </div>
               </div>
             </>
           )}

@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Gift, BarChart3, Mail, LogOut, Lock, Rocket, User } from "lucide-react";
+import { BarChart3, Mail, LogOut, Lock, Rocket, User } from "lucide-react";
 
 interface BusinessUser {
   id: string;
@@ -151,9 +151,6 @@ export default function Header({
               href="/" 
               className="text-xl font-bold text-white hover:text-gray-100 transition-all duration-300 transform hover:scale-105 flex items-center space-x-2"
             >
-              <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center">
-                <Gift className="w-5 h-5 text-white" />
-              </div>
               <span className="text-white">
                 QRewards
               </span>
@@ -165,13 +162,15 @@ export default function Header({
             <div className="hidden md:flex items-center space-x-6">
               <Link
                 href="/business/dashboard"
-                className="text-white/90 hover:text-white transition-all duration-300 hover:scale-105 font-medium"
+                className="text-white !text-white hover:text-gray-100 transition-all duration-300 hover:scale-105 font-medium"
+                style={{ color: 'white !important' }}
               >
                 Dashboard
               </Link>
               <button
                 onClick={onContactClick}
-                className="text-white/90 hover:text-white transition-all duration-300 hover:scale-105 font-medium"
+                className="text-white !text-white hover:text-gray-100 transition-all duration-300 hover:scale-105 font-medium"
+                style={{ color: 'white !important' }}
               >
                 Contact
               </button>
@@ -189,19 +188,22 @@ export default function Header({
             <div className="hidden md:flex items-center space-x-6">
               <Link
                 href="/business/login"
-                className="text-white/90 hover:text-white transition-all duration-300 hover:scale-105 font-medium"
+                className="text-white hover:text-gray-100 transition-all duration-300 hover:scale-105 font-medium"
+                style={{ color: 'white !important' }}
               >
-                Business Login
+                Login
               </Link>
               <Link
                 href="/business/signup"
-                className="text-white/90 hover:text-white transition-all duration-300 hover:scale-105 font-medium"
+                className="text-white hover:text-gray-100 transition-all duration-300 hover:scale-105 font-medium"
+                style={{ color: 'white !important' }}
               >
-                Get Started
+                Sign up
               </Link>
               <button
                 onClick={onContactClick}
-                className="text-white/90 hover:text-white transition-all duration-300 hover:scale-105 font-medium"
+                className="text-white hover:text-gray-100 transition-all duration-300 hover:scale-105 font-medium"
+                style={{ color: 'white !important' }}
               >
                 Contact
               </button>
@@ -253,7 +255,7 @@ export default function Header({
                     >
                       <div className="flex items-center space-x-3">
                         <BarChart3 className="w-5 h-5 text-gray-600" />
-                        <span>Dashboard</span>
+                        <span className="text-gray-900">Dashboard</span>
                       </div>
                     </Link>
                     <button
@@ -273,7 +275,7 @@ export default function Header({
                       className="block w-full text-left px-6 py-4 text-red-600 hover:bg-red-50 transition-all duration-200 text-sm font-medium group rounded-b-xl"
                     >
                       <div className="flex items-center space-x-3">
-                        <LogOut className="w-5 h-5 text-red-600" />
+                        <LogOut className="w-5 h-5 text-gray-600" />
                         <span>Sign out</span>
                       </div>
                     </button>

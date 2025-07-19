@@ -259,7 +259,7 @@ export default function ClaimRewardPage() {
     window.location.pathname.includes("/reward/");
 
   return (
-    <main className="relative min-h-screen bg-white transition-opacity duration-1000">
+    <main className="relative min-h-screen bg-white transition-opacity duration-1000 pt-24">
       {showThankYouOverlay && (
         <ThankYouOverlay
           remainingTime={cooldown ?? 0}

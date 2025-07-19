@@ -857,7 +857,7 @@ export default function BusinessDashboard() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
+    <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 pt-16">
       {/* Header */}
       <div className={`transition-all duration-700 ease-in-out ${
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
