@@ -1,32 +1,33 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import CreateRewardForm from "@/components/CreateRewardForm";
 import EditRewardForm from "@/components/EditRewardForm";
 import LogoUpload from "@/components/LogoUpload";
 import CardAnimation from "@/components/CardAnimation";
-import AddBusinessForm, { AddBusinessData } from "@/components/AddBusinessForm";
+import AddBusinessForm from "@/components/AddBusinessForm";
+import Header from "@/components/Header";
 
 // Mock business user and business info
 const mockBusiness = {
   id: "demo-business-1",
-  name: "Mummy's Cafe",
-  phone: "(415) 555-1234",
-  email: "hello@mummys-cafe.com",
+  name: "Market Street Cafe",
+  phone: "(415) 555-2020",
+  email: "hello@marketstreetcafe.com",
   zipCode: "94105",
   category: "Cafe",
   status: "Active",
-  logo: "/mummy-cafe-logo.svg", // Mummy's Cafe logo
-  address: "123 Main St",
+  logo: "/market-street-cafe-logo.png", // Market Street Cafe logo
+  address: "500 Market St",
   city: "San Francisco",
   state: "CA",
-  website: "https://mummys-cafe.com",
-  socialMedia: "@mummys_cafe",
-  businessHours: "7am - 7pm",
-  description: "A cozy spot for coffee lovers.",
+  website: "https://marketstreetcafe.com",
+  socialMedia: "@marketstreetcafe",
+  businessHours: "7am - 9pm",
+  description: "A sleek, professional cafe in the heart of San Francisco for creators and professionals.",
   photos: "",
-  primaryContactEmail: "hello@mummys-cafe.com",
-  primaryContactPhone: "(415) 555-1234",
+  primaryContactEmail: "hello@marketstreetcafe.com",
+  primaryContactPhone: "(415) 555-3030",
   createdAt: "2024-01-01",
   updatedAt: "2024-06-01",
   approvedAt: "2024-01-02",
@@ -34,91 +35,137 @@ const mockBusiness = {
 
 const mockUser = {
   id: "demo-user-1",
-  email: "hello@mummys-cafe.com",
-  firstName: "Isaac",
-  lastName: "Johnson",
+  email: "hello@marketstreetcafe.com",
+  firstName: "Demo User",
+  lastName: "Smith",
   role: "owner",
   status: "active",
 };
 
-// Mock analytics data
-const mockAnalytics = {
-  totalRewards: 3,
-  activeRewards: 2,
-  totalClaims: 156,
-  totalViews: 320,
-  totalRedeemed: 89,
-  recentClaims: [
-    { id: "1", cardid: "demo-1", header: "Mummy's Cafe", claimed_at: new Date().toISOString(), delivery_method: "Email" },
-    { id: "2", cardid: "demo-2", header: "Mummy's Cafe", claimed_at: new Date(Date.now() - 86400000).toISOString(), delivery_method: "SMS" },
-  ],
-  rewardsByStatus: { active: 2, inactive: 1 },
-  claimsByMonth: [
-    { month: "2024-04", count: 40 },
-    { month: "2024-05", count: 60 },
-    { month: "2024-06", count: 56 },
-  ],
-  claimsByDay: [
-    { date: new Date().toISOString().slice(0, 10), count: 23 },
-    { date: new Date(Date.now() - 86400000).toISOString().slice(0, 10), count: 18 },
-  ],
-  claimsByWeek: [
-    { week: "2024-W22", count: 30 },
-    { week: "2024-W23", count: 40 },
-    { week: "2024-W24", count: 25 },
-  ],
-  conversionRate: 48,
-  redemptionRate: 57,
-  rewardAnalytics: [
-    {
-      cardid: "demo-1",
-      header: "Mummy's Cafe",
-      subheader: "Sweetie, treat yourself to a free coffee on us! 💕",
-      quantity: 100,
-      claims: 56,
-      views: 120,
-      redeemed: 30,
-      conversionRate: 47,
-      redemptionRate: 54,
-      lastClaimed: new Date().toISOString(),
-      lastRedeemed: new Date(Date.now() - 3600000).toISOString(),
-    },
-    {
-      cardid: "demo-2",
-      header: "Mummy's Cafe",
-      subheader: "Darling, save 20% on your lunch - you deserve it! 🌟",
-      quantity: 50,
-      claims: 30,
-      views: 80,
-      redeemed: 20,
-      conversionRate: 38,
-      redemptionRate: 66,
-      lastClaimed: new Date(Date.now() - 86400000).toISOString(),
-      lastRedeemed: new Date(Date.now() - 7200000).toISOString(),
-    },
-    {
-      cardid: "demo-3",
-      header: "Mummy's Cafe",
-      subheader: "Honey, bring a friend this weekend - buy one, get one free! 💝",
-      quantity: 30,
-      claims: 10,
-      views: 30,
-      redeemed: 5,
-      conversionRate: 33,
-      redemptionRate: 50,
-      lastClaimed: null,
-      lastRedeemed: null,
-    },
-  ],
-  viewsByDay: [
-    { date: new Date().toISOString().slice(0, 10), count: 40 },
-    { date: new Date(Date.now() - 86400000).toISOString().slice(0, 10), count: 35 },
-  ],
-  redeemedByDay: [
-    { date: new Date().toISOString().slice(0, 10), count: 12 },
-    { date: new Date(Date.now() - 86400000).toISOString().slice(0, 10), count: 8 },
-  ],
+// --- MOCK DATA GENERATION HELPERS ---
+// Generate mock claims/views/redeemed for day, week, month
+const generateMockAnalytics = () => {
+  // Generate 7 months of data for the bar chart
+  const baseMonth = (() => {
+    const d = new Date();
+    d.setMonth(d.getMonth() - 6);
+    d.setDate(1);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  })();
+  let lastValue = 100;
+  const claimsByMonth = Array.from({ length: 7 }, (_, i) => {
+    // Make it generally increasing, with a few dips
+    let change = Math.floor(Math.random() * 30 + 10); // +10 to +40
+    if (i === 2 || i === 5) change = -Math.floor(Math.random() * 20 + 5); // dips at 3rd and 6th month
+    lastValue = Math.max(60, lastValue + change);
+    const monthDate = new Date(baseMonth);
+    monthDate.setMonth(baseMonth.getMonth() + i);
+    return {
+      month: monthDate.toISOString().slice(0, 7),
+      count: lastValue,
+    };
+  });
+
+  // Generate 180 days of data (about 6 months)
+  const days = Array.from({ length: 180 }, (_, i) => {
+    const date = new Date(Date.now() - (179 - i) * 86400000);
+    return {
+      date: date.toISOString().slice(0, 10),
+      count: Math.floor(20 + Math.random() * 10), // 20-30 claims/views per day
+    };
+  });
+  // Group by week (about 25 weeks)
+  const weeks = Array.from({ length: Math.ceil(days.length / 7) }, (_, i) => {
+    const weekStart = days[i * 7];
+    return {
+      week: `${weekStart.date}-W${i + 1}`,
+      count: days.slice(i * 7, (i + 1) * 7).reduce((sum, d) => sum + d.count, 0),
+    };
+  });
+  // Views are always higher than claims, redeemed is lower
+  const monthsMap: { [month: string]: number } = {};
+  days.forEach(d => {
+    const month = d.date.slice(0, 7);
+    monthsMap[month] = (monthsMap[month] || 0) + d.count;
+  });
+  const viewsByDay = days.map(d => ({ date: d.date, count: d.count * 2 }));
+  const claimsByDay = days.map(d => ({ date: d.date, count: d.count }));
+  const redeemedByDay = days.map(d => ({ date: d.date, count: Math.floor(d.count * 0.5) }));
+  const claimsByWeek = weeks.map((w, i) => ({ week: w.week, count: claimsByDay.slice(i * 7, (i + 1) * 7).reduce((s, d) => s + d.count, 0) }));
+  const viewsByWeek = weeks.map((w, i) => ({ week: w.week, count: viewsByDay.slice(i * 7, (i + 1) * 7).reduce((s, d) => s + d.count, 0) }));
+  const redeemedByWeek = weeks.map((w, i) => ({ week: w.week, count: redeemedByDay.slice(i * 7, (i + 1) * 7).reduce((s, d) => s + d.count, 0) }));
+  const viewsByMonth = claimsByMonth.map(m => ({ month: m.month, count: m.count * 2 }));
+  const redeemedByMonth = claimsByMonth.map(m => ({ month: m.month, count: Math.floor(m.count * 0.5) }));
+
+  // Generate recent claims (last 10 days)
+  const recentClaims = days.slice(-10).map((d, i) => ({
+    id: `${i + 1}`,
+    cardid: `demo-${(i % 3) + 1}`,
+    header: "Market Street Cafe",
+    claimed_at: new Date(d.date).toISOString(),
+    delivery_method: i % 2 === 0 ? "Email" : "SMS",
+  })).reverse();
+
+  // Generate reward analytics for 3 demo cards
+  const rewardAnalytics = [1, 2, 3].map((n) => {
+    // For each card, use a slice of the data
+    const idx = n - 1;
+    const cardClaims = claimsByDay.map((d, i) => (i % 3 === idx ? d.count : 0));
+    const cardViews = viewsByDay.map((d, i) => (i % 3 === idx ? d.count : 0));
+    const cardRedeemed = redeemedByDay.map((d, i) => (i % 3 === idx ? d.count : 0));
+    const totalClaims = cardClaims.reduce((s, c) => s + c, 0);
+    const totalViews = cardViews.reduce((s, c) => s + c, 0);
+    const totalRedeemed = cardRedeemed.reduce((s, c) => s + c, 0);
+    return {
+      cardid: `demo-${n}`,
+      header: "Market Street Cafe",
+      subheader: [
+        "Enjoy a complimentary single-origin espresso – crafted for creators.",
+        "20% off your first pour-over – elevate your coffee ritual.",
+        "Bring a friend – buy one, get one free on all signature drinks."
+      ][idx],
+      quantity: [100, 50, 30][idx],
+      claims: totalClaims,
+      views: totalViews,
+      redeemed: totalRedeemed,
+      conversionRate: totalViews > 0 ? Math.round((totalClaims / totalViews) * 100) : 0,
+      redemptionRate: totalClaims > 0 ? Math.round((totalRedeemed / totalClaims) * 100) : 0,
+      lastClaimed: totalClaims > 0 ? days[days.length - 1].date : null,
+      lastRedeemed: totalRedeemed > 0 ? days[days.length - 1].date : null,
+    };
+  });
+
+  // Add summary stats for convenience
+  const totalClaims = claimsByMonth.reduce((sum, m) => sum + m.count, 0);
+  const totalViews = viewsByMonth.reduce((sum, m) => sum + m.count, 0);
+  const totalRedeemed = redeemedByMonth.reduce((sum, m) => sum + m.count, 0);
+  const conversionRate = totalViews > 0 ? Math.round((totalClaims / totalViews) * 100) : 0;
+  const redemptionRate = totalClaims > 0 ? Math.round((totalRedeemed / totalClaims) * 100) : 0;
+
+  return {
+    totalRewards: 3,
+    activeRewards: 3,
+    claimsByDay,
+    claimsByWeek,
+    claimsByMonth,
+    viewsByDay,
+    viewsByWeek,
+    viewsByMonth,
+    redeemedByDay,
+    redeemedByWeek,
+    redeemedByMonth,
+    recentClaims,
+    rewardAnalytics,
+    totalClaims,
+    totalViews,
+    totalRedeemed,
+    conversionRate,
+    redemptionRate,
+  };
 };
+
+const mockAnalytics = generateMockAnalytics();
 
 // Mock cards data with dynamic expiration dates
 const getMockCards = () => {
@@ -130,31 +177,31 @@ const getMockCards = () => {
   return [
     {
       cardid: "demo-1",
-      header: "Mummy's Cafe",
-      subheader: "Sweetie, treat yourself to a free coffee on us! 💕",
+      header: "Market Street Cafe",
+      subheader: "Enjoy a complimentary single-origin espresso – crafted for creators.",
       quantity: 100,
-      logokey: "/mummy-cafe-logo.svg",
-      addresstext: "123 Main St, San Francisco, CA 94105",
+      logokey: "/market-street-cafe-logo.png",
+      addresstext: "500 Market St, San Francisco, CA 94105",
       addressurl: "",
       expires: oneHour.toISOString(),
     },
     {
       cardid: "demo-2",
-      header: "Mummy's Cafe",
-      subheader: "Darling, save 20% on your lunch - you deserve it! 🌟",
+      header: "Market Street Cafe",
+      subheader: "20% off your first pour-over – elevate your coffee ritual.",
       quantity: 50,
-      logokey: "/mummy-cafe-logo.svg",
-      addresstext: "123 Main St, San Francisco, CA 94105",
+      logokey: "/market-street-cafe-logo.png",
+      addresstext: "500 Market St, San Francisco, CA 94105",
       addressurl: "",
       expires: oneWeek.toISOString(),
     },
     {
       cardid: "demo-3",
-      header: "Mummy's Cafe",
-      subheader: "Honey, bring a friend this weekend - buy one, get one free! 💝",
+      header: "Market Street Cafe",
+      subheader: "Bring a friend – buy one, get one free on all signature drinks.",
       quantity: 30,
-      logokey: "/mummy-cafe-logo.svg",
-      addresstext: "123 Main St, San Francisco, CA 94105",
+      logokey: "/market-street-cafe-logo.png",
+      addresstext: "500 Market St, San Francisco, CA 94105",
       addressurl: "",
       expires: oneMonth.toISOString(),
     },
@@ -174,7 +221,105 @@ export default function DemoDashboard() {
   // Use mock data
   const business = mockBusiness;
   const user = mockUser;
-  const analytics = mockAnalytics;
+  // Compute filtered analytics based on timeRange
+  const filteredAnalytics = useMemo(() => {
+    // Helper to sum counts
+    const sumCounts = (arr: { count: number }[]) => arr.reduce((sum: number, item: { count: number }) => sum + (item.count || 0), 0);
+
+    // Select correct arrays for time range
+    let claimsBy: { count: number }[] = [];
+    let viewsBy: { count: number }[] = [];
+    let redeemedBy: { count: number }[] = [];
+    let rewardAnalytics: Array<{
+      cardid: string;
+      header: string;
+      subheader: string;
+      quantity: number;
+      claims: number;
+      views: number;
+      redeemed: number;
+      conversionRate: number;
+      redemptionRate: number;
+      lastClaimed: string | null;
+      lastRedeemed: string | null;
+    }> = [];
+    let recentClaims: Array<{
+      id: string;
+      cardid: string;
+      header: string;
+      claimed_at: string;
+      delivery_method: string;
+    }> = [];
+    if (timeRange === 'day') {
+      claimsBy = mockAnalytics.claimsByDay.slice(-1); // today only
+      viewsBy = mockAnalytics.viewsByDay.slice(-1);
+      redeemedBy = mockAnalytics.redeemedByDay.slice(-1);
+      // Reward analytics for today only
+      rewardAnalytics = mockAnalytics.rewardAnalytics.map((reward, idx) => {
+        const claim = claimsBy[0]?.count && (idx === 0 ? claimsBy[0].count : 0);
+        const view = viewsBy[0]?.count && (idx === 0 ? viewsBy[0].count : 0);
+        const redeemed = redeemedBy[0]?.count && (idx === 0 ? redeemedBy[0].count : 0);
+        return {
+          ...reward,
+          claims: claim || 0,
+          views: view || 0,
+          redeemed: redeemed || 0,
+          conversionRate: view > 0 ? Math.round((claim / view) * 100) : 0,
+          redemptionRate: claim > 0 ? Math.round((redeemed / claim) * 100) : 0,
+          lastClaimed: claim > 0 ? mockAnalytics.claimsByDay[mockAnalytics.claimsByDay.length - 1].date : null,
+          lastRedeemed: redeemed > 0 ? mockAnalytics.redeemedByDay[mockAnalytics.redeemedByDay.length - 1].date : null,
+        };
+      });
+      recentClaims = mockAnalytics.recentClaims.slice(0, 2); // last 2 claims
+    } else if (timeRange === 'week') {
+      claimsBy = mockAnalytics.claimsByWeek.slice(-1); // this week
+      viewsBy = mockAnalytics.viewsByWeek.slice(-1);
+      redeemedBy = mockAnalytics.redeemedByWeek.slice(-1);
+      // Reward analytics for this week
+      rewardAnalytics = mockAnalytics.rewardAnalytics.map((reward, idx) => {
+        const claim = claimsBy[0]?.count && (idx === 0 ? claimsBy[0].count : 0);
+        const view = viewsBy[0]?.count && (idx === 0 ? viewsBy[0].count : 0);
+        const redeemed = redeemedBy[0]?.count && (idx === 0 ? redeemedBy[0].count : 0);
+        return {
+          ...reward,
+          claims: claim || 0,
+          views: view || 0,
+          redeemed: redeemed || 0,
+          conversionRate: view > 0 ? Math.round((claim / view) * 100) : 0,
+          redemptionRate: claim > 0 ? Math.round((redeemed / claim) * 100) : 0,
+          lastClaimed: claim > 0 ? mockAnalytics.claimsByDay[mockAnalytics.claimsByDay.length - 1].date : null,
+          lastRedeemed: redeemed > 0 ? mockAnalytics.redeemedByDay[mockAnalytics.redeemedByDay.length - 1].date : null,
+        };
+      });
+      recentClaims = mockAnalytics.recentClaims.slice(0, 5); // last 5 claims
+    } else if (timeRange === 'month') {
+      claimsBy = mockAnalytics.claimsByMonth;
+      viewsBy = mockAnalytics.viewsByMonth;
+      redeemedBy = mockAnalytics.redeemedByMonth;
+      rewardAnalytics = mockAnalytics.rewardAnalytics;
+      recentClaims = mockAnalytics.recentClaims;
+    }
+    const totalClaims = sumCounts(claimsBy);
+    const totalViews = sumCounts(viewsBy);
+    const totalRedeemed = sumCounts(redeemedBy);
+    const conversionRate = totalViews > 0 ? Math.round((totalClaims / totalViews) * 100) : 0;
+    const redemptionRate = totalClaims > 0 ? Math.round((totalRedeemed / totalClaims) * 100) : 0;
+    return {
+      ...mockAnalytics,
+      totalClaims,
+      totalViews,
+      totalRedeemed,
+      conversionRate,
+      redemptionRate,
+      claimsByDay: timeRange === 'day' ? mockAnalytics.claimsByDay.slice(-1) : [],
+      claimsByWeek: timeRange === 'week' ? mockAnalytics.claimsByWeek.slice(-1) : [],
+      claimsByMonth: timeRange === 'month' ? mockAnalytics.claimsByMonth : [],
+      viewsByDay: timeRange === 'day' ? mockAnalytics.viewsByDay.slice(-1) : [],
+      redeemedByDay: timeRange === 'day' ? mockAnalytics.redeemedByDay.slice(-1) : [],
+      rewardAnalytics,
+      recentClaims,
+    };
+  }, [timeRange]);
   const [cards, setCards] = useState(getMockCards());
 
   // Check if profile is complete - for demo, always allow creation
@@ -185,31 +330,23 @@ export default function DemoDashboard() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Helper function to get today's stats
-  function getTodayStats(analytics: typeof mockAnalytics | null) {
+  function getStats(analytics: typeof mockAnalytics | null) {
     if (!analytics) {
       return {
-        todayViews: "0",
-        todayClaims: "0",
+        views: "0",
+        claims: "0",
         conversionRate: "0",
-        todayRedeemed: "0",
+        redeemed: "0",
         redemptionRate: "0",
         totalRewards: "0"
       };
     }
-
-    const todayViews = analytics.viewsByDay?.[0]?.count || 0;
-    const todayClaims = analytics.claimsByDay?.[0]?.count || 0;
-    const todayRedeemed = analytics.redeemedByDay?.[0]?.count || 0;
-    const conversionRate = todayViews > 0 ? Math.round((todayClaims / todayViews) * 100) : 0;
-    const redemptionRate = todayClaims > 0 ? Math.round((todayRedeemed / todayClaims) * 100) : 0;
-
     return {
-      todayViews: todayViews.toString(),
-      todayClaims: todayClaims.toString(),
-      conversionRate: conversionRate.toString(),
-      todayRedeemed: todayRedeemed.toString(),
-      redemptionRate: redemptionRate.toString(),
+      views: analytics.totalViews.toString(),
+      claims: analytics.totalClaims.toString(),
+      conversionRate: analytics.conversionRate.toString(),
+      redeemed: analytics.totalRedeemed.toString(),
+      redemptionRate: analytics.redemptionRate.toString(),
       totalRewards: analytics.totalRewards.toString()
     };
   }
@@ -237,17 +374,12 @@ export default function DemoDashboard() {
     setShowEditReward(true);
   };
 
-  const handleEditRewardSuccess = () => {
-    setShowEditReward(false);
-    setEditingCard(null);
-  };
-
   const handleCloseEditReward = () => {
     setShowEditReward(false);
     setEditingCard(null);
   };
 
-  const handleLogoUpload = async (_logoUrl: string) => {
+  const handleLogoUpload = async () => {
     // In demo, just close the modal
     setShowLogoUpload(false);
   };
@@ -280,7 +412,7 @@ export default function DemoDashboard() {
     setShowCreateReward(false);
   };
 
-  const handleAddBusinessSubmit = async (_data: AddBusinessData) => {
+  const handleAddBusinessSubmit = async () => {
     // In demo, just close the modal
     setShowAddBusiness(false);
   };
@@ -293,7 +425,7 @@ export default function DemoDashboard() {
   };
 
   // Analytics View Component
-  const AnalyticsView = () => (
+  const AnalyticsView = ({ analytics }: { analytics: typeof mockAnalytics }) => (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-light text-gray-900">Analytics</h2>
@@ -376,32 +508,21 @@ export default function DemoDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
           <h3 className="text-2xl font-light text-gray-900 mb-6">Claims Over Time</h3>
-          <div className="h-64 flex items-end justify-center space-x-2">
-            {timeRange === 'day' && analytics?.claimsByDay?.map((day, idx) => (
-              <div key={idx} className="flex flex-col items-center">
-                <div 
-                  className="bg-green-500 rounded-t-lg w-8 transition-all duration-300"
-                  style={{ height: `${Math.min(Math.max(day.count * 8, 4), 200)}px` }}
+          <div className="h-64 flex items-end justify-center space-x-4 sm:space-x-6 md:space-x-8">
+            {/* Always show all months, regardless of time filter */}
+            {mockAnalytics.claimsByMonth.map((month, idx) => (
+              <div key={idx} className="flex flex-col items-center group">
+                {/* Value label */}
+                <span className="mb-2 text-base font-semibold text-gray-800 group-hover:text-green-700 transition-colors duration-200">
+                  {month.count}
+                </span>
+                <div
+                  className="w-10 sm:w-12 md:w-14 bg-green-500 rounded-t-2xl shadow-md group-hover:bg-green-600 transition-all duration-200"
+                  style={{ height: `${Math.min(Math.max(month.count * 1.5, 24), 200)}px` }}
                 ></div>
-                <span className="text-xs text-gray-500 mt-2">{day.date}</span>
-              </div>
-            ))}
-            {timeRange === 'week' && analytics?.claimsByWeek?.map((week, idx) => (
-              <div key={idx} className="flex flex-col items-center">
-                <div 
-                  className="bg-green-500 rounded-t-lg w-8 transition-all duration-300"
-                  style={{ height: `${Math.min(Math.max(week.count * 8, 4), 200)}px` }}
-                ></div>
-                <span className="text-xs text-gray-500 mt-2">{week.week}</span>
-              </div>
-            ))}
-            {timeRange === 'month' && analytics?.claimsByMonth?.map((month, idx) => (
-              <div key={idx} className="flex flex-col items-center">
-                <div 
-                  className="bg-green-500 rounded-t-lg w-8 transition-all duration-300"
-                  style={{ height: `${Math.min(Math.max(month.count * 8, 4), 200)}px` }}
-                ></div>
-                <span className="text-xs text-gray-500 mt-2">{month.month}</span>
+                <span className="text-xs text-gray-500 mt-2">
+                  {month.month}
+                </span>
               </div>
             ))}
           </div>
@@ -592,17 +713,8 @@ export default function DemoDashboard() {
   );
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
-      {/* Header */}
-      <div className={`transition-all duration-700 ease-in-out ${
-        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-      }`}>
-        <div className="flex justify-between items-center p-6 border-b border-gray-200 bg-white/80 backdrop-blur-xl">
-          <div className="flex items-center space-x-4">
-            <h1 className="text-2xl font-light text-gray-900">Demo Dashboard</h1>
-          </div>
-        </div>
-      </div>
+    <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 pt-16">
+      <Header onContactClick={() => {}} />
 
       <div className="container mx-auto px-6 py-8">
 
@@ -627,24 +739,24 @@ export default function DemoDashboard() {
                   </div>
                   <div>
                     <h2 className="text-3xl font-light text-gray-900">Welcome back, {user.firstName}!</h2>
-                    <p className="text-gray-600">Here&rsquo;s how your rewards are performing today</p>
+                    <p className="text-gray-600">Here&rsquo;s how your rewards are performing for this time frame</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Today's Stats Row */}
+            {/* Stats Row (filtered by timeRange) */}
             <div className={`transition-all duration-600 delay-300 ease-in-out ${
               isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
             }`}>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-8">
                 {(() => {
-                  const stats = getTodayStats(analytics);
+                  const stats = getStats(filteredAnalytics);
                   return [
-                    { icon: '📊', label: 'Total Views', value: stats.todayViews },
-                    { icon: '✅', label: 'Total Claims', value: stats.todayClaims },
+                    { icon: '📊', label: 'Total Views', value: stats.views },
+                    { icon: '✅', label: 'Total Claims', value: stats.claims },
                     { icon: '🎯', label: 'Conversion Rate', value: `${stats.conversionRate}%` },
-                    { icon: '🎉', label: 'Total Redeemed', value: stats.todayRedeemed },
+                    { icon: '🎉', label: 'Total Redeemed', value: stats.redeemed },
                     { icon: '📈', label: 'Redemption Rate', value: `${stats.redemptionRate}%` },
                     { icon: '🎁', label: 'Total Rewards', value: stats.totalRewards },
                   ].map((card, idx) => (
@@ -753,7 +865,7 @@ export default function DemoDashboard() {
             </div>
           </>
         ) : currentView === 'analytics' ? (
-          <AnalyticsView />
+          <AnalyticsView analytics={filteredAnalytics} />
         ) : currentView === 'settings' ? (
           <SettingsView />
         ) : null}
@@ -781,7 +893,18 @@ export default function DemoDashboard() {
           <EditRewardForm
             card={editingCard}
             onClose={handleCloseEditReward}
-            onSuccess={handleEditRewardSuccess}
+            onSuccess={(updatedData) => {
+              if (updatedData) {
+                setCards((prevCards) => prevCards.map(card =>
+                  card.cardid === editingCard.cardid
+                    ? { ...card, ...updatedData }
+                    : card
+                ));
+              }
+              setShowEditReward(false);
+              setEditingCard(null);
+            }}
+            localEditOnly={true}
           />
         )}
 
