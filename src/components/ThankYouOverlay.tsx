@@ -6,13 +6,11 @@ import Header from "@/components/Header";
 
 interface ThankYouOverlayProps {
   remainingTime: number;
-  justClaimed: boolean;
   onContactClick: () => void;
 }
 
 export default function ThankYouOverlay({
   remainingTime,
-  justClaimed,
   onContactClick,
 }: ThankYouOverlayProps) {
   const [timeLeft, setTimeLeft] = useState(remainingTime);
@@ -66,22 +64,12 @@ export default function ThankYouOverlay({
       <div className="flex-grow flex items-start justify-center px-6 pt-10 md:pt-20">
         <div className="text-center max-w-md w-full bg-white p-8 rounded-xl">
           <h2 className="text-2xl font-bold text-gray-800 mb-2">
-            {justClaimed
-              ? "Thank you for playing!"
-              : "Looks like you already played"}
+            Thank you for playing!
           </h2>
-
-          {justClaimed ? (
-            <p className="text-gray-600 mb-4">
-              Your reward has been sent to your email. You may need to check
-              your spam or promotions folder.
-            </p>
-          ) : (
-            <p className="text-gray-600 mb-4">You can spin again in:</p>
-          )}
-
+          <p className="text-gray-600 mb-4">
+            You can play again in:
+          </p>
           <p className="text-gray-500 text-sm">
-            You can play again in:{" "}
             <span className="text-black font-semibold">
               {formatTime(timeLeft)}
             </span>

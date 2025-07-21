@@ -34,7 +34,6 @@ export default function ClaimRewardPage() {
   const [showPostSubmit, setShowPostSubmit] = useState(false);
   const [showClaimPopup, setShowClaimPopup] = useState(false);
   const [cooldown, setCooldown] = useState<number | null>(null);
-  const [justClaimed, setJustClaimed] = useState(false);
   const [card, setCard] = useState<CardData | null>(null);
   const [showThankYouOverlay, setShowThankYouOverlay] = useState(false);
   const [showContactPopup, setShowContactPopup] = useState(false);
@@ -121,7 +120,6 @@ export default function ClaimRewardPage() {
       // If cooldown is active, show thank you overlay and don't fetch card
       if (cooldownActive) {
         console.log("⏸️ Cooldown active - showing thank you overlay, skipping card fetch");
-        setJustClaimed(false);
         setCooldown(remainingTime);
         setShowThankYouOverlay(true);
         
@@ -271,7 +269,6 @@ export default function ClaimRewardPage() {
       setCooldown(null);
       setShowThankYouOverlay(false);
     }, 900000); // 15 minutes in milliseconds
-    setJustClaimed(true);
   };
 
   const handleRedeem = async () => {
@@ -306,7 +303,6 @@ export default function ClaimRewardPage() {
       {showThankYouOverlay && (
         <ThankYouOverlay
           remainingTime={cooldown ?? 0}
-          justClaimed={justClaimed}
           onContactClick={() => setShowContactPopup(true)}
         />
       )}
@@ -330,7 +326,22 @@ export default function ClaimRewardPage() {
               </button>
             </div>
           ) : (
-            <ClaimButton onClick={() => setShowClaimPopup(true)} />
+            <>
+              <ClaimButton onClick={() => setShowClaimPopup(true)} />
+              {/* Soft grey text with link to open ClaimRewardPopup for sharing */}
+              <div className="mt-3 text-center text-gray-400 text-sm">
+                Reward not relevant for you?{' '}
+                <button
+                  className="underline text-gray-500 hover:text-green-700 transition-colors"
+                  style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
+                  onClick={() => setShowClaimPopup(true)}
+                  type="button"
+                >
+                  send
+                </button>{' '}
+                it to a friend
+              </div>
+            </>
           ))}
 
         {showClaimPopup && card && (
@@ -359,7 +370,29 @@ export default function ClaimRewardPage() {
             onClose={() => setShowContactPopup(false)}
           />
         )}
+        {/* No thank you button at the bottom */}
+        <div className="flex justify-center mt-8">
+          <button
+            className="text-gray-400 hover:text-gray-600 text-sm underline transition-colors"
+            style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+            onClick={() => {
+              setCooldown(900000);
+              setShowThankYouOverlay(true);
+            }}
+            type="button"
+          >
+            No thank you
+          </button>
+        </div>
       </div>
+      {/* Subtle footer */}
+      <footer className="w-full relative z-10 border-t border-slate-200/60 py-12 mt-20 bg-white">
+        <div className="w-full text-center">
+          <p className="text-slate-500 text-base md:text-lg text-center">
+            © 2024 QRewards. Connecting businesses with customers.
+          </p>
+        </div>
+      </footer>
     </main>
   );
 } 
