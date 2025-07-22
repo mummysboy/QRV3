@@ -296,13 +296,14 @@ export default function Home() {
               className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light text-slate-800 mb-6 tracking-tight leading-tight text-center"
               style={{ textAlign: "center" }}
             >
-              Helping small businesses increase profit margins
+              Helping small businesses increase their profit margin
             </h1>
             <p
               className="text-lg sm:text-xl md:text-2xl text-slate-600 font-light mb-8 tracking-wide max-w-3xl mx-auto text-center"
               style={{ textAlign: "center" }}
             >
-              A low-cost, high-impact tool that allows you to advertise in real-time
+              A low-cost, high-impact tool that allows small business owners to
+              make advertisements that are best for their business.
             </p>
           </div>
 
@@ -318,9 +319,7 @@ export default function Home() {
               className="text-base sm:text-lg text-slate-700 mb-12 max-w-2xl mx-auto leading-relaxed text-center"
               style={{ textAlign: "center" }}
             >
-              Create real-time ads that respond to your workday. Whether it’s a
-              rush or a lull, launch smart AI-assisted advertisements that bring in high-value
-              customers.
+              <em>&ldquo;Small businesses shouldn’t have to discount to stay competitive. They should be able to adjust to what’s happening in real-time and still make great money doing it.&rdquo; - Isaac Hirsch</em>
             </p>
           </div>
 
@@ -485,7 +484,9 @@ export default function Home() {
 
           {/* Customer CTA */}
           <div className="text-center">
-            <div className="mb-2 text-gray-500 text-base font-medium">Get the full customer experience!</div>
+            <div className="mb-2 text-gray-500 text-base font-medium">
+              Get the full customer experience!
+            </div>
             <button
               onClick={() => setShowCustomerDemo(true)}
               className="inline-flex items-center space-x-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white px-8 py-4 rounded-2xl shadow-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
@@ -562,7 +563,9 @@ export default function Home() {
 
           {/* Business CTA */}
           <div className="text-center">
-            <div className="mb-2 text-gray-500 text-base font-medium">Test our simple dashboard!</div>
+            <div className="mb-2 text-gray-500 text-base font-medium">
+              Test our simple dashboard!
+            </div>
             <button
               onClick={handleDemoDashboard}
               className="inline-flex items-center space-x-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-8 py-4 rounded-2xl shadow-lg font-medium text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl"

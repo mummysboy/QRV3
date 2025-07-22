@@ -252,19 +252,24 @@ export default function ClaimRewardPopup({
               onChange={(e) => setEmail(e.target.value)}
             />
           ) : (
-            <input
-              type="tel"
-              placeholder="(555) 123-4567"
-              className="w-full border border-gray-300 p-2 rounded mb-3 focus:outline-none focus:ring-2 focus:ring-green-600"
-              value={phone}
-              onChange={(e) => {
-                const formatted = formatPhoneNumber(e.target.value);
-                setPhone(formatted);
-                if (error && error.includes("phone")) {
-                  setError("");
-                }
-              }}
-            />
+            <>
+              <input
+                type="tel"
+                placeholder="(555) 123-4567"
+                className="w-full border border-gray-300 p-2 rounded mb-1 focus:outline-none focus:ring-2 focus:ring-green-600"
+                value={phone}
+                onChange={(e) => {
+                  const formatted = formatPhoneNumber(e.target.value);
+                  setPhone(formatted);
+                  if (error && error.includes("phone")) {
+                    setError("");
+                  }
+                }}
+              />
+              <div className="text-xs text-gray-500 mb-2 text-center">
+                By claiming via SMS, you agree to receive text messages about your reward. Standard message & data rates may apply.
+              </div>
+            </>
           )}
 
           {error && <p className="text-red-600 text-sm mb-3">{error}</p>}

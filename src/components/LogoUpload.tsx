@@ -55,8 +55,11 @@ export default function LogoUpload({ businessName, onUpload, currentLogo }: Logo
       formData.append('logo', file);
       formData.append('businessName', businessName);
 
-      console.log('🔄 LogoUpload: Calling upload API...');
-      const response = await fetch('/api/business/upload-logo', {
+      // Use Amplify REST API endpoint if provided, else fallback to local
+      const uploadEndpoint = process.env.NEXT_PUBLIC_LOGO_UPLOAD_API_URL || '/api/business/upload-logo';
+
+      console.log('🔄 LogoUpload: Calling upload API at', uploadEndpoint);
+      const response = await fetch(uploadEndpoint, {
         method: 'POST',
         body: formData,
       });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import CreateRewardForm from "@/components/CreateRewardForm";
 import EditRewardForm from "@/components/EditRewardForm";
@@ -9,7 +9,9 @@ import CardAnimation from "@/components/CardAnimation";
 import AddBusinessForm, { AddBusinessData } from "@/components/AddBusinessForm";
 import { getStorageUrlSync } from "@/lib/storage";
 import { Plus, BarChart3, Building2, Settings, Eye, ArrowRight, CheckCircle, Target, PartyPopper, TrendingUp, Gift } from "lucide-react";
-
+import { QRCodeCanvas } from 'qrcode.react';
+import { toPng } from 'html-to-image';
+import { X } from "lucide-react";
 
 
 interface BusinessUser {
@@ -128,9 +130,10 @@ export default function BusinessDashboard() {
   const [isVisible, setIsVisible] = useState(false);
   const [logoProcessing, setLogoProcessing] = useState(false);
   const [logoProcessingStartTime, setLogoProcessingStartTime] = useState<number | null>(null);
-  
+  const [showQRCodeModal, setShowQRCodeModal] = useState(false);
+  const qrRef = useRef<HTMLDivElement>(null);
 
-  
+
   const router = useRouter();
 
 
@@ -531,6 +534,16 @@ export default function BusinessDashboard() {
       totalRewards: analytics?.totalRewards || 0,
     };
   }
+
+  const handleDownloadQR = async () => {
+    if (qrRef.current) {
+      const dataUrl = await toPng(qrRef.current);
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = `QRRewards-QRCode-${business?.zipCode || ''}.png`;
+      link.click();
+    }
+  };
 
   // Analytics view component
   const AnalyticsView = () => (
@@ -1066,8 +1079,16 @@ export default function BusinessDashboard() {
                     </div>
                   </div>
                   <div>
-                    <h2 className="text-3xl font-light text-gray-900">Welcome back, {user.firstName}!</h2>
+                    <h2 className="text-3xl font-light text-gray-900">
+                      Welcome back, <span className="whitespace-nowrap inline-block">{business?.name || user?.firstName || ""}</span>!
+                    </h2>
                     <p className="text-gray-600">Here&rsquo;s how your rewards are performing today</p>
+                    <button
+                      className="mt-4 px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium shadow transition-all"
+                      onClick={() => setShowQRCodeModal(true)}
+                    >
+                      View My QR Code
+                    </button>
                   </div>
                 </div>
               </div>
@@ -1260,6 +1281,49 @@ export default function BusinessDashboard() {
           onSubmit={handleAddBusinessSubmit}
         />
       </div>
+
+      {/* QR Code Modal */}
+      {showQRCodeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="relative bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md mx-auto flex flex-col items-center">
+            <button
+              className="absolute top-3 right-3 text-gray-400 hover:text-gray-700"
+              onClick={() => setShowQRCodeModal(false)}
+              aria-label="Close QR code modal"
+            >
+              <X size={24} />
+            </button>
+            <h3 className="text-2xl font-semibold mb-4 text-center">My QRewards Code</h3>
+            <div ref={qrRef} className="relative w-[340px] h-[480px] flex items-center justify-center bg-white">
+              {/* Background image */}
+              <img
+                src="/blankReward.png"
+                alt="My QRewards code"
+                className="absolute inset-0 w-full h-full object-cover rounded-xl"
+                style={{ zIndex: 1 }}
+              />
+              {/* QR code in the center */}
+              <div className="absolute left-1/2" style={{ top: '55%', transform: 'translate(-50%, -50%)', zIndex: 2 }}>
+                <QRCodeCanvas
+                  value={`https://www.qrewards.net/claim-reward/${business?.zipCode || ''}`}
+                  size={190}
+                  bgColor="#ffffff"
+                  fgColor="#000000"
+                  level="H"
+                  includeMargin={false}
+                />
+              </div>
+            </div>
+            <button
+              className="mb-6 mt-6 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium shadow transition-all"
+              onClick={handleDownloadQR}
+            >
+              Download
+            </button>
+            <p className="mt-6 text-gray-500 text-sm text-center">Print and post this card anywhere you want to find customers!</p>
+          </div>
+        </div>
+      )}
     </main>
   );
 } 

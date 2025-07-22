@@ -18,10 +18,11 @@ interface Card {
 interface EditRewardFormProps {
   card: Card;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess?: (updatedData?: { subheader: string; quantity: number; expires: string }) => void;
+  localEditOnly?: boolean;
 }
 
-export default function EditRewardForm({ card, onClose, onSuccess }: EditRewardFormProps) {
+export default function EditRewardForm({ card, onClose, onSuccess, localEditOnly = false }: EditRewardFormProps) {
   console.log('🔍 EditRewardForm: Card data received:', card);
   console.log('🔍 EditRewardForm: Card subheader:', card.subheader);
   
@@ -61,6 +62,13 @@ export default function EditRewardForm({ card, onClose, onSuccess }: EditRewardF
     e.preventDefault();
     setIsSubmitting(true);
 
+    if (localEditOnly) {
+      if (onSuccess) onSuccess(formData);
+      onClose();
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const response = await fetch('/api/business/rewards', {
         method: 'PUT',
@@ -83,7 +91,7 @@ export default function EditRewardForm({ card, onClose, onSuccess }: EditRewardF
       if (response.ok) {
         const result = await response.json();
         console.log('Reward updated successfully:', result);
-        onSuccess();
+        if (onSuccess) onSuccess(formData);
         onClose();
       } else {
         const errorData = await response.json();

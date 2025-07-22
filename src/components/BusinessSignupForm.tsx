@@ -335,7 +335,6 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
             `}</style>
             <div className="p-4 sm:p-6 lg:p-8">
               <div className="flex justify-between items-center mb-4 sm:mb-6">
-                <h2 className="text-xl sm:text-2xl font-semibold text-gray-900">Claim Your Business</h2>
                 <button
                   onClick={() => {
                     setFadeIn(false);
@@ -362,9 +361,10 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
                 <div className="space-y-4">
                   <h3 className="text-base sm:text-lg font-medium text-gray-900">Business Information</h3>
                   
-                  <div>
-                    <label htmlFor="businessName" className="block text-sm font-medium text-gray-700 mb-1">
-                      Business Name *
+                  <div className="mb-4">
+                    <label htmlFor="businessName" className="block text-sm font-medium text-gray-700 text-left mb-1">
+                      Business Name
+                      {fieldErrors.businessName && <span className="text-red-500 ml-1">*</span>}
                     </label>
                     <input
                       type="text"
@@ -377,13 +377,14 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
                       placeholder="Your Business Name"
                     />
                     {fieldErrors.businessName && (
-                      <p className="text-red-600 text-xs mt-1">{fieldErrors.businessName}</p>
+                      <span className="text-red-500 text-xs mt-1 block">{fieldErrors.businessName}</span>
                     )}
                   </div>
 
-                  <div>
-                    <label htmlFor="businessPhone" className="block text-sm font-medium text-gray-700 mb-1">
-                      Business Phone Number *
+                  <div className="mb-4">
+                    <label htmlFor="businessPhone" className="block text-sm font-medium text-gray-700 text-left mb-1">
+                      Business Phone Number
+                      {fieldErrors.businessPhone && <span className="text-red-500 ml-1">*</span>}
                     </label>
                     <input
                       type="tel"
@@ -397,13 +398,14 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
                       maxLength={14}
                     />
                     {fieldErrors.businessPhone && (
-                      <p className="text-red-600 text-xs mt-1">{fieldErrors.businessPhone}</p>
+                      <span className="text-red-500 text-xs mt-1 block">{fieldErrors.businessPhone}</span>
                     )}
                   </div>
 
-                  <div>
-                    <label htmlFor="businessAddress" className="block text-sm font-medium text-gray-700 mb-1">
-                      Business Address *
+                  <div className="mb-4">
+                    <label htmlFor="businessAddress" className="block text-sm font-medium text-gray-700 text-left mb-1">
+                      Business Address
+                      {fieldErrors.businessAddress && <span className="text-red-500 ml-1">*</span>}
                     </label>
                     <input
                       type="text"
@@ -416,14 +418,15 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
                       placeholder="123 Main Street"
                     />
                     {fieldErrors.businessAddress && (
-                      <p className="text-red-600 text-xs mt-1">{fieldErrors.businessAddress}</p>
+                      <span className="text-red-500 text-xs mt-1 block">{fieldErrors.businessAddress}</span>
                     )}
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div>
-                      <label htmlFor="businessCity" className="block text-sm font-medium text-gray-700 mb-1">
-                        City *
+                    <div className="mb-4">
+                      <label htmlFor="businessCity" className="block text-sm font-medium text-gray-700 text-left mb-1">
+                        City
+                        {fieldErrors.businessCity && <span className="text-red-500 ml-1">*</span>}
                       </label>
                       <input
                         type="text"
@@ -436,13 +439,14 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
                         placeholder="City"
                       />
                       {fieldErrors.businessCity && (
-                        <p className="text-red-600 text-xs mt-1">{fieldErrors.businessCity}</p>
+                        <span className="text-red-500 text-xs mt-1 block">{fieldErrors.businessCity}</span>
                       )}
                     </div>
                     
-                    <div>
-                      <label htmlFor="businessState" className="block text-sm font-medium text-gray-700 mb-1">
-                        State *
+                    <div className="mb-4">
+                      <label htmlFor="businessState" className="block text-sm font-medium text-gray-700 text-left mb-1">
+                        State
+                        {fieldErrors.businessState && <span className="text-red-500 ml-1">*</span>}
                       </label>
                       <input
                         type="text"
@@ -456,13 +460,14 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
                         maxLength={2}
                       />
                       {fieldErrors.businessState && (
-                        <p className="text-red-600 text-xs mt-1">{fieldErrors.businessState}</p>
+                        <span className="text-red-500 text-xs mt-1 block">{fieldErrors.businessState}</span>
                       )}
                     </div>
 
-                    <div>
-                      <label htmlFor="businessZipCode" className="block text-sm font-medium text-gray-700 mb-1">
-                        ZIP Code *
+                    <div className="mb-4">
+                      <label htmlFor="businessZipCode" className="block text-sm font-medium text-gray-700 text-left mb-1">
+                        ZIP Code
+                        {fieldErrors.businessZipCode && <span className="text-red-500 ml-1">*</span>}
                       </label>
                       <input
                         type="text"
@@ -476,14 +481,15 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
                         maxLength={10}
                       />
                       {fieldErrors.businessZipCode && (
-                        <p className="text-red-600 text-xs mt-1">{fieldErrors.businessZipCode}</p>
+                        <span className="text-red-500 text-xs mt-1 block">{fieldErrors.businessZipCode}</span>
                       )}
                     </div>
                   </div>
 
-                  <div>
-                    <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
-                      Business Category *
+                  <div className="mb-4">
+                    <label htmlFor="category" className="block text-sm font-medium text-gray-700 text-left mb-1">
+                      Business Category
+                      {fieldErrors.category && <span className="text-red-500 ml-1">*</span>}
                     </label>
                     <select
                       id="category"
@@ -501,14 +507,15 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
                       ))}
                     </select>
                     {fieldErrors.category && (
-                      <p className="text-red-600 text-xs mt-1">{fieldErrors.category}</p>
+                      <span className="text-red-500 text-xs mt-1 block">{fieldErrors.category}</span>
                     )}
                   </div>
 
                   {showCustomCategory && (
-                    <div>
-                      <label htmlFor="customCategory" className="block text-sm font-medium text-gray-700 mb-1">
-                        Custom Category *
+                    <div className="mb-4">
+                      <label htmlFor="customCategory" className="block text-sm font-medium text-gray-700 text-left mb-1">
+                        Custom Category
+                        {fieldErrors.customCategory && <span className="text-red-500 ml-1">*</span>}
                       </label>
                       <input
                         type="text"
@@ -521,7 +528,7 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
                         placeholder="Enter your business category"
                       />
                       {fieldErrors.customCategory && (
-                        <p className="text-red-600 text-xs mt-1">{fieldErrors.customCategory}</p>
+                        <span className="text-red-500 text-xs mt-1 block">{fieldErrors.customCategory}</span>
                       )}
                     </div>
                   )}
@@ -532,9 +539,10 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
                   <h3 className="text-base sm:text-lg font-medium text-gray-900">Account Information</h3>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
-                        First Name *
+                    <div className="mb-4">
+                      <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 text-left mb-1">
+                        First Name
+                        {fieldErrors.firstName && <span className="text-red-500 ml-1">*</span>}
                       </label>
                       <input
                         type="text"
@@ -547,13 +555,14 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
                         placeholder="John"
                       />
                       {fieldErrors.firstName && (
-                        <p className="text-red-600 text-xs mt-1">{fieldErrors.firstName}</p>
+                        <span className="text-red-500 text-xs mt-1 block">{fieldErrors.firstName}</span>
                       )}
                     </div>
                     
-                    <div>
-                      <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
-                        Last Name *
+                    <div className="mb-4">
+                      <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 text-left mb-1">
+                        Last Name
+                        {fieldErrors.lastName && <span className="text-red-500 ml-1">*</span>}
                       </label>
                       <input
                         type="text"
@@ -566,14 +575,15 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
                         placeholder="Doe"
                       />
                       {fieldErrors.lastName && (
-                        <p className="text-red-600 text-xs mt-1">{fieldErrors.lastName}</p>
+                        <span className="text-red-500 text-xs mt-1 block">{fieldErrors.lastName}</span>
                       )}
                     </div>
                   </div>
 
-                  <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                      Email Address *
+                  <div className="mb-4">
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 text-left mb-1">
+                      Email Address
+                      {fieldErrors.email && <span className="text-red-500 ml-1">*</span>}
                     </label>
                     <input
                       type="email"
@@ -586,13 +596,14 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
                       placeholder="john@example.com"
                     />
                     {fieldErrors.email && (
-                      <p className="text-red-600 text-xs mt-1">{fieldErrors.email}</p>
+                      <span className="text-red-500 text-xs mt-1 block">{fieldErrors.email}</span>
                     )}
                   </div>
 
-                  <div>
-                    <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                      Password *
+                  <div className="mb-4">
+                    <label htmlFor="password" className="block text-sm font-medium text-gray-700 text-left mb-1">
+                      Password
+                      {fieldErrors.password && <span className="text-red-500 ml-1">*</span>}
                     </label>
                     <input
                       type="password"
@@ -606,10 +617,10 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
                       placeholder="At least 8 characters"
                     />
                     {fieldErrors.password && (
-                      <p className="text-red-600 text-xs mt-1">{fieldErrors.password}</p>
+                      <span className="text-red-500 text-xs mt-1 block">{fieldErrors.password}</span>
                     )}
-                    <p className="text-xs text-gray-500 mt-1">Password must be at least 8 characters long</p>
                   </div>
+                  <p className="text-xs text-gray-500 mt-1">Password must be at least 8 characters long</p>
                 </div>
 
                 <div className="pt-4 sm:pt-6">

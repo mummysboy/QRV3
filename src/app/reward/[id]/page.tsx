@@ -286,15 +286,20 @@ export default function RewardPage() {
                 disabled={claiming}
               />
             ) : (
-              <input
-                type="tel"
-                className="border rounded px-4 py-2 w-full"
-                placeholder="Enter your phone number"
-                value={phone}
-                onChange={e => setPhone(e.target.value)}
-                required
-                disabled={claiming}
-              />
+              <>
+                <input
+                  type="tel"
+                  className="border rounded px-4 py-2 w-full"
+                  placeholder="Enter your phone number"
+                  value={phone}
+                  onChange={e => setPhone(e.target.value)}
+                  required
+                  disabled={claiming}
+                />
+                <p className="text-xs text-gray-500 mt-2 text-center">
+                  By claiming via SMS, you agree to receive text messages about your reward. Standard message & data rates may apply. We accept credit/debit cards and other payment methods as required.
+                </p>
+              </>
             )}
             {claimError && <p className="text-red-600 text-center">{claimError}</p>}
             <button
