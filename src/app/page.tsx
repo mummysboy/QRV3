@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import LogoVideo from "@/components/LogoVideo";
 import BusinessSignupForm, { BusinessSignupData } from "@/components/BusinessSignupForm";
-import { FileText, CheckCircle, Gift, Smartphone, Mail, Building2, ArrowRight, Zap, Target, BarChart3, ChevronLeft, ChevronRight } from "lucide-react";
+import { Smartphone, Mail, Building2, ArrowRight, Zap, Target, BarChart3, ChevronLeft, ChevronRight, Sparkles, PartyPopper } from "lucide-react";
 
 export default function Home() {
   const [isVisible, setIsVisible] = useState(false);
@@ -200,28 +200,28 @@ export default function Home() {
 
   const businessSteps = [
     {
-      title: "Sign up",
+      title: "Assess Your Business Needs",
       caption:
-        "Create your business profile and enter your location and brand info.",
-      icon: FileText,
+        "Is it a slow day? Overstocked on something? Lunch rush not as big as expected? Identify what you want to improve or move today.",
+      icon: BarChart3,
+      color:
+        "bg-gradient-to-br from-yellow-50 to-amber-50 text-amber-600 border border-amber-100",
+    },
+    {
+      title: "Create an AI-Assisted Ad",
+      caption:
+        "Use our AI to craft a last-minute, attention-grabbing offer that brings in customers for your unique situation.",
+      icon: Sparkles,
       color:
         "bg-gradient-to-br from-blue-50 to-indigo-50 text-blue-600 border border-blue-100",
     },
     {
-      title: "Get Approved",
+      title: "Publish and Watch Customers Come In",
       caption:
-        "We verify your business and give you access to the dashboard.",
-      icon: CheckCircle,
+        "Go live instantly and see new faces walk through your door—no technical skills required!",
+      icon: PartyPopper,
       color:
         "bg-gradient-to-br from-green-50 to-emerald-50 text-green-600 border border-green-100",
-    },
-    {
-      title: "Start Creating Rewards",
-      caption:
-        "Create AI-assisted advertisements that drive customers in real-time.",
-      icon: Gift,
-      color:
-        "bg-gradient-to-br from-purple-50 to-violet-50 text-purple-600 border border-purple-100",
     },
   ];
 
@@ -319,7 +319,12 @@ export default function Home() {
               className="text-base sm:text-lg text-slate-700 mb-12 max-w-2xl mx-auto leading-relaxed text-center"
               style={{ textAlign: "center" }}
             >
-              <em>&ldquo;Small businesses shouldn’t have to discount to stay competitive. They should be able to adjust to what’s happening in real-time and still make great money doing it.&rdquo; - Isaac Hirsch</em>
+              <em>
+                &ldquo;Small businesses shouldn’t have to discount to stay
+                competitive. They should be able to adjust to what’s happening
+                in real-time and still make great money doing it.&rdquo; - Isaac
+                Hirsch
+              </em>
             </p>
           </div>
 
@@ -419,6 +424,85 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Section 1: How Businesses Use QRewards */}
+      <section
+        id="business-steps"
+        data-animate="slide-up"
+        className={`transition-all duration-1000 ease-out bg-gradient-to-br from-slate-50 to-blue-50/30 force-center ${
+          visibleSections.has("business-steps")
+            ? "opacity-100 translate-y-0"
+            : "opacity-0 translate-y-12"
+        }`}
+      >
+        <div
+          className="w-full py-16 md:py-20 lg:py-24 text-center force-center"
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          }}
+        >
+          <div
+            className="text-center max-w-4xl mx-auto mb-10 force-center"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              width: "100%",
+            }}
+          >
+            <h2
+              className="text-2xl sm:text-3xl md:text-4xl font-light mb-4 tracking-tight text-slate-800 text-center !text-center"
+              style={{ textAlign: "center", width: "100%" }}
+            >
+              How Businesses Use QRewards
+            </h2>
+            <p
+              className="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto text-center !text-center"
+              style={{ textAlign: "center", width: "100%" }}
+            >
+              Simple steps to start attracting more customers to your business
+            </p>
+          </div>
+
+          {/* Business Steps */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-12">
+            {businessSteps.map((step, index) => (
+              <div
+                key={index}
+                className="text-center p-6 md:p-8 bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-105 hover:border-slate-300"
+              >
+                <div
+                  className={`w-16 h-16 md:w-20 md:h-20 ${step.color} rounded-full flex items-center justify-center mx-auto mb-6 shadow-md`}
+                >
+                  <step.icon size={32} />
+                </div>
+                <h3 className="text-xl md:text-2xl font-medium mb-4 text-slate-800 text-center">
+                  {step.title}
+                </h3>
+                <p className="text-slate-600 leading-relaxed text-sm md:text-base text-center">
+                  {step.caption}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* Business CTA */}
+          <div className="text-center">
+            <div className="mb-2 text-gray-500 text-base font-medium">
+              Test our simple dashboard!
+            </div>
+            <button
+              onClick={handleDemoDashboard}
+              className="inline-flex items-center space-x-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-8 py-4 rounded-2xl shadow-lg font-medium text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            >
+              <span>Demo the Business Dashboard</span>
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </button>
+          </div>
+        </div>
+      </section>
+
       {/* Section 2: How Customers Redeem Rewards */}
       <section
         id="customer-steps"
@@ -492,85 +576,6 @@ export default function Home() {
               className="inline-flex items-center space-x-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white px-8 py-4 rounded-2xl shadow-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
             >
               <span>Demo the Customer Experience</span>
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* Section 1: How Businesses Use QRewards */}
-      <section
-        id="business-steps"
-        data-animate="slide-up"
-        className={`transition-all duration-1000 ease-out bg-gradient-to-br from-slate-50 to-blue-50/30 force-center ${
-          visibleSections.has("business-steps")
-            ? "opacity-100 translate-y-0"
-            : "opacity-0 translate-y-12"
-        }`}
-      >
-        <div
-          className="w-full py-16 md:py-20 lg:py-24 text-center force-center"
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-          }}
-        >
-          <div
-            className="text-center max-w-4xl mx-auto mb-16 force-center"
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              width: "100%",
-            }}
-          >
-            <h2
-              className="text-2xl sm:text-3xl md:text-4xl font-light mb-6 tracking-tight text-slate-800 text-center !text-center"
-              style={{ textAlign: "center", width: "100%" }}
-            >
-              How Businesses Use QRewards
-            </h2>
-            <p
-              className="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto text-center !text-center"
-              style={{ textAlign: "center", width: "100%" }}
-            >
-              Simple steps to start attracting more customers to your business
-            </p>
-          </div>
-
-          {/* Business Steps */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-12">
-            {businessSteps.map((step, index) => (
-              <div
-                key={index}
-                className="text-center p-6 md:p-8 bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-105 hover:border-slate-300"
-              >
-                <div
-                  className={`w-16 h-16 md:w-20 md:h-20 ${step.color} rounded-full flex items-center justify-center mx-auto mb-6 shadow-md`}
-                >
-                  <step.icon size={32} />
-                </div>
-                <h3 className="text-xl md:text-2xl font-medium mb-4 text-slate-800 text-center">
-                  {step.title}
-                </h3>
-                <p className="text-slate-600 leading-relaxed text-sm md:text-base text-center">
-                  {step.caption}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          {/* Business CTA */}
-          <div className="text-center">
-            <div className="mb-2 text-gray-500 text-base font-medium">
-              Test our simple dashboard!
-            </div>
-            <button
-              onClick={handleDemoDashboard}
-              className="inline-flex items-center space-x-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-8 py-4 rounded-2xl shadow-lg font-medium text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
-            >
-              <span>Demo the Business Dashboard</span>
               <ArrowRight className="w-5 h-5 ml-2" />
             </button>
           </div>
