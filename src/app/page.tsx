@@ -201,43 +201,55 @@ export default function Home() {
   const businessSteps = [
     {
       title: "Sign up",
-      caption: "Create your business profile and enter your location and brand info.",
+      caption:
+        "Create your business profile and enter your location and brand info.",
       icon: FileText,
-      color: "bg-gradient-to-br from-blue-50 to-indigo-50 text-blue-600 border border-blue-100"
+      color:
+        "bg-gradient-to-br from-blue-50 to-indigo-50 text-blue-600 border border-blue-100",
     },
     {
       title: "Get Approved",
-      caption: "We verify your business to keep the platform clean and trustworthy.",
+      caption:
+        "We verify your business and give you access to the dashboard.",
       icon: CheckCircle,
-      color: "bg-gradient-to-br from-green-50 to-emerald-50 text-green-600 border border-green-100"
+      color:
+        "bg-gradient-to-br from-green-50 to-emerald-50 text-green-600 border border-green-100",
     },
     {
       title: "Start Creating Rewards",
-      caption: "Make compelling QR or geo-rewards your customers can redeem in-store.",
+      caption:
+        "Create AI-assisted advertisements that drive customers in real-time.",
       icon: Gift,
-      color: "bg-gradient-to-br from-purple-50 to-violet-50 text-purple-600 border border-purple-100"
-    }
+      color:
+        "bg-gradient-to-br from-purple-50 to-violet-50 text-purple-600 border border-purple-100",
+    },
   ];
 
   const customerSteps = [
     {
       title: "Discover Rewards",
-      caption: "Customers scan a QR code or tap on a geo-targeted ad.",
+      caption:
+        "Customers generate a reward by scanning a QR code located in your area.",
       icon: Smartphone,
-      color: "bg-gradient-to-br from-cyan-50 to-blue-50 text-cyan-600 border border-cyan-100"
+      color:
+        "bg-gradient-to-br from-cyan-50 to-blue-50 text-cyan-600 border border-cyan-100",
     },
     {
       title: "Claim via Email or SMS",
-      caption: "They receive the reward directly to their inbox or phone.",
+      caption:
+        "If relevant, customers will claim and receive the reward via email or SMS.",
       icon: Mail,
-      color: "bg-gradient-to-br from-orange-50 to-amber-50 text-orange-600 border border-orange-100"
+      color:
+        "bg-gradient-to-br from-orange-50 to-amber-50 text-orange-600 border border-orange-100",
     },
     {
       title: "Redeem In-Store",
-      caption: "Fast, easy redemption with a few taps in-store.",
+      caption:
+        "Fast, easy redemption with just two taps in-store—no POS integration needed.",
       icon: Building2,
-      color: "bg-gradient-to-br from-emerald-50 to-teal-50 text-emerald-600 border border-emerald-100"
-    }
+      color:
+        "bg-gradient-to-br from-emerald-50 to-teal-50 text-emerald-600 border border-emerald-100",
+    },
   ];
 
   return (
@@ -251,11 +263,12 @@ export default function Home() {
 
       {/* Logo Section - Minimal spacing from header */}
       <div
-        className={`transition-all duration-1000 ease-out pt-17 ${
+        className={`transition-all duration-1000 ease-out pt-17 w-full ${
           isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
         }`}
+        style={{ background: "white" }}
       >
-        <div className="flex justify-center items-center">
+        <div className="flex justify-center items-center w-full">
           <LogoVideo />
         </div>
       </div>
@@ -283,13 +296,13 @@ export default function Home() {
               className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light text-slate-800 mb-6 tracking-tight leading-tight text-center"
               style={{ textAlign: "center" }}
             >
-              Helping small businesses do big things
+              Helping small businesses increase profit margins
             </h1>
             <p
               className="text-lg sm:text-xl md:text-2xl text-slate-600 font-light mb-8 tracking-wide max-w-3xl mx-auto text-center"
               style={{ textAlign: "center" }}
             >
-              Low-cost, high-impact tools to attract and retain customers
+              A low-cost, high-impact tool that allows you to advertise in real-time
             </p>
           </div>
 
@@ -305,9 +318,9 @@ export default function Home() {
               className="text-base sm:text-lg text-slate-700 mb-12 max-w-2xl mx-auto leading-relaxed text-center"
               style={{ textAlign: "center" }}
             >
-              Create instant rewards that customers can claim with a simple QR
-              code scan. No apps, no complicated setup - just more customers
-              walking through your door.
+              Create real-time ads that respond to your workday. Whether it’s a
+              rush or a lull, launch smart AI-assisted advertisements that bring in high-value
+              customers.
             </p>
           </div>
 
@@ -407,6 +420,83 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Section 2: How Customers Redeem Rewards */}
+      <section
+        id="customer-steps"
+        data-animate="slide-left"
+        className={`transition-all duration-1000 ease-out force-center ${
+          visibleSections.has("customer-steps")
+            ? "opacity-100 translate-x-0"
+            : "opacity-0 translate-x-12"
+        }`}
+      >
+        <div
+          className="w-full py-8 md:py-12 lg:py-16 text-center force-center"
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          }}
+        >
+          <div
+            className="text-center max-w-4xl mx-auto mb-8 force-center"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              width: "100%",
+            }}
+          >
+            <h2
+              className="text-2xl sm:text-3xl md:text-4xl font-light mb-4 tracking-tight text-slate-800 text-center"
+              style={{ textAlign: "center", width: "100%" }}
+            >
+              How Customers Use QRewards
+            </h2>
+            <p
+              className="text-slate-600 max-w-3xl mx-auto text-center"
+              style={{ textAlign: "center", width: "100%" }}
+            >
+              A seamless experience that keeps customers coming back
+            </p>
+          </div>
+
+          {/* Customer Steps */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-12">
+            {customerSteps.map((step, index) => (
+              <div
+                key={index}
+                className="text-center p-6 md:p-8 bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-105 hover:border-slate-300"
+              >
+                <div
+                  className={`w-16 h-16 md:w-20 md:h-20 ${step.color} rounded-full flex items-center justify-center mx-auto mb-6 shadow-md`}
+                >
+                  <step.icon size={32} />
+                </div>
+                <h3 className="text-xl md:text-2xl font-medium mb-4 text-slate-800 text-center">
+                  {step.title}
+                </h3>
+                <p className="text-slate-600 leading-relaxed text-sm md:text-base text-center">
+                  {step.caption}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* Customer CTA */}
+          <div className="text-center">
+            <div className="mb-2 text-gray-500 text-base font-medium">Get the full customer experience!</div>
+            <button
+              onClick={() => setShowCustomerDemo(true)}
+              className="inline-flex items-center space-x-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white px-8 py-4 rounded-2xl shadow-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+            >
+              <span>Demo the Customer Experience</span>
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </button>
+          </div>
+        </div>
+      </section>
+
       {/* Section 1: How Businesses Use QRewards */}
       <section
         id="business-steps"
@@ -472,87 +562,12 @@ export default function Home() {
 
           {/* Business CTA */}
           <div className="text-center">
+            <div className="mb-2 text-gray-500 text-base font-medium">Test our simple dashboard!</div>
             <button
               onClick={handleDemoDashboard}
               className="inline-flex items-center space-x-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-8 py-4 rounded-2xl shadow-lg font-medium text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
             >
               <span>Demo the Business Dashboard</span>
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* Section 2: How Customers Redeem Rewards */}
-      <section
-        id="customer-steps"
-        data-animate="slide-left"
-        className={`transition-all duration-1000 ease-out force-center ${
-          visibleSections.has("customer-steps")
-            ? "opacity-100 translate-x-0"
-            : "opacity-0 translate-x-12"
-        }`}
-      >
-        <div
-          className="w-full py-8 md:py-12 lg:py-16 text-center force-center"
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-          }}
-        >
-          <div
-            className="text-center max-w-4xl mx-auto mb-8 force-center"
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              width: "100%",
-            }}
-          >
-            <h2
-              className="text-2xl sm:text-3xl md:text-4xl font-light mb-4 tracking-tight text-slate-800 text-center"
-              style={{ textAlign: "center", width: "100%" }}
-            >
-              How Customers Redeem Rewards
-            </h2>
-            <p
-              className="text-slate-600 max-w-3xl mx-auto text-center"
-              style={{ textAlign: "center", width: "100%" }}
-            >
-              A seamless experience that keeps customers coming back
-            </p>
-          </div>
-
-          {/* Customer Steps */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-12">
-            {customerSteps.map((step, index) => (
-              <div
-                key={index}
-                className="text-center p-6 md:p-8 bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-105 hover:border-slate-300"
-              >
-                <div
-                  className={`w-16 h-16 md:w-20 md:h-20 ${step.color} rounded-full flex items-center justify-center mx-auto mb-6 shadow-md`}
-                >
-                  <step.icon size={32} />
-                </div>
-                <h3 className="text-xl md:text-2xl font-medium mb-4 text-slate-800 text-center">
-                  {step.title}
-                </h3>
-                <p className="text-slate-600 leading-relaxed text-sm md:text-base text-center">
-                  {step.caption}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          {/* Customer CTA */}
-          <div className="text-center">
-            <button
-              onClick={() => setShowCustomerDemo(true)}
-              className="inline-flex items-center space-x-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white px-8 py-4 rounded-2xl shadow-lg font-medium text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
-            >
-              <span>Demo the Customer Experience</span>
               <ArrowRight className="w-5 h-5 ml-2" />
             </button>
           </div>
@@ -834,10 +849,10 @@ export default function Home() {
       </section>
 
       {/* Subtle footer */}
-      <footer className="relative z-10 border-t border-slate-200/60 py-12 mt-20 bg-white/50 backdrop-blur-sm">
+      <footer className="w-full relative z-10 border-t border-slate-200/60 py-12 mt-20 bg-white">
         <div className="w-full text-center">
           <p className="text-slate-500 text-base md:text-lg text-center">
-            © 2024 QR Rewards. Connecting businesses with communities.
+            © 2024 QRewards. Connecting businesses with customers.
           </p>
         </div>
       </footer>
