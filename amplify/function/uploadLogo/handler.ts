@@ -5,7 +5,23 @@ import { v4 as uuidv4 } from 'uuid';
 const s3 = new AWS.S3();
 const BUCKET = process.env.BUCKET_NAME;
 
-export const handler = async (event: any) => {
+interface AmplifyEvent {
+  httpMethod: string;
+  headers: { [key: string]: string };
+  body: string;
+  isBase64Encoded: boolean;
+}
+
+type ParseFormResult = { [key: string]: string | Buffer | undefined };
+
+interface UploadLogoFormResult {
+  logo?: Buffer;
+  logoType?: string;
+  businessName?: string;
+  [key: string]: string | Buffer | undefined;
+}
+
+export const handler = async (event: AmplifyEvent) => {
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
@@ -24,7 +40,7 @@ export const handler = async (event: any) => {
       };
     }
 
-    const result = await parseForm(event, contentType);
+    const result = await parseForm(event, contentType) as UploadLogoFormResult;
 
     if (!result.logo || !result.businessName) {
       return {
@@ -34,13 +50,14 @@ export const handler = async (event: any) => {
       };
     }
 
-    const fileName = `logos/${result.businessName.replace(/[^a-zA-Z0-9]/g, '-')}-${uuidv4()}.png`;
+    const fileName = `logos/${String(result.businessName).replace(/[^a-zA-Z0-9]/g, '-')}-${uuidv4()}.png`;
+    if (!BUCKET) throw new Error('BUCKET_NAME environment variable is not set');
 
     await s3.putObject({
-      Bucket: BUCKET,
+      Bucket: BUCKET as string,
       Key: fileName,
       Body: result.logo,
-      ContentType: result.logoType || 'image/png',
+      ContentType: typeof result.logoType === 'string' ? result.logoType : 'image/png',
       ACL: 'public-read',
       CacheControl: 'public, max-age=31536000',
     }).promise();
@@ -52,7 +69,7 @@ export const handler = async (event: any) => {
       headers: { "Access-Control-Allow-Origin": "*" },
       body: JSON.stringify({ logoUrl }),
     };
-  } catch (err) {
+  } catch (err: unknown) {
     console.error('Upload error:', err);
     return {
       statusCode: 500,
@@ -62,23 +79,36 @@ export const handler = async (event: any) => {
   }
 };
 
-function parseForm(event: any, contentType: string) {
+function parseForm(
+  event: AmplifyEvent,
+  contentType: string
+): Promise<ParseFormResult> {
   return new Promise((resolve, reject) => {
+    // @ts-expect-error: Busboy constructor type mismatch workaround
     const busboy = new Busboy({ headers: { 'content-type': contentType } });
-    const result: any = {};
+    const result: ParseFormResult = {};
     let fileBuffer = Buffer.alloc(0);
 
-    busboy.on('file', (fieldname, file, filename, encoding, mimetype) => {
-      let buffers: Buffer[] = [];
-      file.on('data', (data) => buffers.push(data));
-      file.on('end', () => {
-        fileBuffer = Buffer.concat(buffers);
-        result.logo = fileBuffer;
-        result.logoType = mimetype;
-      });
-    });
+    busboy.on(
+      'file',
+      (
+        fieldname: string,
+        file: NodeJS.ReadableStream,
+        filename: string,
+        encoding: string,
+        mimetype: string
+      ) => {
+        const buffers: Buffer[] = [];
+        file.on('data', (data: Buffer) => buffers.push(data));
+        file.on('end', () => {
+          fileBuffer = Buffer.concat(buffers);
+          result.logo = fileBuffer;
+          result.logoType = mimetype;
+        });
+      }
+    );
 
-    busboy.on('field', (fieldname, value) => {
+    busboy.on('field', (fieldname: string, value: string) => {
       result[fieldname] = value;
     });
 
