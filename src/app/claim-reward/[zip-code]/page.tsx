@@ -328,7 +328,7 @@ export default function ClaimRewardPage() {
           ) : (
             <>
               <ClaimButton onClick={() => setShowClaimPopup(true)} />
-              {/* Soft grey text with link to open ClaimRewardPopup for sharing */}
+              {/* Show the share and no thank you options only after the claim button is rendered */}
               <div className="mt-3 text-center text-gray-400 text-sm">
                 Reward not relevant for you?{' '}
                 <button
@@ -340,6 +340,19 @@ export default function ClaimRewardPage() {
                   send
                 </button>{' '}
                 it to a friend
+              </div>
+              <div className="flex justify-center mt-4">
+                <button
+                  className="text-gray-400 hover:text-gray-600 text-sm underline transition-colors"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+                  onClick={() => {
+                    setCooldown(900000);
+                    setShowThankYouOverlay(true);
+                  }}
+                  type="button"
+                >
+                  No thank you
+                </button>
               </div>
             </>
           ))}
@@ -370,20 +383,6 @@ export default function ClaimRewardPage() {
             onClose={() => setShowContactPopup(false)}
           />
         )}
-        {/* No thank you button at the bottom */}
-        <div className="flex justify-center mt-8">
-          <button
-            className="text-gray-400 hover:text-gray-600 text-sm underline transition-colors"
-            style={{ background: 'none', border: 'none', cursor: 'pointer' }}
-            onClick={() => {
-              setCooldown(900000);
-              setShowThankYouOverlay(true);
-            }}
-            type="button"
-          >
-            No thank you
-          </button>
-        </div>
       </div>
       {/* Subtle footer */}
       <footer className="w-full relative z-10 border-t border-slate-200/60 py-12 mt-20 bg-white">
