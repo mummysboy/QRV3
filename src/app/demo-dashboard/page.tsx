@@ -713,7 +713,7 @@ export default function DemoDashboard() {
   );
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 pt-16">
+    <main className="min-h-screen bg-gray-50 bg-gradient-to-br from-gray-50 via-white to-gray-50 pt-16">
       <Header onContactClick={() => {}} />
 
       <div className="container mx-auto px-6 py-8">
