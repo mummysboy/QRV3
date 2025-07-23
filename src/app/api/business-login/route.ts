@@ -62,6 +62,11 @@ export async function POST(request: NextRequest) {
       lastLoginAt: string; 
     }> } } }).data.listBusinessUsers.items;
 
+    console.log("Fetched users:", users);
+    if (users.length > 0) {
+      console.log("First user role:", users[0].role);
+    }
+
     if (users.length === 0) {
       return NextResponse.json(
         { error: "Invalid email or password" },
@@ -70,6 +75,15 @@ export async function POST(request: NextRequest) {
     }
 
     const user = users[0];
+
+    // Prevent admin users from logging in via business login
+    if (user.role === "admin") {
+      console.log("Admin login attempt blocked for:", user.email);
+      return NextResponse.json(
+        { error: "Admins cannot log in here" },
+        { status: 401 }
+      );
+    }
 
     // Check if user is active
     if (user.status !== "active") {
@@ -200,7 +214,7 @@ export async function POST(request: NextRequest) {
     );
     response.cookies.set('qrv3_business_token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: false, // Always false for localhost development!
       sameSite: 'lax',
       path: '/',
       maxAge: 60 * 60 * 24 * 7, // 7 days
