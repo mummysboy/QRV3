@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@aws-amplify/backend": "^1.16.1",
+    "@types/aws-sdk": "^0.0.42",
     "aws-sdk": "^2.1692.0"
   }
 }

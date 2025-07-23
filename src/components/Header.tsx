@@ -57,15 +57,25 @@ export default function Header({
     const userData = sessionStorage.getItem('businessUser');
     const businessData = sessionStorage.getItem('businessData');
 
-    if (userData && businessData) {
-      try {
+    try {
+      if (userData) {
         const userObj = JSON.parse(userData);
-        const businessObj = JSON.parse(businessData);
         setUser(userObj);
-        setBusiness(businessObj);
-      } catch (error) {
-        console.error('Error parsing session data:', error);
+      } else {
+        setUser(null);
       }
+    } catch {
+      setUser(null);
+    }
+    try {
+      if (businessData) {
+        const businessObj = JSON.parse(businessData);
+        setBusiness(businessObj);
+      } else {
+        setBusiness(null);
+      }
+    } catch {
+      setBusiness(null);
     }
   }, []);
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateClient } from "aws-amplify/api";
 import "../../../lib/amplify-client";
 import bcrypt from "bcryptjs";
+import { signJwt } from '@/lib/utils';
 
 interface LoginData {
   email: string;
@@ -179,23 +180,32 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Return user and business data (without password)
-    return NextResponse.json(
-      { 
-        success: true, 
-        message: "Login successful",
-        user: {
-          id: user.id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          role: user.role,
-          status: user.status,
-        },
-        business: business
+    // Create JWT payload (do not include password)
+    const tokenPayload = {
+      id: user.id,
+      email: user.email,
+      businessId: user.businessId,
+      role: user.role,
+      type: 'business',
+    };
+    const token = signJwt(tokenPayload);
+
+    // Set cookie
+    const response = NextResponse.json(
+      {
+        success: true,
+        message: 'Login successful',
       },
       { status: 200 }
     );
+    response.cookies.set('qrv3_business_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+    });
+    return response;
   } catch (error) {
     console.error("Error during business login:", error);
     return NextResponse.json(
