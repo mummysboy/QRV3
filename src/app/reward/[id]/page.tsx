@@ -2,10 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import Link from "next/link";
 import CardAnimation from "@/components/CardAnimation";
 import LogoVideo from "@/components/LogoVideo";
-import { trackRewardRedemption } from "@/lib/analytics";
+import { useRouter } from "next/navigation";
 
 interface CardData {
   id: string;
@@ -23,6 +22,7 @@ interface CardData {
 
 export default function RewardPage() {
   const { id } = useParams();
+  const router = useRouter();
   const [card, setCard] = useState<CardData | null>(null);
   const [error, setError] = useState("");
   const [fadeIn, setFadeIn] = useState(false);
@@ -32,6 +32,9 @@ export default function RewardPage() {
   const [phone, setPhone] = useState("");
   const [deliveryMethod, setDeliveryMethod] = useState("email");
   const [showModal, setShowModal] = useState(false);
+  const [zipInput, setZipInput] = useState("");
+  const [zipError, setZipError] = useState("");
+  const [modalFadeIn, setModalFadeIn] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [redeeming, setRedeeming] = useState(false);
   const [redeemed, setRedeemed] = useState(false);
@@ -118,7 +121,6 @@ export default function RewardPage() {
     setRedeemError("");
     try {
       // Track the redemption
-      await trackRewardRedemption(card.id);
       
       const res = await fetch("/api/redeem-reward", {
         method: "POST",
@@ -151,15 +153,63 @@ export default function RewardPage() {
     return (
       <main className="relative min-h-screen bg-white flex items-center justify-center transition-opacity duration-1000">
         <div className="text-center max-w-md mx-auto p-6">
-          <div className="text-red-500 text-6xl mb-4">⚠️</div>
+          <div className="flex justify-center mb-4">
+            <span style={{ fontSize: 64, display: 'inline-block' }}>🙃</span>
+          </div>
           <h1 className="text-2xl font-bold text-gray-800 mb-2">Reward Not Found</h1>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <Link 
-            href="/" 
+          <p className="text-gray-600 mb-4">This reward has either expired or already been claimed.</p>
+          <button
             className="inline-block bg-green-800 text-white px-8 py-3 rounded-full hover:bg-green-700 transition-colors font-semibold shadow-md"
+            style={{ color: 'white' }}
+            onClick={() => {
+              setShowModal(true);
+              setTimeout(() => setModalFadeIn(true), 10);
+            }}
           >
-            Go Back Home
-          </Link>
+            Spin Again
+          </button>
+
+          {showModal && (
+            <div className={`fixed inset-0 z-50 flex items-center justify-center bg-neutral-100/80 transition-opacity duration-500 ${modalFadeIn ? 'opacity-100' : 'opacity-0'}`}>
+              <div className={`bg-white rounded-xl shadow-xl p-8 max-w-sm w-full mx-4 text-center relative transition-all duration-500 ${modalFadeIn ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}>
+                <button
+                  className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-2xl"
+                  onClick={() => { setShowModal(false); setZipInput(""); setZipError(""); setModalFadeIn(false); }}
+                  aria-label="Close"
+                >
+                  ×
+                </button>
+                <h2 className="text-xl font-bold mb-4">Enter your zip code</h2>
+                <input
+                  type="text"
+                  value={zipInput}
+                  onChange={e => setZipInput(e.target.value)}
+                  className="border border-gray-300 rounded px-4 py-2 w-full mb-3 focus:outline-none focus:ring-2 focus:ring-green-600"
+                  placeholder="Zip code"
+                  maxLength={10}
+                  inputMode="numeric"
+                />
+                {zipError && <div className="text-red-500 mb-2 text-sm">{zipError}</div>}
+                <button
+                  className="bg-green-800 text-white px-6 py-2 rounded-full hover:bg-green-700 transition-colors font-semibold shadow-md w-full"
+                  onClick={() => {
+                    const zip = zipInput.trim();
+                    if (!/^\d{5}(-\d{4})?$/.test(zip)) {
+                      setZipError("Please enter a valid zip code (e.g., 12345 or 12345-6789)");
+                      return;
+                    }
+                    setZipError("");
+                    setShowModal(false);
+                    setModalFadeIn(false);
+                    setZipInput("");
+                    router.push(`/claim-reward/${zip}`);
+                  }}
+                >
+                  Go
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </main>
     );

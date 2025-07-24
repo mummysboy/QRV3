@@ -47,7 +47,7 @@ const schema = a.schema({
       businessId: a.string(), // Link to business
     })
     .identifier(["id"])
-    .authorization((allow) => [allow.publicApiKey()]),
+    .authorization((allow) => [allow.publicApiKey().to(["read", "create", "update", "delete"])]),
 
   Contact: a
     .model({

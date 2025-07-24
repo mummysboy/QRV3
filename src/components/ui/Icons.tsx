@@ -235,6 +235,7 @@ export const Icons = {
   label: Tag,
   money: DollarSign,
   percentage: Percent,
+  upsideDownSmile: UpsideDownSmile,
 };
 
 // Type for icon names
@@ -265,92 +266,24 @@ export function Icon({ name, size = 24, className = "", color }: IconProps) {
   );
 }
 
-// Convenience components for common icon sizes
-export const IconSm = ({ name, className, color }: Omit<IconProps, 'size'>) => (
-  <Icon name={name} size={16} className={className} color={color} />
-);
-
-export const IconMd = ({ name, className, color }: Omit<IconProps, 'size'>) => (
-  <Icon name={name} size={24} className={className} color={color} />
-);
-
-export const IconLg = ({ name, className, color }: Omit<IconProps, 'size'>) => (
-  <Icon name={name} size={32} className={className} color={color} />
-);
-
-export const IconXl = ({ name, className, color }: Omit<IconProps, 'size'>) => (
-  <Icon name={name} size={48} className={className} color={color} />
-);
-
-// Export individual icons for direct use
-export {
-  Plus,
-  BarChart3,
-  Building2,
-  Settings,
-  CheckCircle,
-  Search,
-  FileText,
-  Gift,
-  Smartphone,
-  Target,
-  Zap,
-  TrendingUp,
-  Award,
-  Users,
-  MapPin,
-  Mail,
-  Phone,
-  Globe,
-  ArrowRight,
-  ArrowLeft,
-  X,
-  Edit,
-  Trash2,
-  Eye,
-  Download,
-  Upload,
-  Calendar,
-  Clock,
-  Star,
-  Heart,
-  Share2,
-  Copy,
-  ExternalLink,
-  ChevronDown,
-  ChevronUp,
-  ChevronRight,
-  ChevronLeft,
-  Menu,
-  Home,
-  User,
-  LogOut,
-  Lock,
-  Unlock,
-  AlertCircle,
-  Info,
-  Check,
-  AlertTriangle,
-  RefreshCw,
-  Loader2,
-  Play,
-  Pause,
-  Volume2,
-  VolumeX,
-  Maximize2,
-  Minimize2,
-  RotateCcw,
-  RotateCw,
-  ZoomIn,
-  ZoomOut,
-  Filter,
-  SortAsc,
-  SortDesc,
-  Grid,
-  List,
-  Bookmark,
-  BookmarkPlus,
-  Tag,
-  DollarSign,
-  Percent,
-}; 
+// Upside-down smiley SVG icon
+export function UpsideDownSmile({ size = 24, className = "", color = "#9ca3af" }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={size}
+      height={size}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      className={className}
+      color={color}
+      style={{ transform: 'rotate(180deg)' }}
+    >
+      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
+      <circle cx="9" cy="10" r="1" fill="currentColor" />
+      <circle cx="15" cy="10" r="1" fill="currentColor" />
+      <path d="M8 16c1.333 1.333 4.667 1.333 6 0" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+} 
