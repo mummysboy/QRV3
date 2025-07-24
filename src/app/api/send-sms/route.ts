@@ -28,52 +28,41 @@ export async function POST(req: Request) {
     });
 
     // Create SMS message
-    let message = `🎁 Your reward is ready! View it here: ${url}`;
-    if (header || businessName || expires) {
-      message = `🎁 ${header ? header + ' - ' : ''}${businessName ? businessName + ' - ' : ''}Your reward is ready!`;
-      if (expires) message += ` Expires: ${expires}.`;
-      message += ` View it here: ${url}`;
+    let formattedExpires = '';
+    if (expires) {
+      const date = new Date(expires);
+      if (!isNaN(date.getTime())) {
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const dd = String(date.getDate()).padStart(2, '0');
+        const yyyy = date.getFullYear();
+        formattedExpires = `${mm}/${dd}/${yyyy}`;
+      } else {
+        formattedExpires = expires; // fallback to raw value
+      }
     }
+
+    // Build a clear, compliant SMS message
+    let message = 'QRewards\n';
+    if (header || businessName) {
+      message += ` ${header ? header + ' - ' : ''}${businessName ? businessName + ' - ' : ''}`;
+    }
+    message += 'Your reward is ready!';
+    if (formattedExpires) message += ` Expires: ${formattedExpires}.`;
+    message += `\n\nView it: ${url}`;
+    message += `\n\nReply STOP to unsubscribe.`;
 
     console.log("📱 SMS message:", message);
 
-    const command = new PublishCommand({
+    const publishCommand = new PublishCommand({
       Message: message,
       PhoneNumber: phoneWithCountryCode,
-      MessageAttributes: {
-        'AWS.SNS.SMS.SMSType': {
-          DataType: 'String',
-          StringValue: 'Transactional'
-        }
-      }
     });
 
-    console.log("📱 Sending SMS via SNS...");
-    console.log("📱 SNS Command:", JSON.stringify(command, null, 2));
-    const result = await snsClient.send(command);
-    console.log("📱 SNS response:", JSON.stringify(result, null, 2));
+    await snsClient.send(publishCommand);
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ message: "SMS sent successfully" }, { status: 200 });
   } catch (error) {
-    console.error("📱 SNS error:", error);
-    
-    // Provide more specific error messages for common issues
-    let errorMessage = "Failed to send SMS";
-    if (error instanceof Error) {
-      if (error.message.includes("InvalidParameter")) {
-        errorMessage = "Invalid phone number format";
-      } else if (error.message.includes("OptOut")) {
-        errorMessage = "Phone number has opted out of SMS";
-      } else if (error.message.includes("Throttled")) {
-        errorMessage = "SMS sending rate limit exceeded";
-      } else {
-        errorMessage = error.message;
-      }
-    }
-    
-    return NextResponse.json(
-      { error: errorMessage, details: error instanceof Error ? error.message : "Unknown error" },
-      { status: 500 }
-    );
+    console.error("Error sending SMS:", error);
+    return NextResponse.json({ error: "Failed to send SMS" }, { status: 500 });
   }
-} 
+}
