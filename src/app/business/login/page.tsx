@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import LogoVideo from "@/components/LogoVideo";
 import { detectSQLInjection, showSQLInjectionPopup } from "@/utils/sqlInjectionDetector";
@@ -12,6 +12,25 @@ export default function BusinessLogin() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  // Auto-redirect if session cookie is present
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const response = await fetch('/api/business/check-session');
+        const data = await response.json();
+        
+        if (data.hasSession) {
+          console.log('🔍 Login - Valid session found, redirecting to dashboard');
+          window.location.replace('/business/dashboard');
+        }
+      } catch (error) {
+        console.error('🔍 Login - Error checking session:', error);
+      }
+    };
+    
+    checkSession();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,13 +60,18 @@ export default function BusinessLogin() {
       }
 
       const data = await response.json();
-      
-      // Store user session
-      sessionStorage.setItem('businessUser', JSON.stringify(data.user));
-      sessionStorage.setItem('businessData', JSON.stringify(data.business));
-      
-      // Redirect to dashboard
-      window.location.href = '/business/dashboard';
+      // Store the sessionToken in sessionStorage for dashboard use
+      if (data.sessionToken) {
+        sessionStorage.setItem('businessSessionToken', data.sessionToken);
+      }
+      // Store user and business data in sessionStorage for dashboard access
+      if (data.user) {
+        sessionStorage.setItem('businessUser', JSON.stringify(data.user));
+      }
+      if (data.business) {
+        sessionStorage.setItem('businessData', JSON.stringify(data.business));
+      }
+      window.location.replace('/business/dashboard');
     } catch (error) {
       console.error('Login error:', error);
       setError(error instanceof Error ? error.message : 'Login failed');
@@ -55,6 +79,25 @@ export default function BusinessLogin() {
       setIsSubmitting(false);
     }
   };
+
+  // Remove consent logic from login page
+  // const handleConsentAccept = async () => {
+  //   if (!pendingSessionToken) return;
+  //   // Call set-session API to set the cookie
+  //   await fetch('/api/business/set-session', {
+  //     method: 'POST',
+  //     headers: { 'Content-Type': 'application/json' },
+  //     body: JSON.stringify({ sessionToken: pendingSessionToken }),
+  //   });
+  //   setShowConsent(false);
+  //   setPendingSessionToken(null);
+  //   router.replace('/business/dashboard');
+  // };
+  // const handleConsentDeny = () => {
+  //   setShowConsent(false);
+  //   setPendingSessionToken(null);
+  //   // Optionally, show a message or stay on login
+  // };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -181,6 +224,7 @@ export default function BusinessLogin() {
           </form>
         </div>
       </div>
+      {/* Remove consent banner rendering from login page */}
     </div>
   );
 } 

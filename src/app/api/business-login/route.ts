@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateClient } from "aws-amplify/api";
 import "../../../lib/amplify-client";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
 interface LoginData {
   email: string;
@@ -161,6 +163,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Generate a JWT session token for the business user
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      businessId: user.businessId,
+      role: "business",
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30 // 30 days
+    };
+    const sessionToken = jwt.sign(payload, JWT_SECRET);
+    // TODO: Store sessionToken in DB or in-memory store with user.id for future validation
+
     // Update last login time
     await client.graphql({
       query: `
@@ -179,8 +193,8 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Return user and business data (without password)
-    return NextResponse.json(
+    // Return user and business data (without password) and the JWT session token (do NOT set cookie here)
+    const response = NextResponse.json(
       { 
         success: true, 
         message: "Login successful",
@@ -192,10 +206,12 @@ export async function POST(request: NextRequest) {
           role: user.role,
           status: user.status,
         },
-        business: business
+        business: business,
+        sessionToken // <-- JWT returned in body
       },
       { status: 200 }
     );
+    return response;
   } catch (error) {
     console.error("Error during business login:", error);
     return NextResponse.json(

@@ -12,6 +12,7 @@ import { Plus, BarChart3, Building2, Settings, Eye, ArrowRight, CheckCircle, Tar
 import { QRCodeCanvas } from 'qrcode.react';
 import { toPng } from 'html-to-image';
 import { X } from "lucide-react";
+import { getCookie } from "@/lib/utils";
 
 
 interface BusinessUser {
@@ -133,9 +134,31 @@ export default function BusinessDashboard() {
   const [showQRCodeModal, setShowQRCodeModal] = useState(false);
   const qrRef = useRef<HTMLDivElement>(null);
 
+  // Consent banner state
+  const [showConsent, setShowConsent] = useState(false);
+
 
   const router = useRouter();
 
+  // Function to fetch user and business data from session
+  const fetchUserDataFromSession = async () => {
+    try {
+      const response = await fetch('/api/business/check-session');
+      const data = await response.json();
+      
+      if (data.hasSession && data.user && data.business) {
+        setUser(data.user);
+        setBusiness(data.business);
+        console.log('🔍 Dashboard - Loaded user and business data from session');
+      } else {
+        console.error('🔍 Dashboard - No valid session data');
+        router.push('/business/login');
+      }
+    } catch (error) {
+      console.error('🔍 Dashboard - Error fetching user data from session:', error);
+      router.push('/business/login');
+    }
+  };
 
 
   // Check if profile is complete
@@ -151,12 +174,47 @@ export default function BusinessDashboard() {
      (Date.now() - logoProcessingStartTime) < 60000); // Show for 1 minute after upload
 
   useEffect(() => {
+    // Check if user is logged in via cookie
+    if (typeof window !== "undefined") {
+      const session = getCookie("qrewards_session");
+      // Only show consent if cookie is not set and sessionToken is available
+      const sessionToken = sessionStorage.getItem('businessSessionToken');
+      if (!session && sessionToken) {
+        setShowConsent(true);
+      }
+    }
+
     // Check if user is logged in
     const userData = sessionStorage.getItem('businessUser');
     const businessData = sessionStorage.getItem('businessData');
 
+    // If no sessionStorage data, check if we have a valid session cookie
     if (!userData || !businessData) {
-      router.push('/business/login');
+      const checkSessionAndRedirect = async () => {
+        try {
+          const response = await fetch('/api/business/check-session');
+          const data = await response.json();
+          
+          if (data.hasSession) {
+            console.log('🔍 Dashboard - Valid session cookie exists, fetching user data...');
+            // We have a valid session, so we should stay on dashboard
+            // Fetch user and business data from the session
+            await fetchUserDataFromSession();
+            setIsLoading(false);
+            return;
+          } else {
+            console.log('🔍 Dashboard - No valid session, redirecting to login');
+            router.push('/business/login');
+            return;
+          }
+        } catch (error) {
+          console.error('🔍 Dashboard - Error checking session:', error);
+          router.push('/business/login');
+          return;
+        }
+      };
+      
+      checkSessionAndRedirect();
       return;
     }
 
@@ -219,6 +277,40 @@ export default function BusinessDashboard() {
     }
   }, [logoProcessing, logoProcessingStartTime]);
 
+  // Check for session and show consent banner if needed
+  useEffect(() => {
+    console.log('🔍 Dashboard - Consent check starting...');
+    const sessionToken = sessionStorage.getItem('businessSessionToken');
+    console.log('🔍 Dashboard - sessionToken:', sessionToken ? 'present' : 'missing');
+    
+    // Check if we have a valid session cookie via API
+    const checkSession = async () => {
+      try {
+        const response = await fetch('/api/business/check-session');
+        const data = await response.json();
+        console.log('🔍 Dashboard - Session check result:', data);
+        
+        if (data.hasSession) {
+          console.log('🔍 Dashboard - Valid session cookie exists, hiding consent banner');
+          setShowConsent(false);
+        } else if (sessionToken) {
+          console.log('🔍 Dashboard - No cookie but has sessionToken, showing consent banner');
+          setShowConsent(true);
+        } else {
+          console.log('🔍 Dashboard - No cookie or sessionToken, hiding consent banner');
+          setShowConsent(false);
+        }
+      } catch (error) {
+        console.error('🔍 Dashboard - Error checking session:', error);
+        // Fallback: show consent banner if we have sessionToken
+        if (sessionToken) {
+          setShowConsent(true);
+        }
+      }
+    };
+    
+    checkSession();
+  }, []);
 
 
   const fetchAllBusinesses = async () => {
@@ -704,17 +796,13 @@ export default function BusinessDashboard() {
           {analytics?.rewardAnalytics?.length ? (
             analytics.rewardAnalytics.map((reward, idx) => (
               <div key={idx} className="p-6 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h4 className="text-lg font-medium text-gray-900">{reward.header}</h4>
-                    <p className="text-sm text-gray-600">{reward.subheader}</p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm text-gray-600">Quantity</div>
-                    <div className="text-lg font-medium text-gray-900">{reward.quantity}</div>
-                  </div>
+                <div className="mb-4 text-center">
+                  <h4 className="text-lg font-medium text-gray-900">{reward.header}</h4>
+                  <div className="text-gray-600 mt-1 mb-2">{reward.subheader}</div>
+                  <div className="text-gray-500 text-base">Quantity</div>
+                  <div className="text-2xl font-semibold text-gray-900">{reward.quantity}</div>
                 </div>
-                <div className="grid grid-cols-6 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-6 gap-4 text-center">
                   <div className="text-center">
                     <div className="text-2xl font-light text-gray-900 mb-1">{reward.views}</div>
                     <div className="text-sm text-gray-600">Views</div>
@@ -932,6 +1020,43 @@ export default function BusinessDashboard() {
     return null;
   }
 
+  // Consent banner handlers
+  const handleConsentAccept = async () => {
+    const sessionToken = sessionStorage.getItem('businessSessionToken');
+    console.log('🔍 Consent Accept - sessionToken:', sessionToken ? 'present' : 'missing');
+    if (!sessionToken) return;
+    console.log('🔍 Consent Accept - calling set-session API...');
+    try {
+      const response = await fetch('/api/business/set-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionToken }),
+      });
+      console.log('🔍 Consent Accept - API response status:', response.status);
+      const responseData = await response.json();
+      console.log('🔍 Consent Accept - API response data:', responseData);
+      console.log('🔍 Consent Accept - API call completed');
+      setShowConsent(false);
+      // Check if cookie was set via API
+      setTimeout(async () => {
+        try {
+          const checkResponse = await fetch('/api/business/check-session');
+          const checkData = await checkResponse.json();
+          console.log('🔍 Consent Accept - Cookie check after API call:', checkData);
+        } catch (error) {
+          console.error('🔍 Consent Accept - Error checking cookie:', error);
+        }
+      }, 100);
+      // Optionally, remove the sessionToken from sessionStorage
+      // sessionStorage.removeItem('businessSessionToken');
+    } catch (error) {
+      console.error('🔍 Consent Accept - API call failed:', error);
+    }
+  };
+  const handleConsentDeny = () => {
+    setShowConsent(false);
+  };
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 pt-16">
       {/* Header */}
@@ -1078,7 +1203,7 @@ export default function BusinessDashboard() {
                       <Building2 className="w-6 h-6 text-gray-500" />
                     </div>
                   </div>
-                  <div>
+                  <div className="flex flex-col items-center">
                     <h2 className="text-3xl font-light text-gray-900">
                       Welcome back, <span className="whitespace-nowrap inline-block">{business?.name || user?.firstName || ""}</span>!
                     </h2>
@@ -1321,6 +1446,20 @@ export default function BusinessDashboard() {
               Download
             </button>
             <p className="mt-6 text-gray-500 text-sm text-center">Print and post this card anywhere you want to find customers!</p>
+          </div>
+        </div>
+      )}
+
+      {showConsent && (
+        <div className="fixed bottom-4 left-1/2 z-50 -translate-x-1/2 w-full max-w-md px-4">
+          <div className="bg-white/90 border border-gray-200 shadow-xl rounded-2xl px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 backdrop-blur-md">
+            <div className="flex-1 text-gray-800 text-sm mb-2 sm:mb-0">
+              Stay logged in? We use cookies to keep you signed in and personalize your experience.
+            </div>
+            <div className="flex gap-2">
+              <button onClick={handleConsentAccept} className="px-4 py-2 bg-green-100 hover:bg-green-200 rounded-xl text-green-700 font-medium text-sm transition-colors border border-green-300 shadow-sm">Stay logged in</button>
+              <button onClick={handleConsentDeny} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl text-gray-700 font-medium text-sm transition-colors border border-gray-300 shadow-sm">No thanks</button>
+            </div>
           </div>
         </div>
       )}

@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import ContactPopup from "@/components/Popups/ContactPopup";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
+import CookieConsentBanner from '@/components/Popups/CookieConsentBanner';
 
 export const ContactContext = createContext<{ onContactClick: () => void }>({ onContactClick: () => {} });
 
@@ -29,6 +30,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
           {children}
         </motion.main>
       </AnimatePresence>
+      <CookieConsentBanner />
     </ContactContext.Provider>
   );
 } 

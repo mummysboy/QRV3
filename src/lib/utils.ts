@@ -20,3 +20,32 @@ export function generateGoogleMapsUrl(address: string): string {
   const encodedAddress = encodeURIComponent(address);
   return `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
 }
+
+// Cookie helpers
+export function setCookie(name: string, value: string, days = 30, options: { path?: string; secure?: boolean; sameSite?: 'strict'|'lax'|'none' } = {}) {
+  let expires = '';
+  if (days) {
+    const date = new Date();
+    date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
+    expires = '; expires=' + date.toUTCString();
+  }
+  let cookie = `${name}=${encodeURIComponent(value || '')}${expires}; path=${options.path || '/'}`;
+  if (options.secure) cookie += '; Secure';
+  if (options.sameSite) cookie += `; SameSite=${options.sameSite}`;
+  document.cookie = cookie;
+}
+
+export function getCookie(name: string): string | null {
+  const nameEQ = name + '=';
+  const ca = document.cookie.split(';');
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+    if (c.indexOf(nameEQ) === 0) return decodeURIComponent(c.substring(nameEQ.length, c.length));
+  }
+  return null;
+}
+
+export function deleteCookie(name: string, options: { path?: string } = {}) {
+  document.cookie = `${name}=; Max-Age=0; path=${options.path || '/'}; expires=Thu, 01 Jan 1970 00:00:01 GMT;`;
+}
