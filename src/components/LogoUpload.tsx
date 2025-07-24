@@ -72,9 +72,17 @@ export default function LogoUpload({ businessName, onUpload, currentLogo }: Logo
         console.log('📋 LogoUpload: Logo URL:', result.logoUrl);
         onUpload(result.logoUrl);
       } else {
-        const errorData = await response.json();
-        console.error('❌ LogoUpload: API error:', errorData);
-        throw new Error(errorData.error || 'Failed to upload logo');
+        // Handle different response types
+        let errorMessage = 'Failed to upload logo';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          // If JSON parsing fails, use status text
+          errorMessage = `Upload failed (${response.status}): ${response.statusText}`;
+        }
+        console.error('❌ LogoUpload: API error:', errorMessage);
+        throw new Error(errorMessage);
       }
     } catch (error) {
       console.error('❌ LogoUpload: Upload error:', error);

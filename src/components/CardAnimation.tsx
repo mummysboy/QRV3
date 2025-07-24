@@ -130,9 +130,11 @@ export default function CardAnimation({ card, playbackRate = 1, isPreview = fals
 
   // Construct the logo URL using the storage utility
   const logoUrl = cardData?.logokey
-    ? cardData.logokey.startsWith("data:") || cardData.logokey.startsWith("http") || cardData.logokey.startsWith("/")
+    ? cardData.logokey.startsWith("data:") || cardData.logokey.startsWith("http")
       ? cardData.logokey
-      : getStorageUrlSync(cardData.logokey)
+      : cardData.logokey.startsWith("/")
+        ? `https://qrewards-media6367c-dev.s3.us-west-1.amazonaws.com${cardData.logokey}`
+        : getStorageUrlSync(cardData.logokey)
     : null;
 
   // Debug: Log card data
@@ -143,7 +145,8 @@ export default function CardAnimation({ card, playbackRate = 1, isPreview = fals
   console.log('CardAnimation - addresstext:', cardData?.addresstext);
   console.log('CardAnimation - addressurl:', cardData?.addressurl);
   console.log('CardAnimation - neighborhood:', cardData?.neighborhood);
-  console.log('CardAnimation - storage utility result:', getStorageUrlSync(cardData?.logokey || ''));
+  // Remove this debug line that's causing the double URL issue
+  // console.log('CardAnimation - storage utility result:', getStorageUrlSync(cardData?.logokey || ''));
 
   // Debug when card prop changes
   useEffect(() => {
