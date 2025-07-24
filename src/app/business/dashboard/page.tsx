@@ -1057,6 +1057,32 @@ export default function BusinessDashboard() {
     setShowConsent(false);
   };
 
+  // Logout handler
+  const handleLogout = async () => {
+    try {
+      // Call the logout API to clear the cookie
+      await fetch('/api/business/logout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      
+      // Clear sessionStorage
+      sessionStorage.removeItem('businessUser');
+      sessionStorage.removeItem('businessData');
+      sessionStorage.removeItem('businessSessionToken');
+      
+      // Redirect to login page
+      window.location.href = '/business/login';
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Even if the API call fails, clear local storage and redirect
+      sessionStorage.removeItem('businessUser');
+      sessionStorage.removeItem('businessData');
+      sessionStorage.removeItem('businessSessionToken');
+      window.location.href = '/business/login';
+    }
+  };
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 pt-16">
       {/* Header */}
@@ -1094,6 +1120,13 @@ export default function BusinessDashboard() {
             )}
           </div>
 
+          {/* Logout Button */}
+          <button
+            onClick={handleLogout}
+            className="text-gray-600 hover:text-gray-900 px-4 py-2 rounded-lg border border-gray-300 hover:border-gray-400 transition-colors"
+          >
+            Logout
+          </button>
         </div>
       </div>
 
