@@ -6,9 +6,9 @@ const snsClient = new SNSClient({
 });
 
 export async function POST(req: Request) {
-  const { to, url, header } = await req.json();
+  const { to, url, header, businessName, expires } = await req.json();
   
-  console.log("📱 SMS API called with:", { to, url, header });
+  console.log("📱 SMS API called with:", { to, url, header, businessName, expires });
 
   if (!to || !url) {
     return NextResponse.json({ error: "Missing parameters" }, { status: 400 });
@@ -28,9 +28,12 @@ export async function POST(req: Request) {
     });
 
     // Create SMS message
-    const message = header 
-      ? `🎁 Your ${header} reward is ready! View it here: ${url}`
-      : `🎁 Your reward is ready! View it here: ${url}`;
+    let message = `🎁 Your reward is ready! View it here: ${url}`;
+    if (header || businessName || expires) {
+      message = `🎁 ${header ? header + ' - ' : ''}${businessName ? businessName + ' - ' : ''}Your reward is ready!`;
+      if (expires) message += ` Expires: ${expires}.`;
+      message += ` View it here: ${url}`;
+    }
 
     console.log("📱 SMS message:", message);
 

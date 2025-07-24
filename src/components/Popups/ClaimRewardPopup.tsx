@@ -13,6 +13,12 @@ interface CardData {
   logokey: string;
 }
 
+declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void;
+  }
+}
+
 export default function ClaimRewardPopup({
   card,
   onClose,
@@ -161,14 +167,41 @@ export default function ClaimRewardPopup({
         });
       } else {
         console.log("🔵 Sending SMS");
-        await fetch("/api/send-sms", {
+        const smsRes = await fetch("/api/send-sms", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             to: phone,
             url: rewardUrl,
+            header: card.header,
+            businessName: card.addresstext, // or another field for business name
+            expires: card.expires,
           }),
         });
+        const smsResult = await smsRes.json();
+        if (!smsRes.ok) {
+          setError(smsResult.error || "Failed to send SMS. Please try again.");
+          // Fire analytics event for SMS failure
+          const gtag = window.gtag;
+          if (gtag) {
+            gtag('event', 'reward_sms_failed', {
+              event_category: 'Reward',
+              event_label: phone,
+              error: smsResult.error || 'unknown',
+            });
+          }
+          setLoading(false);
+          return;
+        } else {
+          // Fire analytics event for SMS success
+          const gtag = window.gtag;
+          if (gtag) {
+            gtag('event', 'reward_sms_sent', {
+              event_category: 'Reward',
+              event_label: phone,
+            });
+          }
+        }
       }
 
       console.log("🔵 Setting confirmation state");
