@@ -1321,6 +1321,20 @@ export default function BusinessDashboard() {
                         }}
                       />
                     </div>
+                    {/* Active/Expired Notification above buttons */}
+                    <div className="w-full flex justify-center mt-2 mb-2">
+                      {(() => {
+                        const now = new Date();
+                        const exp = new Date(card.expires || "");
+                        const isActive = exp.getTime() > now.getTime();
+                        return (
+                          <span className={`text-xs font-semibold ${isActive ? 'text-green-600' : 'text-red-600'}`}
+                            style={{ minWidth: 70, textAlign: 'center' }}>
+                            {isActive ? 'Active' : 'Expired'}
+                          </span>
+                        );
+                      })()}
+                    </div>
                     {/* Action Buttons - side by side, mobile friendly */}
                     <div className="mt-4 flex space-x-2">
                       <button

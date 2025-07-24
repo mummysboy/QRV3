@@ -808,40 +808,56 @@ export default function DemoDashboard() {
                 <h3 className="text-2xl font-light text-gray-900">Your Rewards</h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {cards.map((card, idx) => (
-                  <div key={idx} className="group relative">
-                    {/* Real Card - exactly like the claim reward page */}
-                    <div className="relative w-full max-w-sm mx-auto">
-                      <CardAnimation 
-                        card={{
-                          cardid: card.cardid,
-                          header: card.header || business.name,
-                          logokey: card.logokey || business.logo,
-                          addresstext: card.addresstext || `${business.address}, ${business.city}, ${business.state} ${business.zipCode}`,
-                          addressurl: card.addressurl || "",
-                          subheader: card.subheader || "Reward description",
-                          expires: card.expires || "",
-                          quantity: card.quantity,
-                        }}
-                      />
+                {cards.map((card, idx) => {
+                  return (
+                    <div key={idx} className="group relative">
+                      {/* Real Card - exactly like the claim reward page */}
+                      <div className="relative w-full max-w-sm mx-auto">
+                        <CardAnimation 
+                          card={{
+                            cardid: card.cardid,
+                            header: card.header || business.name,
+                            logokey: card.logokey || business.logo,
+                            addresstext: card.addresstext || `${business.address}, ${business.city}, ${business.state} ${business.zipCode}`,
+                            addressurl: card.addressurl || "",
+                            subheader: card.subheader || "Reward description",
+                            expires: card.expires || "",
+                            quantity: card.quantity,
+                          }}
+                        />
+                      </div>
+                      {/* Active/Expired Notification above buttons */}
+                      <div className="w-full flex justify-center mt-2 mb-2">
+                        {(() => {
+                          const now = new Date();
+                          const exp = new Date(card.expires);
+                          const isActive = exp.getTime() > now.getTime();
+                          return (
+                            <span className={`text-xs font-semibold ${isActive ? 'text-green-600' : 'text-red-600'}`}
+                              style={{ minWidth: 70, textAlign: 'center' }}>
+                              {isActive ? 'Active' : 'Expired'}
+                            </span>
+                          );
+                        })()}
+                      </div>
+                      {/* Action Buttons - side by side, mobile friendly */}
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => handleEditReward(card)}
+                          className="flex-1 flex items-center justify-center bg-blue-50 hover:bg-blue-100 text-blue-700 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ease-in-out shadow-sm border border-blue-100"
+                        >
+                          <span className="mr-2">✏️</span> Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteReward(card.cardid)}
+                          className="flex-1 flex items-center justify-center bg-red-50 hover:bg-red-100 text-red-600 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ease-in-out shadow-sm border border-red-100"
+                        >
+                          <span className="mr-2">🗑️</span> Delete
+                        </button>
+                      </div>
                     </div>
-                    {/* Action Buttons - side by side, mobile friendly */}
-                    <div className="mt-4 flex space-x-2">
-                      <button
-                        onClick={() => handleEditReward(card)}
-                        className="flex-1 flex items-center justify-center bg-blue-50 hover:bg-blue-100 text-blue-700 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ease-in-out shadow-sm border border-blue-100"
-                      >
-                        <span className="mr-2">✏️</span> Edit
-                      </button>
-                      <button
-                        onClick={() => handleDeleteReward(card.cardid)}
-                        className="flex-1 flex items-center justify-center bg-red-50 hover:bg-red-100 text-red-600 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ease-in-out shadow-sm border border-red-100"
-                      >
-                        <span className="mr-2">🗑️</span> Delete
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </>

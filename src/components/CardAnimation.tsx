@@ -362,16 +362,27 @@ export default function CardAnimation({ card, playbackRate = 1, isPreview = fals
                 </div>
 
                 {/* Expiration - Fixed at bottom */}
-                <div className={`flex-shrink-0 ${isPreview ? 'px-2' : 'px-1'} mt-4`}>
+                <div className={`flex-shrink-0 ${isPreview ? 'px-2' : 'px-1'} mt-4`}> 
                   {cardData?.expires && 
                    cardData.expires !== "Demo Reward Not Valid" && 
                    (typeof cardData.expires === 'string' ? cardData.expires.trim() !== "" : true) ? (
                     isExpiringSoon(cardData.expires) ? (
                       <CountdownTimer expirationDate={String(cardData.expires)} />
                     ) : (
-                      <p className={`${isPreview ? 'text-xs' : 'text-xs'} font-light leading-tight`}>
-                        Expires: {new Date(cardData.expires).toLocaleDateString()}
-                      </p>
+                      <>
+                        <p className={`${isPreview ? 'text-xs' : 'text-xs'} font-light leading-tight`}>
+                          Expires: {new Date(cardData.expires).toLocaleDateString()}
+                        </p>
+                        {/* Show Expired in red if expired */}
+                        {(() => {
+                          const now = new Date();
+                          const exp = new Date(cardData.expires as string);
+                          if (exp.getTime() <= now.getTime()) {
+                            return <div className="w-full flex justify-center mt-1"><span className="text-xs font-semibold text-red-600">Expired</span></div>;
+                          }
+                          return null;
+                        })()}
+                      </>
                     )
                   ) : null}
                 </div>
