@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import LogoVideo from "@/components/LogoVideo";
 import BusinessSignupForm, { BusinessSignupData } from "@/components/BusinessSignupForm";
 import { Smartphone, Mail, Building2, ArrowRight, Zap, Target, BarChart3, ChevronLeft, ChevronRight, Sparkles, PartyPopper } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
   const [isVisible, setIsVisible] = useState(false);
@@ -66,6 +67,27 @@ export default function Home() {
       date: "4 days ago"
     }
   ];
+
+  const router = useRouter();
+
+  // Auto-redirect if session cookie is present
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const response = await fetch('/api/business/check-session');
+        const data = await response.json();
+        
+        if (data.hasSession) {
+          console.log('🔍 Home - Valid session found, redirecting to dashboard');
+          router.replace("/business/dashboard");
+        }
+      } catch (error) {
+        console.error('🔍 Home - Error checking session:', error);
+      }
+    };
+    
+    checkSession();
+  }, [router]);
 
   // Progressive reveal effect
   useEffect(() => {
