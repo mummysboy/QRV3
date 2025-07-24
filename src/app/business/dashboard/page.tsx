@@ -1380,25 +1380,28 @@ export default function BusinessDashboard() {
 
         {/* Logo Upload Modal */}
         {showLogoUpload && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Upload Business Logo</h3>
-                <button
-                  onClick={() => setShowLogoUpload(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm transition-opacity duration-500 animate-fade-in p-2 sm:p-4">
+            <div className="relative bg-white rounded-2xl shadow-2xl p-4 sm:p-8 w-full max-w-md mx-auto flex flex-col items-center animate-fade-in">
+              <button
+                className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 transition"
+                onClick={() => setShowLogoUpload(false)}
+                aria-label="Close logo upload modal"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4 text-center">Upload Business Logo</h2>
               <LogoUpload
                 currentLogo={business?.logo}
                 onUpload={handleLogoUpload}
                 businessName={business?.name || "Business"}
               />
             </div>
+            <style jsx global>{`
+              @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+              .animate-fade-in { animation: fade-in 0.4s; }
+            `}</style>
           </div>
         )}
 

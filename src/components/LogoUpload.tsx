@@ -100,32 +100,16 @@ export default function LogoUpload({ businessName, onUpload, currentLogo }: Logo
 
   return (
     <div className="w-full">
-      {/* Mobile-friendly upload area */}
       <div
-        className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors touch-manipulation ${
-          isUploading
-            ? "border-gray-300 bg-gray-50"
-            : "border-gray-300 hover:border-blue-400 hover:bg-blue-50 active:bg-blue-100"
+        className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors touch-manipulation bg-gray-50 hover:bg-blue-50 active:bg-blue-100 shadow-sm flex flex-col items-center justify-center min-h-[140px] sm:min-h-[160px] ${
+          isUploading ? 'opacity-70 pointer-events-none' : ''
         }`}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
         onClick={triggerFileInput}
-        onTouchStart={(e) => {
-          // Prevent double-tap zoom on mobile
-          e.preventDefault();
-        }}
-        onTouchEnd={(e) => {
-          // Ensure touch events work properly on mobile
-          e.preventDefault();
-          triggerFileInput();
-        }}
-        style={{
-          minHeight: '120px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          touchAction: 'manipulation'
-        }}
+        onTouchStart={(e) => { e.preventDefault(); }}
+        onTouchEnd={(e) => { e.preventDefault(); triggerFileInput(); }}
+        style={{ touchAction: 'manipulation' }}
       >
         <input
           ref={fileInputRef}
@@ -134,28 +118,16 @@ export default function LogoUpload({ businessName, onUpload, currentLogo }: Logo
           onChange={handleFileSelect}
           className="hidden"
           disabled={isUploading}
-          style={{
-            position: 'absolute',
-            width: '1px',
-            height: '1px',
-            padding: 0,
-            margin: '-1px',
-            overflow: 'hidden',
-            clip: 'rect(0, 0, 0, 0)',
-            whiteSpace: 'nowrap',
-            border: 0
-          }}
         />
-        
         {isUploading ? (
-          <div className="space-y-2">
+          <div className="space-y-2 flex flex-col items-center justify-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
             <p className="text-sm text-gray-600">Uploading logo...</p>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-2 flex flex-col items-center justify-center">
             <svg
-              className="mx-auto h-12 w-12 text-gray-400"
+              className="mx-auto h-12 w-12 text-blue-400"
               stroke="currentColor"
               fill="none"
               viewBox="0 0 48 48"
@@ -167,34 +139,23 @@ export default function LogoUpload({ businessName, onUpload, currentLogo }: Logo
                 strokeLinejoin="round"
               />
             </svg>
-            <div>
-              <p className="text-sm text-gray-600">
-                <span className="font-medium text-blue-600 hover:text-blue-500">
-                  Tap to upload
-                </span>{" "}
-                or drag and drop
-              </p>
-              <p className="text-xs text-gray-500">Any image file up to 5MB</p>
-              <p className="text-xs text-gray-400 mt-1">📱 Choose from camera or photo library</p>
-            </div>
+            <p className="text-base text-blue-600 font-medium">Tap to upload</p>
+            <p className="text-xs text-gray-500">Any image file up to 5MB</p>
+            <p className="text-xs text-gray-400">📱 Choose from camera or photo library</p>
           </div>
         )}
       </div>
-      
       {error && (
-        <p className="mt-2 text-sm text-red-600">{error}</p>
+        <p className="mt-4 text-sm text-red-500 text-center transition-opacity duration-300">{error}</p>
       )}
-      
       {currentLogo && !isUploading && (
-        <div className="mt-4">
-          <p className="text-sm text-gray-600 mb-2">Current logo:</p>
+        <div className="mt-6 flex flex-col items-center">
+          <span className="text-xs text-gray-500 mb-1">Current logo:</span>
           <img
             src={currentLogo.startsWith('http') ? currentLogo : `https://${currentLogo}`}
             alt="Current logo"
-            className="h-16 w-16 object-contain border border-gray-200 rounded"
-            onError={(e) => {
-              e.currentTarget.style.display = 'none';
-            }}
+            className="w-16 h-16 rounded-lg object-contain border border-gray-200 shadow-sm"
+            onError={(e) => { e.currentTarget.style.display = 'none'; }}
           />
         </div>
       )}
