@@ -54,29 +54,49 @@ export default function Header({
 
   // Check if user is logged into dashboard
   useEffect(() => {
-    const userData = sessionStorage.getItem('businessUser');
-    const businessData = sessionStorage.getItem('businessData');
+    const checkUserStatus = async () => {
+      // First check sessionStorage
+      const userData = sessionStorage.getItem('businessUser');
+      const businessData = sessionStorage.getItem('businessData');
 
-    try {
-      if (userData) {
-        const userObj = JSON.parse(userData);
-        setUser(userObj);
-      } else {
+      try {
+        if (userData) {
+          const userObj = JSON.parse(userData);
+          setUser(userObj);
+        } else {
+          setUser(null);
+        }
+      } catch {
         setUser(null);
       }
-    } catch {
-      setUser(null);
-    }
-    try {
-      if (businessData) {
-        const businessObj = JSON.parse(businessData);
-        setBusiness(businessObj);
-      } else {
+      try {
+        if (businessData) {
+          const businessObj = JSON.parse(businessData);
+          setBusiness(businessObj);
+        } else {
+          setBusiness(null);
+        }
+      } catch {
         setBusiness(null);
       }
-    } catch {
-      setBusiness(null);
-    }
+
+      // If no sessionStorage data, check if we have a valid session cookie
+      if (!userData || !businessData) {
+        try {
+          const response = await fetch('/api/business/check-session');
+          const data = await response.json();
+          
+          if (data.hasSession && data.user && data.business) {
+            setUser(data.user);
+            setBusiness(data.business);
+          }
+        } catch (error) {
+          console.error('Error checking session in header:', error);
+        }
+      }
+    };
+
+    checkUserStatus();
   }, []);
 
   // Handle scroll effect for header
@@ -123,9 +143,22 @@ export default function Header({
     };
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // Clear sessionStorage
     sessionStorage.removeItem('businessUser');
     sessionStorage.removeItem('businessData');
+    sessionStorage.removeItem('businessSessionToken');
+    
+    // Clear session cookie
+    try {
+      await fetch('/api/business/logout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+    } catch (error) {
+      console.error('Error clearing session cookie:', error);
+    }
+    
     setIsMenuOpen(false);
     router.push('/business/login');
   };
