@@ -7,6 +7,7 @@ import LogoUpload from "@/components/LogoUpload";
 import CardAnimation from "@/components/CardAnimation";
 import AddBusinessForm from "@/components/AddBusinessForm";
 import Header from "@/components/Header";
+import { BarChart3, CheckCircle, Target, PartyPopper, TrendingUp, Gift } from "lucide-react";
 
 // Mock business user and business info
 const mockBusiness = {
@@ -31,15 +32,6 @@ const mockBusiness = {
   createdAt: "2024-01-01",
   updatedAt: "2024-06-01",
   approvedAt: "2024-01-02",
-};
-
-const mockUser = {
-  id: "demo-user-1",
-  email: "hello@marketstreetcafe.com",
-  firstName: "Demo User",
-  lastName: "Smith",
-  role: "owner",
-  status: "active",
 };
 
 // --- MOCK DATA GENERATION HELPERS ---
@@ -75,6 +67,9 @@ const generateMockAnalytics = () => {
       count: Math.floor(20 + Math.random() * 10), // 20-30 claims/views per day
     };
   });
+  // Hard-code today (last day) to single-digit values
+  days[days.length - 1].count = 5; // e.g., 5 claims/views for today
+
   // Group by week (about 25 weeks)
   const weeks = Array.from({ length: Math.ceil(days.length / 7) }, (_, i) => {
     const weekStart = days[i * 7];
@@ -89,9 +84,10 @@ const generateMockAnalytics = () => {
     const month = d.date.slice(0, 7);
     monthsMap[month] = (monthsMap[month] || 0) + d.count;
   });
-  const viewsByDay = days.map(d => ({ date: d.date, count: d.count * 2 }));
-  const claimsByDay = days.map(d => ({ date: d.date, count: d.count }));
-  const redeemedByDay = days.map(d => ({ date: d.date, count: Math.floor(d.count * 0.5) }));
+  // Views, claims, redeemed by day
+  const viewsByDay = days.map((d, i) => ({ date: d.date, count: (i === days.length - 1 ? 3 : d.count * 2) })); // 3 views today
+  const claimsByDay = days.map((d, i) => ({ date: d.date, count: (i === days.length - 1 ? 5 : d.count) })); // 5 claims today
+  const redeemedByDay = days.map((d, i) => ({ date: d.date, count: (i === days.length - 1 ? 2 : Math.floor(d.count * 0.5)) })); // 2 redeemed today
   const claimsByWeek = weeks.map((w, i) => ({ week: w.week, count: claimsByDay.slice(i * 7, (i + 1) * 7).reduce((s, d) => s + d.count, 0) }));
   const viewsByWeek = weeks.map((w, i) => ({ week: w.week, count: viewsByDay.slice(i * 7, (i + 1) * 7).reduce((s, d) => s + d.count, 0) }));
   const redeemedByWeek = weeks.map((w, i) => ({ week: w.week, count: redeemedByDay.slice(i * 7, (i + 1) * 7).reduce((s, d) => s + d.count, 0) }));
@@ -220,7 +216,6 @@ export default function DemoDashboard() {
   
   // Use mock data
   const business = mockBusiness;
-  const user = mockUser;
   // Compute filtered analytics based on timeRange
   const filteredAnalytics = useMemo(() => {
     // Helper to sum counts
@@ -329,27 +324,6 @@ export default function DemoDashboard() {
     const timer = setTimeout(() => setIsVisible(true), 100);
     return () => clearTimeout(timer);
   }, []);
-
-  function getStats(analytics: typeof mockAnalytics | null) {
-    if (!analytics) {
-      return {
-        views: "0",
-        claims: "0",
-        conversionRate: "0",
-        redeemed: "0",
-        redemptionRate: "0",
-        totalRewards: "0"
-      };
-    }
-    return {
-      views: analytics.totalViews.toString(),
-      claims: analytics.totalClaims.toString(),
-      conversionRate: analytics.conversionRate.toString(),
-      redeemed: analytics.totalRedeemed.toString(),
-      redemptionRate: analytics.redemptionRate.toString(),
-      totalRewards: analytics.totalRewards.toString()
-    };
-  }
 
   // Handlers
   const handleQuickAction = (action: 'create' | 'analytics' | 'settings' | 'add-business') => {
@@ -559,43 +533,51 @@ export default function DemoDashboard() {
         <div className="space-y-4">
           {analytics?.rewardAnalytics?.length ? (
             analytics.rewardAnalytics.map((reward, idx) => (
-              <div key={idx} className="p-6 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h4 className="text-lg font-medium text-gray-900">{reward.header}</h4>
-                    <p className="text-sm text-gray-600">{reward.subheader}</p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm text-gray-600">Quantity</div>
-                    <div className="text-lg font-medium text-gray-900">{reward.quantity}</div>
-                  </div>
+              <div key={idx} className="p-6 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors flex flex-col items-center">
+                {/* Centered logo */}
+                <div className="flex justify-center mb-2 w-full">
+                  <img
+                    src={mockBusiness.logo}
+                    alt="Business Logo"
+                    className="w-12 h-12 object-contain rounded-lg mx-auto"
+                    style={{ minWidth: '48px', minHeight: '48px', maxWidth: '64px', maxHeight: '64px' }}
+                  />
                 </div>
-                <div className="grid grid-cols-6 gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-light text-gray-900 mb-1">{reward.views}</div>
-                    <div className="text-sm text-gray-600">Views</div>
+                {/* Centered business name and subheader */}
+                <div className="w-full text-center mb-2">
+                  <div className="font-semibold text-lg text-gray-900">{reward.header}</div>
+                  <p className="text-sm text-gray-600 mb-1">{reward.subheader}</p>
+                </div>
+                {/* Centered quantity */}
+                <div className="mb-4 text-center w-full">
+                  <span className="text-sm text-gray-600">Quantity</span>
+                  <div className="text-lg font-medium text-gray-900">{reward.quantity}</div>
+                </div>
+                {/* Responsive stats row: stack vertically on mobile, grid on desktop, centered */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 sm:gap-4 text-center w-full">
+                  <div>
+                    <div className="text-lg sm:text-2xl font-light text-gray-900 mb-1">{reward.views}</div>
+                    <div className="text-xs sm:text-sm text-gray-600">Views</div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-light text-gray-900 mb-1">{reward.claims}</div>
-                    <div className="text-sm text-gray-600">Claims</div>
+                  <div>
+                    <div className="text-lg sm:text-2xl font-light text-gray-900 mb-1">{reward.claims}</div>
+                    <div className="text-xs sm:text-sm text-gray-600">Claims</div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-light text-gray-900 mb-1">{reward.redeemed}</div>
-                    <div className="text-sm text-gray-600">Redeemed</div>
+                  <div>
+                    <div className="text-lg sm:text-2xl font-light text-gray-900 mb-1">{reward.redeemed}</div>
+                    <div className="text-xs sm:text-sm text-gray-600">Redeemed</div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-light text-gray-900 mb-1">{reward.conversionRate}%</div>
-                    <div className="text-sm text-gray-600">Conversion</div>
+                  <div>
+                    <div className="text-lg sm:text-2xl font-light text-gray-900 mb-1">{reward.conversionRate}%</div>
+                    <div className="text-xs sm:text-sm text-gray-600">Conversion</div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-light text-gray-900 mb-1">{reward.redemptionRate}%</div>
-                    <div className="text-sm text-gray-600">Redemption</div>
+                  <div>
+                    <div className="text-lg sm:text-2xl font-light text-gray-900 mb-1">{reward.redemptionRate}%</div>
+                    <div className="text-xs sm:text-sm text-gray-600">Redemption</div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-light text-gray-900 mb-1">
-                      {reward.lastRedeemed ? new Date(reward.lastRedeemed).toLocaleDateString() : 'Never'}
-                    </div>
-                    <div className="text-sm text-gray-600">Last Redeemed</div>
+                  <div>
+                    <div className="text-lg sm:text-2xl font-light text-gray-900 mb-1">{reward.lastRedeemed ? new Date(reward.lastRedeemed).toLocaleDateString() : 'Never'}</div>
+                    <div className="text-xs sm:text-sm text-gray-600">Last Redeemed</div>
                   </div>
                 </div>
               </div>
@@ -726,20 +708,21 @@ export default function DemoDashboard() {
             }`}>
               <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100 mb-8">
                 <div className="flex items-center space-x-4 mb-6">
-                  <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center overflow-hidden">
+                  <div className="flex items-center justify-center">
                     {business.logo && business.logo.trim() !== '' ? (
                       <img
                         src={business.logo}
                         alt="Business Logo"
-                        className="w-full h-full object-contain rounded-xl"
+                        className="w-20 h-20 rounded-full object-contain shadow-md bg-white mr-6"
+                        style={{ minWidth: '80px', minHeight: '80px', maxWidth: '96px', maxHeight: '96px' }}
                       />
                     ) : (
-                      <span className="text-2xl text-gray-600">🏪</span>
+                      <span className="text-4xl text-gray-600">🏪</span>
                     )}
                   </div>
                   <div>
-                    <h2 className="text-3xl font-light text-gray-900">Welcome back, {user.firstName}!</h2>
-                    <p className="text-gray-600">Here&rsquo;s how your rewards are performing for this time frame</p>
+                    <h2 className="text-3xl font-light text-gray-900">Welcome back, {business.name}!</h2>
+                    <p className="text-gray-600">Here&rsquo;s how your rewards are performing today</p>
                   </div>
                 </div>
               </div>
@@ -750,23 +733,21 @@ export default function DemoDashboard() {
               isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
             }`}>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-8">
-                {(() => {
-                  const stats = getStats(filteredAnalytics);
-                  return [
-                    { icon: '📊', label: 'Total Views', value: stats.views },
-                    { icon: '✅', label: 'Total Claims', value: stats.claims },
-                    { icon: '🎯', label: 'Conversion Rate', value: `${stats.conversionRate}%` },
-                    { icon: '🎉', label: 'Total Redeemed', value: stats.redeemed },
-                    { icon: '📈', label: 'Redemption Rate', value: `${stats.redemptionRate}%` },
-                    { icon: '🎁', label: 'Total Rewards', value: stats.totalRewards },
-                  ].map((card, idx) => (
-                    <div key={idx} className="bg-white rounded-2xl p-6 shadow-md border border-gray-100">
-                      <div className="text-2xl mb-2">{card.icon}</div>
-                      <div className="text-3xl font-light text-gray-900 mb-1">{card.value}</div>
-                      <div className="text-sm text-gray-600">{card.label}</div>
-                    </div>
-                  ));
-                })()}
+                {/* Hard-coded single-digit values for demo home page */}
+                {[
+                  { icon: <BarChart3 size={32} className="text-blue-600" />, label: 'Total Views', value: 12 },
+                  { icon: <CheckCircle size={32} className="text-green-600" />, label: 'Total Claims', value: 10 },
+                  { icon: <Target size={32} className="text-orange-600" />, label: 'Conversion Rate', value: '83%' },
+                  { icon: <PartyPopper size={32} className="text-purple-600" />, label: 'Total Redeemed', value: 6 },
+                  { icon: <TrendingUp size={32} className="text-indigo-600" />, label: 'Redemption Rate', value: '50%' },
+                  { icon: <Gift size={32} className="text-pink-600" />, label: 'Total Rewards', value: filteredAnalytics.totalRewards },
+                ].map((card, idx) => (
+                  <div key={idx} className="bg-white rounded-2xl p-6 shadow-md border border-gray-100">
+                    <div className="mb-2">{card.icon}</div>
+                    <div className="text-3xl font-light text-gray-900 mb-1">{card.value}</div>
+                    <div className="text-sm text-gray-600">{card.label}</div>
+                  </div>
+                ))}
               </div>
             </div>
 

@@ -133,7 +133,7 @@ export default function CardAnimation({ card, playbackRate = 1, isPreview = fals
     ? cardData.logokey.startsWith("data:") || cardData.logokey.startsWith("http")
       ? cardData.logokey
       : cardData.logokey.startsWith("/")
-        ? `https://qrewards-media6367c-dev.s3.us-west-1.amazonaws.com${cardData.logokey}`
+        ? cardData.logokey // Use as-is for local/public assets
         : getStorageUrlSync(cardData.logokey)
     : null;
 
@@ -253,7 +253,7 @@ export default function CardAnimation({ card, playbackRate = 1, isPreview = fals
           ) : (
             <>
               {/* Logo Section - Fixed size */}
-              <div className="flex-shrink-0 mb-2">
+              <div className="flex-shrink-0 mb-0">
                 {logoUrl ? (
                   <div className="relative w-full flex justify-center" style={{ marginTop: '-5%' }}>
                     <img
@@ -362,7 +362,7 @@ export default function CardAnimation({ card, playbackRate = 1, isPreview = fals
                 </div>
 
                 {/* Expiration - Fixed at bottom */}
-                <div className={`flex-shrink-0 ${isPreview ? 'px-2' : 'px-1'}`}>
+                <div className={`flex-shrink-0 ${isPreview ? 'px-2' : 'px-1'} mt-4`}>
                   {cardData?.expires && 
                    cardData.expires !== "Demo Reward Not Valid" && 
                    (typeof cardData.expires === 'string' ? cardData.expires.trim() !== "" : true) ? (
