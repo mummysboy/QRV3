@@ -9,7 +9,7 @@ interface LogoUploadProps {
   demoMode?: boolean;
 }
 
-export default function LogoUpload({ businessName, onUpload, currentLogo, demoMode }: LogoUploadProps) {
+export default function LogoUpload({ businessName, onUpload, currentLogo }: LogoUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -34,78 +34,92 @@ export default function LogoUpload({ businessName, onUpload, currentLogo, demoMo
   };
 
   const handleFile = async (file: File) => {
-    setError("");
-    
-    console.log('🔄 LogoUpload: Starting file upload...');
-    console.log('📋 LogoUpload: File name:', file.name);
-    console.log('📋 LogoUpload: File size:', file.size);
-    console.log('📋 LogoUpload: File type:', file.type);
-    console.log('📋 LogoUpload: Business name:', businessName);
-    
-    // Only validate file size (max 5MB) - remove strict file type validation
-    if (file.size > 5 * 1024 * 1024) {
-      setError("File size must be less than 5MB");
-      return;
-    }
+    if (!file) return;
 
     setIsUploading(true);
-
-    if (demoMode) {
-      // In demo mode, just use a local preview URL
-      const url = URL.createObjectURL(file);
-      onUpload(url);
-      setIsUploading(false);
-      return;
-    }
+    setError("");
 
     try {
-      // Use server-side API instead of direct client-side upload
-      const formData = new FormData();
-      formData.append('logo', file);
-      formData.append('businessName', businessName);
-      
-      // Pass current logo so it can be deleted from S3
-      if (currentLogo) {
-        formData.append('currentLogo', currentLogo);
-      }
+      console.log('🔄 LogoUpload: Starting upload process...');
+      console.log('🔄 LogoUpload: File:', file.name, file.type, file.size);
 
-      // Use the Next.js API route (this should work in both local and Amplify environments)
-      const uploadEndpoint = process.env.NEXT_PUBLIC_LOGO_UPLOAD_API_URL || '/api/business/upload-logo';
-
-      console.log('🔄 LogoUpload: Calling upload API at', uploadEndpoint);
-      console.log('🔄 LogoUpload: Current logo being replaced:', currentLogo);
-      const response = await fetch(uploadEndpoint, {
+      // Step 1: Get presigned URL
+      const presignedResponse = await fetch('/api/business/presigned-upload', {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          businessName,
+          fileName: file.name,
+          contentType: file.type,
+        }),
       });
 
-      console.log('📋 LogoUpload: API response status:', response.status);
-
-      if (response.ok) {
-        const result = await response.json();
-        console.log('✅ LogoUpload: Upload successful:', result);
-        console.log('📋 LogoUpload: Logo URL:', result.logoUrl);
-        onUpload(result.logoUrl);
-      } else {
-        // Handle different response types
-        let errorMessage = 'Failed to upload logo';
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.error || errorMessage;
-        } catch {
-          // If JSON parsing fails, use status text
-          errorMessage = `Upload failed (${response.status}): ${response.statusText}`;
-        }
-        
-        // Special handling for 403 error (IAM permissions issue)
-        if (response.status === 403) {
-          errorMessage = 'Upload failed: Permission denied. Please contact support.';
-          console.error('❌ LogoUpload: 403 Forbidden - IAM permissions issue');
-        }
-        
-        console.error('❌ LogoUpload: API error:', errorMessage);
-        throw new Error(errorMessage);
+      if (!presignedResponse.ok) {
+        const errorData = await presignedResponse.json();
+        throw new Error(errorData.error || 'Failed to get upload URL');
       }
+
+      const { presignedUrl, key } = await presignedResponse.json();
+      console.log('✅ LogoUpload: Got presigned URL:', presignedUrl);
+
+      // Step 2: Upload directly to S3 using presigned URL
+      const uploadResponse = await fetch(presignedUrl, {
+        method: 'PUT',
+        body: file,
+        headers: {
+          'Content-Type': file.type,
+        },
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error(`Upload failed: ${uploadResponse.status} ${uploadResponse.statusText}`);
+      }
+
+      console.log('✅ LogoUpload: Direct S3 upload successful');
+      console.log('📋 LogoUpload: Logo key:', key);
+
+      // Step 3: Delete old logo if it exists
+      if (currentLogo && typeof currentLogo === "string" && currentLogo.trim() !== "") {
+        try {
+          console.log('🔄 LogoUpload: Deleting old logo:', currentLogo);
+          
+          // Extract the S3 key from the current logo URL
+          let oldLogoKey = currentLogo;
+          if (currentLogo.startsWith('http')) {
+            const urlParts = currentLogo.split('/');
+            if (urlParts.length > 3) {
+              oldLogoKey = urlParts.slice(3).join('/');
+            }
+          }
+          
+          if (oldLogoKey.startsWith('logos/')) {
+            const deleteResponse = await fetch('/api/business/delete-logo', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                logoKey: oldLogoKey,
+              }),
+            });
+            
+            if (deleteResponse.ok) {
+              console.log('✅ LogoUpload: Old logo deleted successfully');
+            } else {
+              console.warn('⚠️ LogoUpload: Failed to delete old logo, but continuing...');
+            }
+          }
+        } catch (deleteError) {
+          console.warn('⚠️ LogoUpload: Error deleting old logo:', deleteError);
+          // Continue even if deletion fails
+        }
+      }
+
+      // Return the S3 key (not the full URL)
+      onUpload(key);
+      
     } catch (error) {
       console.error('❌ LogoUpload: Upload error:', error);
       setError(error instanceof Error ? error.message : 'Failed to upload logo. Please try again.');
