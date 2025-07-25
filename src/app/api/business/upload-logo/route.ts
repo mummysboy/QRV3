@@ -24,8 +24,10 @@ function addCorsHeaders(response: NextResponse) {
   );
   response.headers.set(
     "Access-Control-Allow-Headers",
-    "Content-Type, Authorization"
+    "Content-Type, Authorization, X-Requested-With, Accept, Origin"
   );
+  response.headers.set("Access-Control-Allow-Credentials", "true");
+  response.headers.set("Access-Control-Max-Age", "86400");
   return response;
 }
 
@@ -36,6 +38,9 @@ export async function OPTIONS() {
 export async function POST(request: NextRequest) {
   try {
     console.log("[upload-logo] Starting upload process...");
+    console.log("[upload-logo] Request origin:", request.headers.get("origin"));
+    console.log("[upload-logo] Request method:", request.method);
+    console.log("[upload-logo] Request headers:", Object.fromEntries(request.headers.entries()));
 
     // Parse form data
     const formData = await request.formData();
