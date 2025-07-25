@@ -63,11 +63,17 @@ export default function LogoUpload({ businessName, onUpload, currentLogo, demoMo
       const formData = new FormData();
       formData.append('logo', file);
       formData.append('businessName', businessName);
+      
+      // Pass current logo so it can be deleted from S3
+      if (currentLogo) {
+        formData.append('currentLogo', currentLogo);
+      }
 
       // Use the Next.js API route (this should work in both local and Amplify environments)
       const uploadEndpoint = process.env.NEXT_PUBLIC_LOGO_UPLOAD_API_URL || '/api/business/upload-logo';
 
       console.log('🔄 LogoUpload: Calling upload API at', uploadEndpoint);
+      console.log('🔄 LogoUpload: Current logo being replaced:', currentLogo);
       const response = await fetch(uploadEndpoint, {
         method: 'POST',
         body: formData,

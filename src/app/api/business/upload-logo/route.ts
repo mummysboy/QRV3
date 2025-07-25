@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { fromNodeProviderChain } from "@aws-sdk/credential-providers";
 import { v4 as uuidv4 } from "uuid";
 import sharp from "sharp";
@@ -41,8 +41,10 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const file = formData.get("logo");
     const businessName = formData.get("businessName") || "";
+    const currentLogo = formData.get("currentLogo") || "";
 
     console.log("[upload-logo] Received businessName:", businessName);
+    console.log("[upload-logo] Received currentLogo:", currentLogo);
     console.log(
       "[upload-logo] File type:",
       typeof file,
@@ -96,6 +98,41 @@ export async function POST(request: NextRequest) {
     });
 
     console.log("✅ Resolved IAM credentials:", JSON.stringify(creds, null, 2));
+
+    // Delete old logo if it exists and is a valid S3 key
+    if (currentLogo && typeof currentLogo === "string" && currentLogo.trim() !== "") {
+      try {
+        // Extract the S3 key from the current logo URL
+        let oldLogoKey = currentLogo;
+        
+        // If it's a full URL, extract just the key part
+        if (currentLogo.startsWith('http')) {
+          // Remove the CloudFront domain and get just the key
+          const urlParts = currentLogo.split('/');
+          if (urlParts.length > 3) {
+            oldLogoKey = urlParts.slice(3).join('/'); // Remove domain parts
+          }
+        }
+        
+        // Only delete if it looks like a valid S3 key (starts with logos/)
+        if (oldLogoKey.startsWith('logos/')) {
+          console.log("[upload-logo] Deleting old logo with key:", oldLogoKey);
+          
+          const deleteParams = {
+            Bucket: BUCKET_NAME,
+            Key: oldLogoKey,
+          };
+          
+          await s3Client.send(new DeleteObjectCommand(deleteParams));
+          console.log("[upload-logo] Old logo deleted successfully ✅");
+        } else {
+          console.log("[upload-logo] Skipping old logo deletion - invalid key format:", oldLogoKey);
+        }
+      } catch (deleteError) {
+        console.warn("[upload-logo] Warning: Failed to delete old logo:", deleteError);
+        // Continue with upload even if deletion fails
+      }
+    }
 
     const putParams = {
       Bucket: BUCKET_NAME,
