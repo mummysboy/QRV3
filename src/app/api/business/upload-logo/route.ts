@@ -68,8 +68,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Read file buffer
     const arrayBuffer = await file.arrayBuffer();
-    let imageBuffer = Buffer.from(new Uint8Array(arrayBuffer));
+    let imageBuffer = Buffer.from(arrayBuffer as ArrayBufferLike);
+    console.log("[upload-logo] File buffer type:", typeof imageBuffer, "size:", imageBuffer.length);
 
     // Resize and convert to PNG
     imageBuffer = await sharp(imageBuffer)
@@ -119,26 +121,29 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     console.error("❌ Logo upload error:", JSON.stringify(err, null, 2));
 
-    const message =
-      err?.name === "AccessDenied"
-        ? "Access denied to S3 bucket. Check IAM permissions."
-        : err?.name === "NoSuchBucket"
-          ? "S3 bucket not found."
-          : err?.name === "InvalidAccessKeyId"
-            ? "Invalid AWS credentials."
-            : err?.name === "SignatureDoesNotMatch"
-              ? "AWS signature mismatch. Check region and credential resolution."
-              : "Failed to upload logo.";
+    let errorMessage = "Failed to upload logo.";
+    if (err && typeof err === 'object' && 'name' in (err as Record<string, unknown>)) {
+      const errorName = (err as { name?: string }).name;
+      if (errorName === 'AccessDenied') {
+        errorMessage = 'Access denied to S3 bucket. Check IAM permissions.';
+      } else if (errorName === 'NoSuchBucket') {
+        errorMessage = 'S3 bucket not found.';
+      } else if (errorName === 'InvalidAccessKeyId') {
+        errorMessage = 'Invalid AWS credentials.';
+      } else if (errorName === 'SignatureDoesNotMatch') {
+        errorMessage = 'AWS signature mismatch.';
+      }
+    }
 
+    const errObj = err as Record<string, unknown>;
     return addCorsHeaders(
       NextResponse.json(
         {
-          error: message,
+          error: errorMessage,
           details: {
-            name: err?.name,
-            message: err?.message,
-            code: err?.$metadata?.httpStatusCode,
-            cfId: err?.$metadata?.cfId || undefined,
+            name: errObj?.name,
+            message: errObj?.message,
+            $metadata: errObj?.$metadata,
           },
         },
         { status: 500 }
