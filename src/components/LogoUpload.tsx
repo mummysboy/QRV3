@@ -6,9 +6,10 @@ interface LogoUploadProps {
   businessName: string;
   onUpload: (logoUrl: string) => void;
   currentLogo?: string;
+  demoMode?: boolean;
 }
 
-export default function LogoUpload({ businessName, onUpload, currentLogo }: LogoUploadProps) {
+export default function LogoUpload({ businessName, onUpload, currentLogo, demoMode }: LogoUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -49,13 +50,21 @@ export default function LogoUpload({ businessName, onUpload, currentLogo }: Logo
 
     setIsUploading(true);
 
+    if (demoMode) {
+      // In demo mode, just use a local preview URL
+      const url = URL.createObjectURL(file);
+      onUpload(url);
+      setIsUploading(false);
+      return;
+    }
+
     try {
       // Use server-side API instead of direct client-side upload
       const formData = new FormData();
       formData.append('logo', file);
       formData.append('businessName', businessName);
 
-      // Use Amplify REST API endpoint if provided, else fallback to local
+      // Use the Next.js API route (this should work in both local and Amplify environments)
       const uploadEndpoint = process.env.NEXT_PUBLIC_LOGO_UPLOAD_API_URL || '/api/business/upload-logo';
 
       console.log('🔄 LogoUpload: Calling upload API at', uploadEndpoint);
@@ -81,6 +90,13 @@ export default function LogoUpload({ businessName, onUpload, currentLogo }: Logo
           // If JSON parsing fails, use status text
           errorMessage = `Upload failed (${response.status}): ${response.statusText}`;
         }
+        
+        // Special handling for 403 error (IAM permissions issue)
+        if (response.status === 403) {
+          errorMessage = 'Upload failed: Permission denied. Please contact support.';
+          console.error('❌ LogoUpload: 403 Forbidden - IAM permissions issue');
+        }
+        
         console.error('❌ LogoUpload: API error:', errorMessage);
         throw new Error(errorMessage);
       }
@@ -152,10 +168,24 @@ export default function LogoUpload({ businessName, onUpload, currentLogo }: Logo
         <div className="mt-6 flex flex-col items-center">
           <span className="text-xs text-gray-500 mb-1">Current logo:</span>
           <img
-            src={currentLogo.startsWith('http') ? currentLogo : `https://${currentLogo}`}
+            src={(() => {
+              // Handle different logo URL formats
+              if (!currentLogo) return '';
+              if (currentLogo.startsWith('http://') || currentLogo.startsWith('https://')) {
+                return currentLogo;
+              }
+              if (currentLogo.startsWith('data:')) {
+                return currentLogo;
+              }
+              // If it's an S3 key, construct the full URL
+              return `https://qrewards-media6367c-dev.s3.us-west-1.amazonaws.com/${currentLogo}`;
+            })()}
             alt="Current logo"
             className="w-16 h-16 rounded-lg object-contain border border-gray-200 shadow-sm"
-            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            onError={(e) => { 
+              console.error('❌ Logo display error for:', currentLogo);
+              e.currentTarget.style.display = 'none'; 
+            }}
           />
         </div>
       )}
