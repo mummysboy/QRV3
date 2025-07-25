@@ -312,6 +312,10 @@ export default function BusinessDashboard() {
     checkSession();
   }, []);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentView]);
+
 
   const fetchAllBusinesses = async () => {
     if (!user?.email) return;
@@ -1067,10 +1071,7 @@ export default function BusinessDashboard() {
       }`}>
         <div className="flex justify-between items-center p-6 border-b border-gray-200 bg-white/80 backdrop-blur-xl">
           <div className="flex items-center space-x-4">
-            <h1 className="text-2xl font-light text-gray-900">
-              {currentView === 'dashboard' ? 'Business Dashboard' : 
-               currentView === 'analytics' ? 'Analytics' : 'Settings'}
-            </h1>
+            {/* Removed the <h1>Business Dashboard</h1> banner/header from the dashboard view */}
             
             {/* Business Switcher */}
             {allBusinesses.length > 1 && (
@@ -1172,51 +1173,27 @@ export default function BusinessDashboard() {
 
         {currentView === 'dashboard' ? (
           <>
-            {/* Welcome Section */}
-            <div className={`transition-all duration-600 delay-200 ease-in-out ${
+            {/* Welcome Section (Demo Style) */}
+            <div className={`transition-all duration-1000 delay-200 ease-in-out ${
               isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
             }`}>
               <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100 mb-8">
                 <div className="flex items-center space-x-4 mb-6">
-                  <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center overflow-hidden">
-                    {business.logo && business.logo.trim() !== '' ? (
+                  <div className="flex items-center justify-center">
+                    {business?.logo && business.logo.trim() !== '' ? (
                       <img
-                        src={business.logo.startsWith("data:") || business.logo.startsWith("http")
-                          ? business.logo
-                          : getStorageUrlSync(business.logo)
-                        }
+                        src={business.logo.startsWith('data:') || business.logo.startsWith('http') ? business.logo : getStorageUrlSync(business.logo)}
                         alt="Business Logo"
-                        className="w-full h-full object-contain rounded-xl"
-                        onError={(e) => {
-                          console.error('Logo failed to load:', business.logo);
-                          // Fallback to emoji if image fails to load
-                          const target = e.currentTarget;
-                          target.style.display = 'none';
-                          const fallback = target.parentElement?.querySelector('.logo-fallback');
-                          if (fallback) {
-                            (fallback as HTMLElement).style.display = 'flex';
-                          }
-                        }}
+                        className="w-28 h-28 rounded-full object-contain shadow-md bg-white mr-6"
+                        style={{ minWidth: '112px', minHeight: '112px', maxWidth: '128px', maxHeight: '128px' }}
                       />
-                    ) : null}
-                    <div 
-                      className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center logo-fallback"
-                      style={{ display: business?.logo && business.logo.trim() !== '' ? 'none' : 'flex' }}
-                    >
-                      <Building2 className="w-6 h-6 text-gray-500" />
-                    </div>
+                    ) : (
+                      <span className="text-4xl text-gray-600">🏪</span>
+                    )}
                   </div>
-                  <div className="flex flex-col items-center">
-                    <h2 className="text-3xl font-light text-gray-900">
-                      Welcome back, <span className="whitespace-nowrap inline-block">{business?.name || user?.firstName || ""}</span>!
-                    </h2>
+                  <div>
+                    <h2 className="text-3xl font-light text-gray-900">Welcome back, {business?.name || 'Business'}!</h2>
                     <p className="text-gray-600">Here&rsquo;s how your rewards are performing today</p>
-                    <button
-                      className="mt-4 px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium shadow transition-all"
-                      onClick={() => setShowQRCodeModal(true)}
-                    >
-                      View My QR Code
-                    </button>
                   </div>
                 </div>
               </div>
