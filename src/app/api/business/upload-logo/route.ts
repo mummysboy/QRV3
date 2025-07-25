@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { fromNodeProviderChain } from "@aws-sdk/credential-providers";
 import { v4 as uuidv4 } from "uuid";
 import sharp from "sharp";
 
@@ -7,13 +8,7 @@ import sharp from "sharp";
 const isAmplify = !process.env.ACCESS_KEY_ID && !process.env.SECRET_ACCESS_KEY;
 const s3Client = new S3Client({
   region: "us-west-1",
-  // Only use credentials if running locally (not in Amplify)
-  ...(process.env.ACCESS_KEY_ID && process.env.SECRET_ACCESS_KEY && {
-    credentials: {
-      accessKeyId: process.env.ACCESS_KEY_ID,
-      secretAccessKey: process.env.SECRET_ACCESS_KEY,
-    },
-  }),
+  credentials: fromNodeProviderChain(), // ✅ required for Amplify IAM role usage
 });
 
 console.log("[upload-logo] S3 region:", "us-west-1");

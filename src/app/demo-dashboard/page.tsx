@@ -213,9 +213,9 @@ export default function DemoDashboard() {
   const [showLogoUpload, setShowLogoUpload] = useState(false);
   const [showAddBusiness, setShowAddBusiness] = useState(false);
   const [timeRange, setTimeRange] = useState<'day' | 'week' | 'month'>('month');
+  const [business, setBusiness] = useState(mockBusiness);
   
   // Use mock data
-  const business = mockBusiness;
   // Compute filtered analytics based on timeRange
   const filteredAnalytics = useMemo(() => {
     // Helper to sum counts
@@ -353,8 +353,10 @@ export default function DemoDashboard() {
     setEditingCard(null);
   };
 
-  const handleLogoUpload = async () => {
-    // In demo, just close the modal
+  // Update handleLogoUpload to accept a string (logoUrl) instead of File
+  const handleLogoUpload = (logoUrl: string) => {
+    setBusiness((prev) => ({ ...prev, logo: logoUrl }));
+    setCards((prevCards) => prevCards.map(card => ({ ...card, logokey: logoUrl })));
     setShowLogoUpload(false);
   };
 
@@ -537,7 +539,7 @@ export default function DemoDashboard() {
                 {/* Centered logo */}
                 <div className="flex justify-center mb-2 w-full">
                   <img
-                    src={mockBusiness.logo}
+                    src={business.logo}
                     alt="Business Logo"
                     className="w-12 h-12 object-contain rounded-lg mx-auto"
                     style={{ minWidth: '48px', minHeight: '48px', maxWidth: '64px', maxHeight: '64px' }}
@@ -659,11 +661,17 @@ export default function DemoDashboard() {
               className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600 cursor-not-allowed"
             />
           </div>
+          {/* In SettingsView, replace the static logo upload placeholder with a button */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Business Logo</label>
-            <div className="w-32 h-32 bg-gray-100 rounded-xl flex items-center justify-center border-2 border-dashed border-gray-300">
-              <span className="text-gray-500">Upload Logo</span>
-            </div>
+            <button
+              type="button"
+              onClick={() => setShowLogoUpload(true)}
+              className="w-32 h-32 bg-gray-100 rounded-xl flex items-center justify-center border-2 border-dashed border-gray-300 text-gray-500 hover:bg-blue-50 hover:text-blue-700 transition-colors text-base font-medium focus:outline-none focus:ring-2 focus:ring-blue-400"
+              style={{ minHeight: '8rem', minWidth: '8rem' }}
+            >
+              Upload Logo
+            </button>
           </div>
         </div>
       </div>
@@ -703,22 +711,24 @@ export default function DemoDashboard() {
         {currentView === 'dashboard' ? (
           <>
             {/* Welcome Section */}
-            <div className={`transition-all duration-600 delay-200 ease-in-out ${
+            <div className={`transition-all duration-1000 delay-200 ease-in-out ${
               isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
             }`}>
               <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100 mb-8">
                 <div className="flex items-center space-x-4 mb-6">
-                  <div className="flex items-center justify-center">
+                  <div className="flex items-center justify-center relative">
                     {business.logo && business.logo.trim() !== '' ? (
                       <img
                         src={business.logo}
                         alt="Business Logo"
-                        className="w-20 h-20 rounded-full object-contain shadow-md bg-white mr-6"
+                        className="w-20 h-20 rounded-full object-contain shadow-md bg-white mr-6 cursor-pointer hover:opacity-80 transition-opacity"
                         style={{ minWidth: '80px', minHeight: '80px', maxWidth: '96px', maxHeight: '96px' }}
+                        onClick={() => setShowLogoUpload(true)}
                       />
                     ) : (
-                      <span className="text-4xl text-gray-600">🏪</span>
+                      <span className="text-4xl text-gray-600 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => setShowLogoUpload(true)}>🏪</span>
                     )}
+                    {/* Removed Upload Logo Button */}
                   </div>
                   <div>
                     <h2 className="text-3xl font-light text-gray-900">Welcome back, {business.name}!</h2>
@@ -729,7 +739,7 @@ export default function DemoDashboard() {
             </div>
 
             {/* Stats Row (filtered by timeRange) */}
-            <div className={`transition-all duration-600 delay-300 ease-in-out ${
+            <div className={`transition-all duration-1000 delay-300 ease-in-out ${
               isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
             }`}>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-8">
@@ -752,7 +762,7 @@ export default function DemoDashboard() {
             </div>
 
             {/* Quick Actions */}
-            <div className={`transition-all duration-600 delay-400 ease-in-out ${
+            <div className={`transition-all duration-1000 delay-400 ease-in-out ${
               isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
             }`}>
               <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100 mb-8">
@@ -803,7 +813,7 @@ export default function DemoDashboard() {
             </div>
 
             {/* Rewards Section */}
-            <div className="transition-all duration-600 delay-500 ease-in-out mb-12">
+            <div className="transition-all duration-1000 delay-500 ease-in-out mb-12">
               <div className="mb-6">
                 <h3 className="text-2xl font-light text-gray-900">Your Rewards</h3>
               </div>
@@ -907,7 +917,7 @@ export default function DemoDashboard() {
 
         {/* Logo Upload Modal */}
         {showLogoUpload && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-white bg-opacity-80 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">Upload Business Logo</h3>
@@ -924,6 +934,7 @@ export default function DemoDashboard() {
                 currentLogo={business?.logo}
                 onUpload={handleLogoUpload}
                 businessName={business?.name || "Business"}
+                demoMode={true}
               />
             </div>
           </div>

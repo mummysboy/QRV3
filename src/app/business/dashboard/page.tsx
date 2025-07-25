@@ -948,9 +948,10 @@ export default function BusinessDashboard() {
               {business?.logo && business.logo.trim() !== '' ? (
                 <div className="relative">
                   <img
-                    src={business.logo.startsWith("data:") || business.logo.startsWith("http")
-                      ? business.logo
-                      : getStorageUrlSync(business.logo)
+                    src={
+                      business.logo.startsWith('data:') || business.logo.startsWith('http')
+                        ? business.logo
+                        : getStorageUrlSync(business.logo)
                     }
                     alt="Business Logo"
                     className="w-32 h-32 object-contain rounded-xl border-2 border-gray-200"
@@ -1182,7 +1183,11 @@ export default function BusinessDashboard() {
                   <div className="flex items-center justify-center">
                     {business?.logo && business.logo.trim() !== '' ? (
                       <img
-                        src={business.logo.startsWith('data:') || business.logo.startsWith('http') ? business.logo : getStorageUrlSync(business.logo)}
+                        src={
+                          business.logo.startsWith('data:') || business.logo.startsWith('http')
+                            ? business.logo
+                            : getStorageUrlSync(business.logo)
+                        }
                         alt="Business Logo"
                         className="w-28 h-28 rounded-full object-contain shadow-md bg-white mr-6"
                         style={{ minWidth: '112px', minHeight: '112px', maxWidth: '128px', maxHeight: '128px' }}

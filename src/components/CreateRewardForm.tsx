@@ -92,7 +92,7 @@ export default function CreateRewardForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [selectedHour, setSelectedHour] = useState(12);
   const [selectedMinute, setSelectedMinute] = useState(0);
   const [selectedPeriod, setSelectedPeriod] = useState<'AM' | 'PM'>('PM');
@@ -206,13 +206,12 @@ export default function CreateRewardForm({
   const generateDateOptions = () => {
     const options = [];
     const today = new Date();
-    
+    today.setHours(0, 0, 0, 0);
     for (let i = 0; i < 365; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
       options.push(date);
     }
-    
     return options;
   };
 
@@ -596,7 +595,9 @@ export default function CreateRewardForm({
                           : 'text-gray-700'
                       }`}
                     >
-                      <div className="font-medium">{date.toLocaleDateString('en-US', { weekday: 'short' })}</div>
+                      <div className="font-medium">
+                        {index === 0 ? 'Today' : date.toLocaleDateString('en-US', { weekday: 'short' })}
+                      </div>
                       <div className="text-sm">{date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
                     </button>
                   ))}
