@@ -131,6 +131,38 @@ export async function PUT(request: NextRequest) {
       logo: updatedBusiness.logo
     });
 
+    // If logo was updated, update all rewards (cards) for this business to use the new logo
+    if (logo !== undefined) {
+      try {
+        // Fetch all cards for this business
+        const cardsResult = await client.graphql({
+          query: `
+            query GetBusinessCards($businessId: String!) {
+              listCards(filter: { businessId: { eq: $businessId } }) {
+                items { cardid }
+              }
+            }
+          `,
+          variables: { businessId },
+        });
+        const cards = (cardsResult as { data: { listCards: { items: Array<{ cardid: string }> } } }).data.listCards.items;
+        // Update each card's logokey
+        for (const card of cards) {
+          await client.graphql({
+            query: `
+              mutation UpdateCard($input: UpdateCardInput!) {
+                updateCard(input: $input) { cardid logokey }
+              }
+            `,
+            variables: { input: { cardid: card.cardid, logokey: logo } },
+          });
+        }
+        console.log(`✅ Updated logokey for ${cards.length} rewards to new logo.`);
+      } catch (err) {
+        console.error('❌ Failed to update rewards with new logo:', err);
+      }
+    }
+
     return NextResponse.json({
       success: true,
       business: updatedBusiness,
