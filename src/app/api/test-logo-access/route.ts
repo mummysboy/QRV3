@@ -5,12 +5,12 @@ export async function GET() {
     const testLogos = [
       {
         name: "Golden West Business News Logo",
-        url: "https://qrewards-media6367c-dev.s3.us-west-1.amazonaws.com/logos/Golden-West-Business-News-a7f383ac-a3ae-4243-a467-742827c63f5a.png",
+        url: "https://d2rfrexwuran49.cloudfront.net/logos/Golden-West-Business-News-a7f383ac-a3ae-4243-a467-742827c63f5a.png",
         description: "Existing working logo"
       },
       {
         name: "Chicken Lickin Logo",
-        url: "https://qrewards-media6367c-dev.s3.us-west-1.amazonaws.com/logos/Chicken-Lickin-b6b68692-8ad4-467a-b5ac-94778be250b6.png",
+        url: "https://d2rfrexwuran49.cloudfront.net/logos/Chicken-Lickin-b6b68692-8ad4-467a-b5ac-94778be250b6.png",
         description: "Another existing logo"
       }
     ];

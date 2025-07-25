@@ -51,8 +51,8 @@ export async function GET() {
       }
       
       return logokey.startsWith("/")
-        ? `https://qrewards-media6367c-dev.s3.us-west-1.amazonaws.com${logokey}`
-        : `https://qrewards-media6367c-dev.s3.us-west-1.amazonaws.com/${logokey}`;
+        ? `https://d2rfrexwuran49.cloudfront.net${logokey}`
+        : `https://d2rfrexwuran49.cloudfront.net/${logokey}`;
     };
 
     const logoUrl = testLogoUrlConstruction(card.logokey || null);

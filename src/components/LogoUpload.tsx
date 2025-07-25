@@ -114,6 +114,8 @@ export default function LogoUpload({ businessName, onUpload, currentLogo, demoMo
     }
   };
 
+  const cloudfrontBase = "https://d2rfrexwuran49.cloudfront.net"; // Updated to real CloudFront domain
+
   return (
     <div className="w-full">
       <div
@@ -178,7 +180,7 @@ export default function LogoUpload({ businessName, onUpload, currentLogo, demoMo
                 return currentLogo;
               }
               // If it's an S3 key, construct the full URL
-              return `https://qrewards-media6367c-dev.s3.us-west-1.amazonaws.com/${currentLogo}`;
+              return `${cloudfrontBase}/${currentLogo}`;
             })()}
             alt="Current logo"
             className="w-16 h-16 rounded-lg object-contain border border-gray-200 shadow-sm"

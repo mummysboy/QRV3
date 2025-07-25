@@ -11,10 +11,11 @@ export async function getStorageUrl(key: string): Promise<string> {
   }
 }
 
-export function getStorageUrlSync(key: string): string {
-  // For cases where we need a synchronous URL (like in img src)
-  // This is a fallback when the async version can't be used
-  return `https://qrewards-media6367c-dev.s3.us-west-1.amazonaws.com/${key}`;
+// Replace with your actual CloudFront domain
+const cloudfrontBase = "https://d2rfrexwuran49.cloudfront.net";
+
+export function getStorageUrlSync(key: string) {
+  return `${cloudfrontBase}/${key}`;
 }
 
 export async function getSignedLogoUrl(key: string): Promise<string> {

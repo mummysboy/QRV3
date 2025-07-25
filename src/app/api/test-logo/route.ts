@@ -6,7 +6,7 @@ export async function GET() {
     const testLogos = [
       {
         name: "S3 URL",
-        logokey: "https://qrewards-media6367c-dev.s3.us-west-1.amazonaws.com/logos/test-logo.png",
+        logokey: "https://d2rfrexwuran49.cloudfront.net/logos/test-logo.png",
         expected: "Should display as-is"
       },
       {
@@ -45,8 +45,8 @@ export async function GET() {
       }
       
       return logokey.startsWith("/")
-        ? `https://qrewards-media6367c-dev.s3.us-west-1.amazonaws.com${logokey}`
-        : `https://qrewards-media6367c-dev.s3.us-west-1.amazonaws.com/${logokey}`;
+        ? `https://d2rfrexwuran49.cloudfront.net${logokey}`
+        : `https://d2rfrexwuran49.cloudfront.net/${logokey}`;
     };
 
     const results = testLogos.map(test => ({
@@ -60,7 +60,7 @@ export async function GET() {
       testResults: results,
       bucketName: "qrewards-media6367c-dev",
       region: "us-west-1",
-      baseUrl: "https://qrewards-media6367c-dev.s3.us-west-1.amazonaws.com"
+      baseUrl: "https://d2rfrexwuran49.cloudfront.net"
     });
   } catch (error) {
     console.error("Error in logo test:", error);
