@@ -8,12 +8,13 @@ import LogoUpload from "@/components/LogoUpload";
 import CardAnimation from "@/components/CardAnimation";
 import AddBusinessForm, { AddBusinessData } from "@/components/AddBusinessForm";
 import { getStorageUrlSync } from "@/lib/storage";
-import { Plus, BarChart3, Building2, Eye, ArrowRight, CheckCircle, Target, PartyPopper, TrendingUp, Gift, QrCode, Camera } from "lucide-react";
+import { Plus, BarChart3, Building2, Eye, ArrowRight, CheckCircle, Target, PartyPopper, TrendingUp, Gift, QrCode, Camera, Trash2 } from "lucide-react";
 import { QRCodeCanvas } from 'qrcode.react';
 import { toPng } from 'html-to-image';
 import { X } from "lucide-react";
 import { getCookie } from "@/lib/utils";
 import Header from "@/components/Header";
+import DefaultLogo from "@/components/DefaultLogo";
 
 
 interface BusinessUser {
@@ -140,6 +141,8 @@ export default function BusinessDashboard() {
   // Consent banner state
   const [showConsent, setShowConsent] = useState(false);
   const [showContact, setShowContact] = useState(false);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
 
   const router = useRouter();
@@ -632,6 +635,55 @@ export default function BusinessDashboard() {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    if (!user?.email) {
+      alert('User email not found');
+      return;
+    }
+
+    setIsDeletingAccount(true);
+    try {
+      const response = await fetch('/api/business/delete-account', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userEmail: user.email,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete account');
+      }
+
+      // Clear all session data
+      sessionStorage.removeItem('businessUser');
+      sessionStorage.removeItem('businessData');
+      sessionStorage.removeItem('businessSessionToken');
+      
+      // Clear session cookie
+      try {
+        await fetch('/api/business/logout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
+      } catch (error) {
+        console.error('Error clearing session cookie:', error);
+      }
+
+      alert('Account deleted successfully');
+      router.push('/business/login');
+    } catch (error) {
+      console.error('❌ Error deleting account:', error);
+      alert(error instanceof Error ? error.message : 'Failed to delete account');
+    } finally {
+      setIsDeletingAccount(false);
+      setShowDeleteConfirmation(false);
+    }
+  };
+
   // Helper to get today's stats from analytics
   // When timeRange is 'day', analytics already contains only today's data
   function getTodayStats(analytics: AnalyticsData | null) {
@@ -990,15 +1042,69 @@ export default function BusinessDashboard() {
       <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
         <h3 className="text-2xl font-light text-gray-900 mb-6">Business Management</h3>
         <div className="space-y-6">
-          <div className="flex items-center space-x-4 p-4 bg-orange-50 rounded-2xl hover:bg-orange-100 transition-all duration-200 ease-in-out cursor-pointer" onClick={() => setShowAddBusiness(true)}>
-            <Building2 size={24} className="text-orange-600" />
-            <div className="text-left">
-              <div className="font-medium text-gray-900">Add New Business</div>
-              <div className="text-sm text-gray-600">Register a new location</div>
+          {/* Logo Upload Section - Moved to top */}
+          <div>
+            <div className="flex items-center space-x-4">
+              {business?.logo && business.logo.trim() !== '' ? (
+                <div className="relative">
+                  <img
+                    src={
+                      business.logo.startsWith('data:') || business.logo.startsWith('http')
+                        ? business.logo
+                        : getStorageUrlSync(business.logo)
+                    }
+                    alt="Business Logo"
+                    className="w-32 h-32 object-contain rounded-xl border-2 border-gray-200"
+                    onError={(e) => {
+                      console.error('Logo failed to load:', business.logo);
+                      console.error('Logo URL:', business.logo.startsWith("data:") || business.logo.startsWith("http")
+                        ? business.logo
+                        : getStorageUrlSync(business.logo)
+                      );
+                      // Show fallback if image fails to load
+                      const target = e.currentTarget;
+                      target.style.display = 'none';
+                      const fallback = target.parentElement?.querySelector('.logo-fallback');
+                      if (fallback) {
+                        (fallback as HTMLElement).style.display = 'flex';
+                      }
+                    }}
+                    onLoad={() => {
+                      console.log('Logo loaded successfully:', business.logo);
+                    }}
+                  />
+                  <div 
+                    className="flex items-center justify-center border-2 border-dashed border-gray-300 logo-fallback absolute top-0 left-0"
+                    style={{ display: 'none' }}
+                  >
+                    <DefaultLogo 
+                      businessName={business?.name || 'Business'} 
+                      size="lg"
+                      className="w-32 h-32"
+                    />
+                  </div>
+                </div>
+              ) : null}
+              <div 
+                className="flex items-center justify-center border-2 border-dashed border-gray-300 logo-fallback"
+                style={{ display: business?.logo && business.logo.trim() !== '' ? 'none' : 'flex' }}
+              >
+                <DefaultLogo 
+                  businessName={business?.name || 'Business'} 
+                  size="lg"
+                  className="w-32 h-32"
+                />
+              </div>
+              <button
+                onClick={() => setShowLogoUpload(true)}
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+              >
+                Upload Logo
+              </button>
             </div>
           </div>
           
-                    <div className="border-t border-gray-200 pt-6">
+          <div className="border-t border-gray-200 pt-6">
             <h4 className="text-xl font-light text-gray-900 mb-4">Business Profile</h4>
             <div className="space-y-6">
               <div>
@@ -1057,64 +1163,29 @@ export default function BusinessDashboard() {
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600 cursor-not-allowed"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Business Logo</label>
-                <div className="flex items-center space-x-4">
-                  {business?.logo && business.logo.trim() !== '' ? (
-                    <div className="relative">
-                      <img
-                        src={
-                          business.logo.startsWith('data:') || business.logo.startsWith('http')
-                            ? business.logo
-                            : getStorageUrlSync(business.logo)
-                        }
-                        alt="Business Logo"
-                        className="w-32 h-32 object-contain rounded-xl border-2 border-gray-200"
-                        onError={(e) => {
-                          console.error('Logo failed to load:', business.logo);
-                          console.error('Logo URL:', business.logo.startsWith("data:") || business.logo.startsWith("http")
-                            ? business.logo
-                            : getStorageUrlSync(business.logo)
-                          );
-                          // Show fallback if image fails to load
-                          const target = e.currentTarget;
-                          target.style.display = 'none';
-                          const fallback = target.parentElement?.querySelector('.logo-fallback');
-                          if (fallback) {
-                            (fallback as HTMLElement).style.display = 'flex';
-                          }
-                        }}
-                        onLoad={() => {
-                          console.log('Logo loaded successfully:', business.logo);
-                        }}
-                      />
-                      <div 
-                        className="w-32 h-32 bg-gray-100 rounded-xl flex items-center justify-center border-2 border-dashed border-gray-300 logo-fallback absolute top-0 left-0"
-                        style={{ display: 'none' }}
-                      >
-                        <div className="text-center">
-                          <Building2 className="w-8 h-8 text-gray-500 mx-auto" />
-                          <span className="text-gray-400 text-xs block mt-1">Logo not found</span>
-                        </div>
-                      </div>
-                    </div>
-                  ) : null}
-                  <div 
-                    className="w-32 h-32 bg-gray-100 rounded-xl flex items-center justify-center border-2 border-dashed border-gray-300 logo-fallback"
-                    style={{ display: business?.logo && business.logo.trim() !== '' ? 'none' : 'flex' }}
-                  >
-                    <div className="text-center">
-                      <Building2 className="w-8 h-8 text-gray-500 mx-auto" />
-                      <span className="text-gray-400 text-xs block mt-1">No logo</span>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setShowLogoUpload(true)}
-                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
-                  >
-                    Upload Logo
-                  </button>
-                </div>
+            </div>
+          </div>
+          
+          {/* Add New Business Section - Moved to bottom */}
+          <div className="border-t border-gray-200 pt-6">
+            <h4 className="text-xl font-light text-gray-900 mb-4">Business Management</h4>
+            <div className="flex items-center space-x-4 p-4 bg-orange-50 rounded-2xl hover:bg-orange-100 transition-all duration-200 ease-in-out cursor-pointer" onClick={() => setShowAddBusiness(true)}>
+              <Building2 size={24} className="text-orange-600" />
+              <div className="text-left">
+                <div className="font-medium text-gray-900">Add New Business</div>
+                <div className="text-sm text-gray-600">Register a new location</div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Delete Account Section - At the very bottom */}
+          <div className="border-t border-gray-200 pt-6">
+            <h4 className="text-xl font-light text-gray-900 mb-4">Account Management</h4>
+            <div className="flex items-center space-x-4 p-4 bg-red-50 rounded-2xl hover:bg-red-100 transition-all duration-200 ease-in-out cursor-pointer" onClick={() => setShowDeleteConfirmation(true)}>
+              <Trash2 size={24} className="text-red-600" />
+              <div className="text-left">
+                <div className="font-medium text-gray-900">Delete Account</div>
+    
               </div>
             </div>
           </div>
@@ -1315,8 +1386,11 @@ export default function BusinessDashboard() {
                           style={{ minWidth: '112px', minHeight: '112px', maxWidth: '128px', maxHeight: '128px' }}
                         />
                       ) : (
-                        <div className="w-28 h-28 rounded-full bg-gray-100 flex items-center justify-center mr-6 text-4xl text-gray-600 transition-transform group-hover:scale-105">
-                          🏪
+                        <div className="mr-6 transition-transform group-hover:scale-105">
+                          <DefaultLogo 
+                            businessName={business?.name || 'Business'} 
+                            size="xl"
+                          />
                         </div>
                       )}
                       
@@ -1588,6 +1662,67 @@ export default function BusinessDashboard() {
                 : `Print and cut out ${qrLayout === '2x2' ? '4' : qrLayout === '3x3' ? '9' : '16'} QR codes to place around your business!`
               }
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Account Confirmation Modal */}
+      {showDeleteConfirmation && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md mx-auto">
+            <div className="text-center">
+              <div className="mx-auto flex items-center justify-center w-12 h-12 rounded-full bg-red-100 mb-4">
+                <Trash2 className="w-6 h-6 text-red-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Delete Account</h3>
+              <p className="text-gray-600 mb-6">
+                Are you sure you want to delete your account? This action will permanently delete:
+              </p>
+              <ul className="text-left text-sm text-gray-600 mb-6 space-y-2">
+                <li className="flex items-center">
+                  <span className="w-2 h-2 bg-red-500 rounded-full mr-3"></span>
+                  All your business information
+                </li>
+                <li className="flex items-center">
+                  <span className="w-2 h-2 bg-red-500 rounded-full mr-3"></span>
+                  All uploaded logos and images
+                </li>
+                <li className="flex items-center">
+                  <span className="w-2 h-2 bg-red-500 rounded-full mr-3"></span>
+                  All created rewards and their data
+                </li>
+                <li className="flex items-center">
+                  <span className="w-2 h-2 bg-red-500 rounded-full mr-3"></span>
+                  All analytics and claim history
+                </li>
+              </ul>
+              <p className="text-red-600 text-sm font-medium mb-6">
+                This action cannot be undone.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowDeleteConfirmation(false)}
+                  className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors"
+                  disabled={isDeletingAccount}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteAccount}
+                  className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isDeletingAccount}
+                >
+                  {isDeletingAccount ? (
+                    <div className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Deleting...
+                    </div>
+                  ) : (
+                    'Delete Account'
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

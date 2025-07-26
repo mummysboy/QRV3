@@ -113,7 +113,7 @@ async function debugCloudFront() {
         try {
           const errorText = await response.text();
           console.log(`     Error: ${errorText.substring(0, 100)}...`);
-        } catch (e) {
+        } catch {
           console.log(`     Could not read error response`);
         }
       }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import DefaultLogo from "@/components/DefaultLogo";
 import { generateGoogleMapsUrl } from "@/lib/utils";
 import { getStorageUrlSync } from "@/lib/storage";
 
@@ -263,9 +264,9 @@ export default function CardAnimation({ card, playbackRate = 1, isPreview = fals
                         console.error('Logo failed to load:', logoUrl);
                         // Replace with a fallback div instead of hiding
                         const fallbackDiv = document.createElement('div');
-                        fallbackDiv.className = 'mx-auto bg-gray-200 rounded-lg flex items-center justify-center';
+                        fallbackDiv.className = 'mx-auto flex items-center justify-center';
                         fallbackDiv.style.cssText = 'width: 100.625px !important; height: 64.6875px !important; min-width: 71.875px; min-height: 50.3125px; max-width: 129.375px; max-height: 71.875px;';
-                        fallbackDiv.innerHTML = '<span class="text-gray-500 text-base">🏢</span>';
+                        fallbackDiv.innerHTML = '<div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold">QR</div>';
                         e.currentTarget.parentNode?.replaceChild(fallbackDiv, e.currentTarget);
                       }}
                       onLoad={() => {
@@ -285,7 +286,7 @@ export default function CardAnimation({ card, playbackRate = 1, isPreview = fals
                   </div>
                 ) : (
                   <div 
-                    className="mx-auto bg-gray-200 rounded-lg flex items-center justify-center"
+                    className="mx-auto flex items-center justify-center"
                     style={{ 
                       width: '100.625px', 
                       height: '64.6875px', 
@@ -296,7 +297,10 @@ export default function CardAnimation({ card, playbackRate = 1, isPreview = fals
                       marginTop: '-5%'
                     }}
                   >
-                    <span className="text-gray-500 text-base">🏢</span>
+                    <DefaultLogo 
+                      businessName={cardData?.header || 'Business'} 
+                      size="sm"
+                    />
                   </div>
                 )}
               </div>
