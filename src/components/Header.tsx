@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { BarChart3, Mail, LogOut, Lock, Rocket, User } from "lucide-react";
+import { BarChart3, Mail, LogOut, Lock, Rocket, User, Settings } from "lucide-react";
 
 interface BusinessUser {
   id: string;
@@ -40,8 +40,12 @@ interface Business {
 
 export default function Header({
   onContactClick,
+  isDashboard = false,
+  onSettingsClick,
 }: {
   onContactClick: () => void;
+  isDashboard?: boolean;
+  onSettingsClick?: () => void;
 }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [user, setUser] = useState<BusinessUser | null>(null);
@@ -295,6 +299,20 @@ export default function Header({
                         <span className="text-gray-900">Dashboard</span>
                       </div>
                     </Link>
+                    {isDashboard && onSettingsClick && (
+                      <button
+                        onClick={() => {
+                          setIsMenuOpen(false);
+                          onSettingsClick();
+                        }}
+                        className="block w-full text-left px-6 py-4 hover:bg-gray-50 border-b border-gray-100 transition-all duration-200 text-sm font-medium group"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <Settings className="w-5 h-5 text-gray-600" />
+                          <span>Settings</span>
+                        </div>
+                      </button>
+                    )}
                     <button
                       onClick={() => {
                         setIsMenuOpen(false);
