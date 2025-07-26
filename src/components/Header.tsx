@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { BarChart3, Mail, LogOut, Lock, Rocket, User, Settings } from "lucide-react";
+import { Mail, LogOut, Lock, Rocket, Settings } from "lucide-react";
 
 interface BusinessUser {
   id: string;
@@ -201,13 +201,6 @@ export default function Header({
           {/* Desktop Navigation - Show for logged in users */}
           {user && business && (
             <div className="hidden md:flex items-center space-x-6">
-              <Link
-                href="/business/dashboard"
-                className="text-white !text-white hover:text-gray-100 transition-all duration-300 hover:scale-105 font-medium"
-                style={{ color: 'white !important' }}
-              >
-                Dashboard
-              </Link>
               <button
                 onClick={onContactClick}
                 className="text-white !text-white hover:text-gray-100 transition-all duration-300 hover:scale-105 font-medium"
@@ -215,6 +208,15 @@ export default function Header({
               >
                 Contact
               </button>
+              {isDashboard && onSettingsClick && (
+                <button
+                  onClick={onSettingsClick}
+                  className="text-white hover:text-gray-100 transition-all duration-300 hover:scale-105 p-2 rounded-lg hover:bg-white/10"
+                  aria-label="Settings"
+                >
+                  <Settings className="w-5 h-5" />
+                </button>
+              )}
               <button
                 onClick={handleLogout}
                 className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg transition-all duration-300 hover:scale-105 border border-white/20"
@@ -274,31 +276,18 @@ export default function Header({
                 {user && business ? (
                   // Logged in user menu
                   <>
-                    <div className="px-6 py-6 border-b border-gray-100 bg-gray-50 rounded-t-xl">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gray-600 rounded-full flex items-center justify-center text-white font-semibold">
-                          <User className="w-5 h-5 text-white" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-semibold text-gray-900">
-                            {user.firstName} {user.lastName}
-                          </p>
-                          <p className="text-xs text-gray-600 truncate">
-                            {user.email}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    <Link
-                      href="/business/dashboard"
-                      onClick={() => setIsMenuOpen(false)}
+                    <button
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        onContactClick();
+                      }}
                       className="block w-full text-left px-6 py-4 hover:bg-gray-50 border-b border-gray-100 transition-all duration-200 text-sm font-medium group"
                     >
                       <div className="flex items-center space-x-3">
-                        <BarChart3 className="w-5 h-5 text-gray-600" />
-                        <span className="text-gray-900">Dashboard</span>
+                        <Mail className="w-5 h-5 text-gray-600" />
+                        <span>Contact</span>
                       </div>
-                    </Link>
+                    </button>
                     {isDashboard && onSettingsClick && (
                       <button
                         onClick={() => {
@@ -313,18 +302,6 @@ export default function Header({
                         </div>
                       </button>
                     )}
-                    <button
-                      onClick={() => {
-                        setIsMenuOpen(false);
-                        onContactClick();
-                      }}
-                      className="block w-full text-left px-6 py-4 hover:bg-gray-50 border-b border-gray-100 transition-all duration-200 text-sm font-medium group"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <Mail className="w-5 h-5 text-gray-600" />
-                        <span>Contact</span>
-                      </div>
-                    </button>
                     <button
                       onClick={handleLogout}
                       className="block w-full text-left px-6 py-4 text-red-600 hover:bg-red-50 transition-all duration-200 text-sm font-medium group rounded-b-xl"

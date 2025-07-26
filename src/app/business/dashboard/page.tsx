@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import CreateRewardForm from "@/components/CreateRewardForm";
 import EditRewardForm from "@/components/EditRewardForm";
@@ -8,13 +8,15 @@ import LogoUpload from "@/components/LogoUpload";
 import CardAnimation from "@/components/CardAnimation";
 import AddBusinessForm, { AddBusinessData } from "@/components/AddBusinessForm";
 import { getStorageUrlSync } from "@/lib/storage";
-import { Plus, BarChart3, Building2, Eye, ArrowRight, CheckCircle, Target, PartyPopper, TrendingUp, Gift, QrCode, Camera, Trash2 } from "lucide-react";
+import { Plus, BarChart3, Eye, ArrowRight, CheckCircle, Target, PartyPopper, TrendingUp, Gift, QrCode, Camera, Trash2 } from "lucide-react";
 import { QRCodeCanvas } from 'qrcode.react';
 import { toPng } from 'html-to-image';
 import { X } from "lucide-react";
 import { getCookie } from "@/lib/utils";
 import Header from "@/components/Header";
 import DefaultLogo from "@/components/DefaultLogo";
+import SettingsView from "@/components/SettingsView";
+import ContactPopup from "@/components/Popups/ContactPopup";
 
 
 interface BusinessUser {
@@ -140,9 +142,27 @@ export default function BusinessDashboard() {
 
   // Consent banner state
   const [showConsent, setShowConsent] = useState(false);
-  const [showContact, setShowContact] = useState(false);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [showContactPopup, setShowContactPopup] = useState(false);
+  const [profileFormData, setProfileFormData] = useState({
+    name: '',
+    address: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    category: '',
+    phone: '',
+    email: '',
+    website: '',
+    socialMedia: '',
+    businessHours: '',
+    description: ''
+  });
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+
+
+
 
 
   const router = useRouter();
@@ -319,9 +339,27 @@ export default function BusinessDashboard() {
     checkSession();
   }, []);
 
+
+
+  // Initialize profile form data when business data loads
   useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [currentView]);
+    if (business) {
+      setProfileFormData({
+        name: business.name || '',
+        address: business.address || '',
+        city: business.city || '',
+        state: business.state || '',
+        zipCode: business.zipCode || '',
+        category: business.category || '',
+        phone: business.phone || '',
+        email: business.email || '',
+        website: business.website || '',
+        socialMedia: business.socialMedia || '',
+        businessHours: business.businessHours || '',
+        description: business.description || ''
+      });
+    }
+  }, [business]);
 
   // Hide camera icon when user scrolls or moves mouse
   useEffect(() => {
@@ -684,6 +722,80 @@ export default function BusinessDashboard() {
     }
   };
 
+  // Stable onChange handler to prevent re-renders
+  const handleProfileFieldChange = useCallback((field: string, value: string) => {
+    setProfileFormData(prev => ({ ...prev, [field]: value }));
+  }, []);
+
+
+
+
+
+
+
+  const handleUpdateProfile = async () => {
+    if (!business?.id || !user?.email) {
+      alert('Business or user information not found');
+      return;
+    }
+
+    setIsUpdatingProfile(true);
+    try {
+      const response = await fetch('/api/business/update-profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          businessId: business.id,
+          userEmail: user.email,
+          updates: {
+            name: profileFormData.name,
+            address: profileFormData.address,
+            city: profileFormData.city,
+            state: profileFormData.state,
+            zipCode: profileFormData.zipCode,
+            category: profileFormData.category
+          }
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to submit profile update');
+      }
+
+      const result = await response.json();
+      alert(result.message || 'Profile update submitted successfully! Your changes will be reviewed by our admin team and applied once approved.');
+      
+      // Reset form data to current business data
+      if (business) {
+        setProfileFormData({
+          name: business.name || '',
+          address: business.address || '',
+          city: business.city || '',
+          state: business.state || '',
+          zipCode: business.zipCode || '',
+          category: business.category || '',
+          phone: business.phone || '',
+          email: business.email || '',
+          website: business.website || '',
+          socialMedia: business.socialMedia || '',
+          businessHours: business.businessHours || '',
+          description: business.description || ''
+        });
+      }
+      
+      // Refresh business data
+      await refreshBusinessData();
+    } catch (error) {
+      console.error('❌ Error updating profile:', error);
+      alert(error instanceof Error ? error.message : 'Failed to submit profile update');
+    } finally {
+      setIsUpdatingProfile(false);
+    }
+  };
+
   // Helper to get today's stats from analytics
   // When timeRange is 'day', analytics already contains only today's data
   function getTodayStats(analytics: AnalyticsData | null) {
@@ -1026,173 +1138,7 @@ export default function BusinessDashboard() {
     </div>
   );
 
-  // Settings view component
-  const SettingsView = () => (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-light text-gray-900">Settings</h2>
-        <button
-          onClick={() => setCurrentView('dashboard')}
-          className="text-gray-600 hover:text-gray-900 transition-colors"
-        >
-          ← Back to Dashboard
-        </button>
-      </div>
-      
-      <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
-        <h3 className="text-2xl font-light text-gray-900 mb-6">Business Management</h3>
-        <div className="space-y-6">
-          {/* Logo Upload Section - Moved to top */}
-          <div>
-            <div className="flex items-center space-x-4">
-              {business?.logo && business.logo.trim() !== '' ? (
-                <div className="relative">
-                  <img
-                    src={
-                      business.logo.startsWith('data:') || business.logo.startsWith('http')
-                        ? business.logo
-                        : getStorageUrlSync(business.logo)
-                    }
-                    alt="Business Logo"
-                    className="w-32 h-32 object-contain rounded-xl border-2 border-gray-200"
-                    onError={(e) => {
-                      console.error('Logo failed to load:', business.logo);
-                      console.error('Logo URL:', business.logo.startsWith("data:") || business.logo.startsWith("http")
-                        ? business.logo
-                        : getStorageUrlSync(business.logo)
-                      );
-                      // Show fallback if image fails to load
-                      const target = e.currentTarget;
-                      target.style.display = 'none';
-                      const fallback = target.parentElement?.querySelector('.logo-fallback');
-                      if (fallback) {
-                        (fallback as HTMLElement).style.display = 'flex';
-                      }
-                    }}
-                    onLoad={() => {
-                      console.log('Logo loaded successfully:', business.logo);
-                    }}
-                  />
-                  <div 
-                    className="flex items-center justify-center border-2 border-dashed border-gray-300 logo-fallback absolute top-0 left-0"
-                    style={{ display: 'none' }}
-                  >
-                    <DefaultLogo 
-                      businessName={business?.name || 'Business'} 
-                      size="lg"
-                      className="w-32 h-32"
-                    />
-                  </div>
-                </div>
-              ) : null}
-              <div 
-                className="flex items-center justify-center border-2 border-dashed border-gray-300 logo-fallback"
-                style={{ display: business?.logo && business.logo.trim() !== '' ? 'none' : 'flex' }}
-              >
-                <DefaultLogo 
-                  businessName={business?.name || 'Business'} 
-                  size="lg"
-                  className="w-32 h-32"
-                />
-              </div>
-              <button
-                onClick={() => setShowLogoUpload(true)}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
-              >
-                Upload Logo
-              </button>
-            </div>
-          </div>
-          
-          <div className="border-t border-gray-200 pt-6">
-            <h4 className="text-xl font-light text-gray-900 mb-4">Business Profile</h4>
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Business Name</label>
-                <input
-                  type="text"
-                  value={business?.name || ""}
-                  disabled
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600 cursor-not-allowed"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
-                <input
-                  type="text"
-                  value={business?.address || ""}
-                  disabled
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600 cursor-not-allowed"
-                />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
-                  <input
-                    type="text"
-                    value={business?.city || ""}
-                    disabled
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600 cursor-not-allowed"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">State</label>
-                  <input
-                    type="text"
-                    value={business?.state || ""}
-                    disabled
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600 cursor-not-allowed"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">ZIP Code</label>
-                  <input
-                    type="text"
-                    value={business?.zipCode || ""}
-                    disabled
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600 cursor-not-allowed"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
-                <input
-                  type="text"
-                  value={business?.category || ""}
-                  disabled
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600 cursor-not-allowed"
-                />
-              </div>
-            </div>
-          </div>
-          
-          {/* Add New Business Section - Moved to bottom */}
-          <div className="border-t border-gray-200 pt-6">
-            <h4 className="text-xl font-light text-gray-900 mb-4">Business Management</h4>
-            <div className="flex items-center space-x-4 p-4 bg-orange-50 rounded-2xl hover:bg-orange-100 transition-all duration-200 ease-in-out cursor-pointer" onClick={() => setShowAddBusiness(true)}>
-              <Building2 size={24} className="text-orange-600" />
-              <div className="text-left">
-                <div className="font-medium text-gray-900">Add New Business</div>
-                <div className="text-sm text-gray-600">Register a new location</div>
-              </div>
-            </div>
-          </div>
-          
-          {/* Delete Account Section - At the very bottom */}
-          <div className="border-t border-gray-200 pt-6">
-            <h4 className="text-xl font-light text-gray-900 mb-4">Account Management</h4>
-            <div className="flex items-center space-x-4 p-4 bg-red-50 rounded-2xl hover:bg-red-100 transition-all duration-200 ease-in-out cursor-pointer" onClick={() => setShowDeleteConfirmation(true)}>
-              <Trash2 size={24} className="text-red-600" />
-              <div className="text-left">
-                <div className="font-medium text-gray-900">Delete Account</div>
-    
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+
 
   if (isLoading) {
     return (
@@ -1251,7 +1197,7 @@ export default function BusinessDashboard() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 pt-16">
       <Header 
-        onContactClick={() => setShowContact(true)}
+        onContactClick={() => setShowContactPopup(true)}
         isDashboard={true}
         onSettingsClick={() => setCurrentView('settings')}
       />
@@ -1537,7 +1483,17 @@ export default function BusinessDashboard() {
         ) : currentView === 'analytics' ? (
           <AnalyticsView />
         ) : (
-          <SettingsView />
+          <SettingsView
+            business={business}
+            profileFormData={profileFormData}
+            isUpdatingProfile={isUpdatingProfile}
+            onFieldChange={handleProfileFieldChange}
+            onUpdate={handleUpdateProfile}
+            onBackToDashboard={() => setCurrentView('dashboard')}
+            onShowLogoUpload={() => setShowLogoUpload(true)}
+            onShowAddBusiness={() => setShowAddBusiness(true)}
+            onShowDeleteConfirmation={() => setShowDeleteConfirmation(true)}
+          />
         )}
 
         {/* Create Reward Modal */}
@@ -1738,6 +1694,13 @@ export default function BusinessDashboard() {
               <button onClick={handleConsentDeny} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl text-gray-700 font-medium text-sm transition-colors border border-gray-300 shadow-sm">No thanks</button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Contact Popup */}
+      {showContactPopup && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 999999 }}>
+          <ContactPopup onClose={() => setShowContactPopup(false)} />
         </div>
       )}
     </main>
