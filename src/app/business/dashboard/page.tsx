@@ -167,6 +167,38 @@ export default function BusinessDashboard() {
 
   const router = useRouter();
 
+  // Handle browser back button navigation
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      // If we're on analytics or settings view, prevent leaving the page
+      // and instead return to dashboard home view
+      if (currentView !== 'dashboard') {
+        event.preventDefault();
+        setCurrentView('dashboard');
+        // Push a new state to prevent the back button from working again
+        window.history.pushState({ view: 'dashboard' }, '', window.location.pathname);
+      }
+    };
+
+    // Add event listener for popstate (back/forward button)
+    window.addEventListener('popstate', handlePopState);
+
+    // Push initial state when component mounts (only if not already set)
+    if (window.history.state === null) {
+      window.history.replaceState({ view: 'dashboard' }, '', window.location.pathname);
+    }
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [currentView]);
+
+  // Handle page refresh - ensure we start on dashboard view
+  useEffect(() => {
+    // If user refreshes the page, always start on dashboard view
+    setCurrentView('dashboard');
+  }, []);
+
   // Function to fetch user and business data from session
   const fetchUserDataFromSession = async () => {
     try {
@@ -634,6 +666,8 @@ export default function BusinessDashboard() {
         break;
       case 'analytics':
         setCurrentView('analytics');
+        // Push state to browser history for analytics view
+        window.history.pushState({ view: 'analytics' }, '', window.location.pathname);
         break;
       case 'add-business':
         setShowAddBusiness(true);
@@ -832,9 +866,9 @@ export default function BusinessDashboard() {
     const QRRewardCard = ({ size = 'large' }: { size?: 'large' | 'medium' | 'small' | 'tiny' }) => {
       const cardSizes = {
         large: { width: 340, height: 480, qrSize: 170 },
-        medium: { width: 240, height: 300, qrSize: 115 },
-        small: { width: 160, height: 200, qrSize: 80 },
-        tiny: { width: 120, height: 150, qrSize: 60 }
+        medium: { width: 200, height: 250, qrSize: 90 },
+        small: { width: 140, height: 180, qrSize: 60 },
+        tiny: { width: 100, height: 130, qrSize: 40 }
       };
       
       const { width, height, qrSize } = cardSizes[size];
@@ -842,7 +876,12 @@ export default function BusinessDashboard() {
       return (
         <div 
           className="relative"
-          style={{ width: `${width}px`, height: `${height}px` }}
+          style={{ 
+            width: `min(${width}px, 100%)`, 
+            height: `min(${height}px, 100%)`,
+            maxWidth: `${width}px`,
+            maxHeight: `${height}px`
+          }}
         >
           {/* Background Image */}
           <img
@@ -873,8 +912,8 @@ export default function BusinessDashboard() {
       
       case '2x2':
         return (
-          <div className="w-full max-w-[680px] h-auto bg-white p-4 sm:p-8 rounded-xl border-2 border-gray-200">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8 justify-items-center">
+          <div className="w-full max-w-[500px] sm:max-w-[680px] h-auto bg-white p-3 sm:p-8 rounded-xl border-2 border-gray-200">
+            <div className="grid grid-cols-2 gap-3 sm:gap-8 justify-items-center">
               {Array.from({ length: 4 }).map((_, index) => (
                 <QRRewardCard key={index} size="medium" />
               ))}
@@ -884,8 +923,8 @@ export default function BusinessDashboard() {
       
       case '3x3':
         return (
-          <div className="w-full max-w-[680px] h-auto bg-white p-3 sm:p-6 rounded-xl border-2 border-gray-200">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 justify-items-center">
+          <div className="w-full max-w-[500px] sm:max-w-[680px] h-auto bg-white p-2 sm:p-6 rounded-xl border-2 border-gray-200">
+            <div className="grid grid-cols-3 gap-2 sm:gap-4 justify-items-center">
               {Array.from({ length: 9 }).map((_, index) => (
                 <QRRewardCard key={index} size="small" />
               ))}
@@ -895,8 +934,8 @@ export default function BusinessDashboard() {
       
       case '4x4':
         return (
-          <div className="w-full max-w-[680px] h-auto bg-white p-2 sm:p-4 rounded-xl border-2 border-gray-200">
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 justify-items-center">
+          <div className="w-full max-w-[500px] sm:max-w-[680px] h-auto bg-white p-2 sm:p-4 rounded-xl border-2 border-gray-200">
+            <div className="grid grid-cols-4 gap-1 sm:gap-3 justify-items-center">
               {Array.from({ length: 16 }).map((_, index) => (
                 <QRRewardCard key={index} size="tiny" />
               ))}
@@ -915,7 +954,11 @@ export default function BusinessDashboard() {
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-light text-gray-900">Analytics</h2>
         <button
-          onClick={() => setCurrentView('dashboard')}
+          onClick={() => {
+            setCurrentView('dashboard');
+            // Replace current history state to go back to dashboard
+            window.history.replaceState({ view: 'dashboard' }, '', window.location.pathname);
+          }}
           className="text-gray-600 hover:text-gray-900 transition-colors"
         >
           ← Back to Dashboard
@@ -1199,7 +1242,11 @@ export default function BusinessDashboard() {
       <Header 
         onContactClick={() => setShowContactPopup(true)}
         isDashboard={true}
-        onSettingsClick={() => setCurrentView('settings')}
+        onSettingsClick={() => {
+          setCurrentView('settings');
+          // Push state to browser history for settings view
+          window.history.pushState({ view: 'settings' }, '', window.location.pathname);
+        }}
       />
       {/* Header */}
       <div className={`transition-all duration-700 ease-in-out ${
@@ -1489,7 +1536,11 @@ export default function BusinessDashboard() {
             isUpdatingProfile={isUpdatingProfile}
             onFieldChange={handleProfileFieldChange}
             onUpdate={handleUpdateProfile}
-            onBackToDashboard={() => setCurrentView('dashboard')}
+            onBackToDashboard={() => {
+              setCurrentView('dashboard');
+              // Replace current history state to go back to dashboard
+              window.history.replaceState({ view: 'dashboard' }, '', window.location.pathname);
+            }}
             onShowLogoUpload={() => setShowLogoUpload(true)}
             onShowAddBusiness={() => setShowAddBusiness(true)}
             onShowDeleteConfirmation={() => setShowDeleteConfirmation(true)}
@@ -1565,7 +1616,7 @@ export default function BusinessDashboard() {
       {/* QR Code Modal */}
       {showQRCodeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-2 sm:p-4">
-          <div className="relative bg-white rounded-2xl shadow-2xl p-4 sm:p-6 w-full max-w-4xl mx-auto flex flex-col items-center max-h-[90vh] overflow-y-auto">
+          <div className="relative bg-white rounded-2xl shadow-2xl p-4 sm:p-6 w-full max-w-4xl mx-auto flex flex-col items-center max-h-[95vh] overflow-y-auto">
             <button
               className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 z-10"
               onClick={() => setShowQRCodeModal(false)}
@@ -1602,7 +1653,7 @@ export default function BusinessDashboard() {
             </div>
             
             {/* QR Code Display */}
-            <div ref={qrRef} className="flex justify-center w-full">
+            <div ref={qrRef} className="flex justify-center w-full overflow-hidden">
               {renderQRLayout()}
             </div>
             

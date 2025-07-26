@@ -89,7 +89,7 @@ interface AdminAnalytics {
   }>;
 }
 
-type TabType = 'signups' | 'businesses' | 'analytics';
+type TabType = 'signups' | 'businesses' | 'analytics' | 'pending-updates';
 
 interface SelectedItem {
   type: 'signup' | 'business';
@@ -117,6 +117,19 @@ interface BusinessAsSignup {
 }
 
 type SignupItem = SignupWithType | BusinessAsSignup;
+
+interface PendingUpdate {
+  id: string;
+  businessId: string;
+  userEmail: string;
+  businessName: string;
+  userFirstName: string;
+  userLastName: string;
+  currentData: Record<string, string>;
+  requestedUpdates: Record<string, string>;
+  status: string;
+  submittedAt: string;
+}
 
 export default function AdminDashboard() {
   const [signups, setSignups] = useState<Signup[]>([]);
@@ -150,6 +163,8 @@ export default function AdminDashboard() {
   const [selectedBusinessId, setSelectedBusinessId] = useState<string>('all');
   const [showAllBusinesses, setShowAllBusinesses] = useState<boolean>(true);
   const [showPasswordChangeForm, setShowPasswordChangeForm] = useState(false);
+  const [pendingUpdates, setPendingUpdates] = useState<PendingUpdate[]>([]);
+  const [isLoadingPendingUpdates, setIsLoadingPendingUpdates] = useState(false);
 
   const router = useRouter();
 
@@ -191,6 +206,8 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (activeTab === 'analytics') {
       fetchAnalytics();
+    } else if (activeTab === 'pending-updates') {
+      fetchPendingUpdates();
     }
   }, [activeTab, selectedDateRange, selectedBusinessId, showAllBusinesses]);
 
@@ -231,6 +248,70 @@ export default function AdminDashboard() {
       console.error('Error fetching analytics:', error);
     } finally {
       setIsLoadingAnalytics(false);
+    }
+  };
+
+  const fetchPendingUpdates = async () => {
+    setIsLoadingPendingUpdates(true);
+    try {
+      console.log("🔍 Fetching pending updates from API...");
+      const response = await fetch('/api/admin/pending-updates');
+      console.log("🔍 API response status:", response.status);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log("🔍 API response data:", data);
+        
+        if (data.pendingUpdates && data.pendingUpdates.length > 0) {
+          console.log("✅ Found pending updates:", data.pendingUpdates.length);
+          setPendingUpdates(data.pendingUpdates);
+        } else {
+          console.log("ℹ️ No pending updates found, keeping test data");
+          // Keep existing test data if no real updates found
+        }
+      } else {
+        console.error('❌ Failed to fetch pending updates, status:', response.status);
+        // Keep existing test data on API failure
+      }
+    } catch (error) {
+      console.error('❌ Error fetching pending updates:', error);
+      // Keep existing test data on error
+    } finally {
+      setIsLoadingPendingUpdates(false);
+    }
+  };
+
+  // Function to add a new pending update to the test data
+  const addPendingUpdate = (update: PendingUpdate) => {
+    setPendingUpdates(prev => [update, ...prev]);
+  };
+
+  const handleUpdateAction = async (updateId: string, action: 'approve' | 'reject') => {
+    setIsProcessing(true);
+    try {
+      const response = await fetch('/api/admin/approve-update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          updateId,
+          action
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Failed to ${action} update`);
+      }
+
+      alert(`Update ${action}ed successfully!`);
+      fetchPendingUpdates(); // Refresh the list
+    } catch (error) {
+      console.error(`Error ${action}ing update:`, error);
+      alert(error instanceof Error ? error.message : `Failed to ${action} update`);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -592,6 +673,21 @@ export default function AdminDashboard() {
               >
                 Analytics 📊
               </button>
+              <button
+                onClick={() => setActiveTab('pending-updates')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'pending-updates'
+                    ? 'border-green-500 text-green-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Profile Updates ({pendingUpdates.length})
+                {pendingUpdates.length > 0 && (
+                  <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    {pendingUpdates.length}
+                  </span>
+                )}
+              </button>
             </nav>
           </div>
 
@@ -817,6 +913,110 @@ export default function AdminDashboard() {
                 <span className="text-4xl mb-4 block">📊</span>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">No analytics data available</h3>
                 <p className="text-gray-600">Analytics data will appear here once businesses start using the platform.</p>
+              </div>
+            )}
+          </div>
+        ) : activeTab === 'pending-updates' ? (
+          <div className="bg-white rounded-lg shadow-sm">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">
+                Pending Profile Updates ({pendingUpdates.length})
+              </h2>
+              <p className="text-sm text-gray-600 mt-1">
+                Review and approve business profile update requests
+              </p>
+            </div>
+
+            {isLoadingPendingUpdates ? (
+              <div className="p-8 text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
+                <p className="mt-4 text-gray-600">Loading pending updates...</p>
+              </div>
+            ) : pendingUpdates.length === 0 ? (
+              <div className="p-8 text-center">
+                <span className="text-4xl mb-4 block">✅</span>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No pending updates</h3>
+                <p className="text-gray-600">All profile update requests have been processed.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Business
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Requested By
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Changes
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Submitted
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {pendingUpdates.map((update) => (
+                      <tr key={update.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex flex-col">
+                            <div className="text-sm font-medium text-gray-900">
+                              {update.businessName}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              ID: {update.businessId}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex flex-col">
+                            <div className="text-sm font-medium text-gray-900">
+                              {update.userFirstName} {update.userLastName}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {update.userEmail}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm text-gray-900">
+                            {Object.entries(update.requestedUpdates).map(([field, value]) => (
+                              <div key={field} className="mb-1">
+                                <span className="font-medium">{field}:</span> {value}
+                              </div>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {formatDate(update.submittedAt)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => handleUpdateAction(update.id, 'approve')}
+                              disabled={isProcessing}
+                              className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm disabled:opacity-50"
+                            >
+                              Approve
+                            </button>
+                            <button
+                              onClick={() => handleUpdateAction(update.id, 'reject')}
+                              disabled={isProcessing}
+                              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm disabled:opacity-50"
+                            >
+                              Reject
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>
