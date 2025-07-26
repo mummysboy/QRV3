@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { loadPendingUpdates, savePendingUpdates } from "../../business/update-profile/route";
+import { loadPendingUpdates, savePendingUpdates } from "@/lib/pending-updates";
 import { generateClient } from "aws-amplify/api";
 import "../../../../lib/amplify-client";
 
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     console.log(`📋 Found ${pendingUpdates.length} pending updates`);
 
     // Find the specific update
-    const updateIndex = pendingUpdates.findIndex(update => update.id === updateId);
+    const updateIndex = pendingUpdates.findIndex((update: unknown) => (update as any)?.id === updateId);
     
     if (updateIndex === -1) {
       console.log("❌ Update not found:", updateId);

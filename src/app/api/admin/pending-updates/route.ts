@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { loadPendingUpdates } from "../../business/update-profile/route";
+import { loadPendingUpdates } from "@/lib/pending-updates";
 
 export async function GET() {
   try {
@@ -10,11 +10,11 @@ export async function GET() {
     console.log(`📋 Storage contains ${allUpdates.length} total updates`);
 
     // Filter to only show pending updates
-    const pendingUpdates = allUpdates.filter(update => update.status === 'pending');
+    const pendingUpdates = allUpdates.filter((update: unknown) => (update as any)?.status === 'pending');
     console.log(`📋 Found ${pendingUpdates.length} pending updates`);
 
     // Sort by submission date (newest first)
-    pendingUpdates.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
+    pendingUpdates.sort((a: unknown, b: unknown) => new Date((b as any).submittedAt).getTime() - new Date((a as any).submittedAt).getTime());
 
     console.log(`✅ Found ${pendingUpdates.length} pending updates`);
 

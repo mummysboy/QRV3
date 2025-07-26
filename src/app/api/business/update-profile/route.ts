@@ -1,31 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFileSync, readFileSync, existsSync } from "fs";
-import { join } from "path";
-
-// Simple file-based storage for pending updates
-const STORAGE_FILE = join(process.cwd(), 'pending-updates.json');
-
-// Helper functions for storage
-const loadPendingUpdates = () => {
-  try {
-    if (existsSync(STORAGE_FILE)) {
-      const data = readFileSync(STORAGE_FILE, 'utf8');
-      return JSON.parse(data);
-    }
-  } catch (error) {
-    console.log("⚠️ Could not load pending updates file:", error);
-  }
-  return [];
-};
-
-const savePendingUpdates = (updates: any[]) => {
-  try {
-    writeFileSync(STORAGE_FILE, JSON.stringify(updates, null, 2));
-    console.log(`✅ Saved ${updates.length} pending updates to file`);
-  } catch (error) {
-    console.log("⚠️ Could not save pending updates file:", error);
-  }
-};
+import { loadPendingUpdates, savePendingUpdates } from "@/lib/pending-updates";
 
 // Simple test endpoint
 export async function GET() {
@@ -104,5 +78,5 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Export the storage functions for other APIs to access
-export { loadPendingUpdates, savePendingUpdates }; 
+// Note: Storage functions are internal to this route and not exported
+// Other routes should implement their own storage logic if needed 
