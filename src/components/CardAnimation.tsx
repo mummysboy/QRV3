@@ -253,7 +253,7 @@ export default function CardAnimation({ card, isPreview = false, isRedeem = fals
   }
 
   return (
-    <div className={`relative w-full max-w-sm mx-auto overflow-hidden ${isPreview ? 'h-auto min-h-[400px] flex items-center justify-center' : 'h-[60vh] sm:h-[60vh]'} rounded-lg`}>
+    <div className={`relative w-full max-w-sm mx-auto overflow-hidden ${isPreview ? 'h-auto min-h-[450px] flex items-center justify-center' : 'h-[60vh] sm:h-[60vh]'} rounded-lg`}>
       {(isPreview || (!isPreview && isRedeem)) && (
         <img
           src="/assets/videos/RedeemReward.png"
@@ -352,7 +352,7 @@ export default function CardAnimation({ card, isPreview = false, isRedeem = fals
               {/* Content Section - Dynamic sizing */}
               <div className="flex-1 flex flex-col justify-between min-h-0 max-h-full">
                 {/* Header and Location */}
-                <div className={`flex flex-col items-center w-full ${isPreview ? 'px-2' : 'px-1'} mb-3`}>
+                <div className={`flex flex-col items-center w-full ${isPreview ? 'px-2' : 'px-1'} mb-0 sm:mb-1`}>
                   <p className={`${isPreview ? 'text-sm' : 'text-xs'} font-bold leading-tight break-words overflow-hidden text-ellipsis max-w-full line-clamp-2 ${(cardData?.header?.length || 0) > 30 ? 'text-xs' : (cardData?.header?.length || 0) > 15 ? 'text-sm' : 'text-base'}`}>
                     {cardData?.header}
                   </p>
@@ -363,11 +363,13 @@ export default function CardAnimation({ card, isPreview = false, isRedeem = fals
                     target="_blank"
                     rel="noopener noreferrer"
                     className={`${isPreview ? 'text-xs' : 'text-xs'} font-light leading-tight underline hover:text-blue-600 block -mt-3 text-xs`}
-                    style={{ fontSize: '0.525rem' }}
+                    style={{ fontSize: '0.6rem' }}
                   >
                     {(() => {
                       const { street, city, state } = getAddressComponents(cardData?.addresstext || '');
                       const neighborhood = cardData?.neighborhood || '';
+                      
+
                       
                       const addressLines = [];
                       
@@ -403,7 +405,7 @@ export default function CardAnimation({ card, isPreview = false, isRedeem = fals
                 </div>
 
                 {/* Description - Dynamic sizing */}
-                <div className={`flex-1 flex flex-col justify-center ${isPreview ? 'px-2' : 'px-1'}mt-1 mb-0`}>
+                <div className={`flex-1 flex flex-col justify-center ${isPreview ? 'px-2' : 'px-1'}-mt-1 -mb-3`}>
                   <p className={`${isPreview ? 'text-xs' : 'text-xs'} leading-tight break-words overflow-hidden text-ellipsis max-w-full line-clamp-4 ${(cardData?.subheader?.length || 0) > 80 ? 'text-xs' : (cardData?.subheader?.length || 0) > 40 ? 'text-sm' : 'text-base'}`}>
                     {cardData?.subheader}
                   </p>
@@ -415,7 +417,7 @@ export default function CardAnimation({ card, isPreview = false, isRedeem = fals
                   const now = new Date();
                   const exp = new Date(cardData.expires as string);
                   const diffInHours = (exp.getTime() - now.getTime()) / (1000 * 60 * 60);
-                  return diffInHours > 24 ? 'mb-0' : 'mb-1';
+                  return diffInHours > 24 ? '-mb-3' : '-mb-3';
                 })()}`}> 
                   {cardData?.expires && 
                    cardData.expires !== "Demo Reward Not Valid" && 

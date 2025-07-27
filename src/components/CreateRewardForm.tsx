@@ -17,6 +17,7 @@ interface Business {
   address: string;
   city: string;
   state: string;
+  neighborhood?: string;
   website: string;
   socialMedia: string;
   businessHours: string;
@@ -467,7 +468,8 @@ export default function CreateRewardForm({
                           addressurl: "",
                           subheader: formData.subheader || "Reward description will appear here",
                           expires: formData.expires,
-                          quantity: typeof formData.quantity === 'number' ? formData.quantity : 0
+                          quantity: typeof formData.quantity === 'number' ? formData.quantity : 0,
+                          neighborhood: business.neighborhood
                         }}
                         isPreview={true}
                       />

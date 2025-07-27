@@ -12,6 +12,7 @@ interface Card {
   subheader?: string;
   addressurl?: string;
   addresstext?: string;
+  neighborhood?: string;
   expires?: string;
   businessId?: string;
 }
@@ -401,7 +402,8 @@ export default function EditRewardForm({ card, onClose, onSuccess, localEditOnly
                           addressurl: "",
                           subheader: formData.subheader || "Reward description will appear here",
                           expires: formData.expires ? new Date(formData.expires).toISOString() : "Demo Reward Not Valid",
-                          quantity: typeof formData.quantity === 'number' ? formData.quantity : 0
+                          quantity: typeof formData.quantity === 'number' ? formData.quantity : 0,
+                          neighborhood: card.neighborhood
                         }}
                         isPreview={true}
                       />

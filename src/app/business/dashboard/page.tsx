@@ -62,6 +62,7 @@ interface Card {
   subheader?: string;
   addressurl?: string;
   addresstext?: string;
+  neighborhood?: string;
   expires?: string;
   businessId?: string;
 }
@@ -1738,6 +1739,7 @@ export default function BusinessDashboard() {
                           subheader: card.subheader || "Reward description",
                           expires: card.expires || "",
                           quantity: card.quantity,
+                          neighborhood: card.neighborhood,
                         }}
                       />
                     </div>
