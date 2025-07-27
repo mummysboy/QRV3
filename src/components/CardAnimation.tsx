@@ -300,7 +300,7 @@ export default function CardAnimation({ card, isPreview = false, isRedeem = fals
               {/* Logo Section - Fixed size */}
               <div className="flex-shrink-0 mb-0">
                 {logoUrl ? (
-                  <div className="relative w-full flex justify-center" style={{ marginTop: '-5%' }}>
+                  <div className="relative w-full flex justify-center" style={{ marginTop: '0' }}>
                     <img
                       src={logoUrl}
                       alt="Business Logo"
@@ -338,7 +338,7 @@ export default function CardAnimation({ card, isPreview = false, isRedeem = fals
                       minHeight: '50.3125px', 
                       maxWidth: '129.375px', 
                       maxHeight: '71.875px',
-                      marginTop: '-5%'
+                      marginTop: '0'
                     }}
                   >
                     <DefaultLogo 
