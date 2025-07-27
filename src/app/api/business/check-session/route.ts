@@ -53,8 +53,46 @@ export async function GET(request: NextRequest) {
     try {
       const decoded = jwt.verify(sessionToken, JWT_SECRET) as JWTPayload;
       
-      // Fetch business data
       const client = generateClient();
+      
+      // Fetch user data to get firstName and lastName
+      const userResult = await client.graphql({
+        query: `
+          query GetBusinessUser($id: String!) {
+            getBusinessUser(id: $id) {
+              id
+              email
+              firstName
+              lastName
+              role
+              status
+              businessId
+            }
+          }
+        `,
+        variables: {
+          id: decoded.sub,
+        },
+      });
+
+      const user = (userResult as { data: { getBusinessUser: {
+        id: string;
+        email: string;
+        firstName: string;
+        lastName: string;
+        role: string;
+        status: string;
+        businessId: string;
+      } | null } }).data.getBusinessUser;
+
+      if (!user) {
+        return NextResponse.json({ 
+          hasSession: false, 
+          message: "User not found" 
+        });
+      }
+      
+      // Fetch business data
       const businessResult = await client.graphql({
         query: `
           query GetBusiness($id: String!) {
@@ -93,10 +131,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ 
         hasSession: true, 
         user: {
-          id: decoded.sub,
-          email: decoded.email,
-          businessId: decoded.businessId,
-          role: decoded.role
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          businessId: user.businessId,
+          role: user.role,
+          status: user.status
         },
         business: business,
         message: "Valid session found" 

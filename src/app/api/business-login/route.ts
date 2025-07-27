@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
 
     const client = generateClient();
 
-    // Find user by email
+    // Find all users by email (user might have multiple businesses)
     const userResult = await client.graphql({
       query: `
         query GetBusinessUser($email: String!) {
@@ -70,10 +70,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const user = users[0];
+    // Find a user with a valid password (users might have empty passwords if they were added via add-business)
+    const validUser = users.find(user => user.password && user.password.trim() !== '');
+    
+    if (!validUser) {
+      return NextResponse.json(
+        { error: "Invalid email or password" },
+        { status: 401 }
+      );
+    }
 
     // Check if user is active
-    if (user.status !== "active") {
+    if (validUser.status !== "active") {
       return NextResponse.json(
         { error: "Account is not active" },
         { status: 401 }
@@ -81,7 +89,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify password
-    const isValidPassword = await bcrypt.compare(password, user.password);
+    const isValidPassword = await bcrypt.compare(password, validUser.password);
     if (!isValidPassword) {
       return NextResponse.json(
         { error: "Invalid email or password" },
@@ -89,93 +97,110 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get business information
-    const businessResult = await client.graphql({
-      query: `
-        query GetBusiness($id: String!) {
-          getBusiness(id: $id) {
-            id
-            name
-            phone
-            email
-            zipCode
-            category
-            status
-            logo
-            address
-            city
-            state
-            website
-            socialMedia
-            businessHours
-            description
-            photos
-            primaryContactEmail
-            primaryContactPhone
-            createdAt
-            updatedAt
-            approvedAt
-          }
+    // Get all businesses for this user
+    const businessIds = users.map(user => user.businessId);
+    const businesses = [];
+    
+    for (const businessId of businessIds) {
+      try {
+        const businessResult = await client.graphql({
+          query: `
+            query GetBusiness($id: String!) {
+              getBusiness(id: $id) {
+                id
+                name
+                phone
+                email
+                zipCode
+                category
+                status
+                logo
+                address
+                city
+                state
+                website
+                socialMedia
+                businessHours
+                description
+                photos
+                primaryContactEmail
+                primaryContactPhone
+                createdAt
+                updatedAt
+                approvedAt
+              }
+            }
+          `,
+          variables: {
+            id: businessId,
+          },
+        });
+
+        const business = (businessResult as { data: { getBusiness: { 
+          id: string; 
+          name: string; 
+          phone: string; 
+          email: string; 
+          zipCode: string; 
+          category: string; 
+          status: string; 
+          logo: string; 
+          address: string; 
+          city: string; 
+          state: string; 
+          website: string; 
+          socialMedia: string; 
+          businessHours: string; 
+          description: string; 
+          photos: string; 
+          primaryContactEmail: string; 
+          primaryContactPhone: string; 
+          createdAt: string; 
+          updatedAt: string; 
+          approvedAt: string; 
+        } | null } }).data.getBusiness;
+
+        if (business) {
+          businesses.push(business);
         }
-      `,
-      variables: {
-        id: user.businessId,
-      },
-    });
-
-    const business = (businessResult as { data: { getBusiness: { 
-      id: string; 
-      name: string; 
-      phone: string; 
-      email: string; 
-      zipCode: string; 
-      category: string; 
-      status: string; 
-      logo: string; 
-      address: string; 
-      city: string; 
-      state: string; 
-      website: string; 
-      socialMedia: string; 
-      businessHours: string; 
-      description: string; 
-      photos: string; 
-      primaryContactEmail: string; 
-      primaryContactPhone: string; 
-      createdAt: string; 
-      updatedAt: string; 
-      approvedAt: string; 
-    } } }).data.getBusiness;
-
-    // Add check for missing business
-    if (!business) {
-      return NextResponse.json(
-        { error: "Business not found" },
-        { status: 404 }
-      );
+      } catch (err) {
+        console.error(`Error fetching business ${businessId}:`, err);
+      }
     }
 
-    // Check if business is approved
-    if (business.status !== "approved") {
+    // Find approved businesses
+    const approvedBusinesses = businesses.filter(business => business.status === "approved");
+    
+    if (approvedBusinesses.length === 0) {
       return NextResponse.json(
-        { error: "Business is not yet approved. Please wait for approval." },
+        { error: "No approved businesses found. Please wait for approval." },
         { status: 403 }
       );
     }
 
-    // Generate a JWT session token for the business user
+    // Use the first approved business as the primary business for the session
+    const primaryBusiness = approvedBusinesses[0];
+    const primaryUser = users.find(user => user.businessId === primaryBusiness.id);
+
+    if (!primaryUser) {
+      return NextResponse.json(
+        { error: "User not found for primary business" },
+        { status: 404 }
+      );
+    }
+
+    // Generate a JWT session token for the primary business user
     const payload = {
-      sub: user.id,
-      email: user.email,
-      businessId: user.businessId,
+      sub: primaryUser.id,
+      email: primaryUser.email,
+      businessId: primaryBusiness.id,
       role: "business",
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30 // 30 days
     };
     const sessionToken = jwt.sign(payload, JWT_SECRET);
-    // TODO: Store sessionToken in DB or in-memory store with user.id for future validation
 
-    // Update last login time
+    // Update last login time for the primary user
     await client.graphql({
       query: `
         mutation UpdateBusinessUser($input: UpdateBusinessUserInput!) {
@@ -187,33 +212,36 @@ export async function POST(request: NextRequest) {
       `,
       variables: {
         input: {
-          id: user.id,
+          id: primaryUser.id,
           lastLoginAt: new Date().toISOString(),
         },
       },
     });
 
-    // Return user and business data (without password) and the JWT session token (do NOT set cookie here)
+    // Return user data, primary business, and all businesses
     const response = NextResponse.json(
-      { 
-        success: true, 
+      {
+        success: true,
         message: "Login successful",
+        sessionToken: sessionToken,
         user: {
-          id: user.id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          role: user.role,
-          status: user.status,
+          id: primaryUser.id,
+          email: primaryUser.email,
+          firstName: primaryUser.firstName,
+          lastName: primaryUser.lastName,
+          role: primaryUser.role,
+          status: primaryUser.status,
         },
-        business: business,
-        sessionToken // <-- JWT returned in body
+        business: primaryBusiness, // Primary business for backward compatibility
+        allBusinesses: approvedBusinesses, // All approved businesses
+        totalBusinesses: approvedBusinesses.length,
       },
       { status: 200 }
     );
+
     return response;
   } catch (error) {
-    console.error("Error during business login:", error);
+    console.error("Login error:", error);
     return NextResponse.json(
       { error: "Login failed" },
       { status: 500 }

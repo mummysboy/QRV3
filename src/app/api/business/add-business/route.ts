@@ -38,7 +38,21 @@ export async function POST(request: NextRequest) {
     const userFirstName = request.headers.get('x-user-firstname');
     const userLastName = request.headers.get('x-user-lastname');
 
+    console.log('🔍 Add-Business API - Received headers:', {
+      userEmail: userEmail,
+      userFirstName: userFirstName,
+      userLastName: userLastName,
+      hasUserEmail: !!userEmail,
+      hasUserFirstName: !!userFirstName,
+      hasUserLastName: !!userLastName
+    });
+
     if (!userEmail || !userFirstName || !userLastName) {
+      console.error('❌ Add-Business API - Missing user information:', {
+        userEmail: userEmail,
+        userFirstName: userFirstName,
+        userLastName: userLastName
+      });
       return NextResponse.json(
         { error: "User information not found" },
         { status: 400 }

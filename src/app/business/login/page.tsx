@@ -60,17 +60,40 @@ export default function BusinessLogin() {
       }
 
       const data = await response.json();
+      
+      console.log('🔍 Login - Response data:', data);
+      
       // Store the sessionToken in sessionStorage for dashboard use
       if (data.sessionToken) {
         sessionStorage.setItem('businessSessionToken', data.sessionToken);
+        console.log('💾 Stored sessionToken in sessionStorage');
       }
-      // Store user and business data in sessionStorage for dashboard access
+      
+      // Store user data in sessionStorage for dashboard access
       if (data.user) {
         sessionStorage.setItem('businessUser', JSON.stringify(data.user));
+        console.log('💾 Stored user data in sessionStorage:', data.user);
       }
+      
+      // Store primary business data in sessionStorage for dashboard access
       if (data.business) {
         sessionStorage.setItem('businessData', JSON.stringify(data.business));
+        console.log('💾 Stored business data in sessionStorage:', data.business);
       }
+      
+      // Store all businesses for business switching functionality
+      if (data.allBusinesses) {
+        sessionStorage.setItem('allBusinesses', JSON.stringify(data.allBusinesses));
+        console.log('💾 Stored all businesses in sessionStorage:', data.allBusinesses.length, 'businesses');
+      }
+      
+      // Store total business count
+      if (data.totalBusinesses) {
+        sessionStorage.setItem('totalBusinesses', data.totalBusinesses.toString());
+        console.log('💾 Stored total business count in sessionStorage:', data.totalBusinesses);
+      }
+      
+      console.log('✅ Login successful, redirecting to dashboard...');
       window.location.replace('/business/dashboard');
     } catch (error) {
       console.error('Login error:', error);

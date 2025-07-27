@@ -206,9 +206,17 @@ export default function BusinessDashboard() {
       const data = await response.json();
       
       if (data.hasSession && data.user && data.business) {
+        console.log('🔍 Dashboard - Loaded user and business data from session');
+        console.log('📋 User data from session:', data.user);
+        console.log('📋 Business data from session:', data.business);
+        
+        // Store user data in sessionStorage for consistency
+        sessionStorage.setItem('businessUser', JSON.stringify(data.user));
+        sessionStorage.setItem('businessData', JSON.stringify(data.business));
+        console.log('💾 Stored user and business data in sessionStorage');
+        
         setUser(data.user);
         setBusiness(data.business);
-        console.log('🔍 Dashboard - Loaded user and business data from session');
       } else {
         console.error('🔍 Dashboard - No valid session data');
         router.push('/business/login');
@@ -246,6 +254,7 @@ export default function BusinessDashboard() {
     // Check if user is logged in
     const userData = sessionStorage.getItem('businessUser');
     const businessData = sessionStorage.getItem('businessData');
+    const allBusinessesData = sessionStorage.getItem('allBusinesses');
 
     // If no sessionStorage data, check if we have a valid session cookie
     if (!userData || !businessData) {
@@ -285,10 +294,24 @@ export default function BusinessDashboard() {
       console.log('🔍 Dashboard - Business logo:', businessObj.logo);
       console.log('🔍 Dashboard - Business logo type:', typeof businessObj.logo);
       console.log('🔍 Dashboard - Business logo length:', businessObj.logo ? businessObj.logo.length : 0);
+      console.log('🔍 Dashboard - Loaded user data:', userObj);
+      console.log('🔍 Dashboard - User email:', userObj.email);
+      console.log('🔍 Dashboard - User firstName:', userObj.firstName);
+      console.log('🔍 Dashboard - User lastName:', userObj.lastName);
       
       setUser(userObj);
       setBusiness(businessObj);
       
+      // Load all businesses from sessionStorage if available
+      if (allBusinessesData) {
+        try {
+          const allBusinessesObj = JSON.parse(allBusinessesData);
+          setAllBusinesses(allBusinessesObj);
+          console.log('🔍 Dashboard - Loaded all businesses:', allBusinessesObj.length);
+        } catch (error) {
+          console.error('🔍 Dashboard - Error parsing all businesses data:', error);
+        }
+      }
 
     } catch (error) {
       console.error('Error parsing session data:', error);
@@ -414,6 +437,12 @@ export default function BusinessDashboard() {
   const fetchAllBusinesses = async () => {
     if (!user?.email) return;
     
+    // If we already have businesses loaded from sessionStorage, don't fetch again
+    if (allBusinesses.length > 0) {
+      console.log('🔍 Dashboard - Already have businesses loaded from sessionStorage, skipping fetch');
+      return;
+    }
+    
     try {
       const response = await fetch('/api/business/my-businesses', {
         headers: {
@@ -423,7 +452,14 @@ export default function BusinessDashboard() {
       
       if (response.ok) {
         const data = await response.json();
-        setAllBusinesses(data.businesses || []);
+        const fetchedBusinesses = data.businesses || [];
+        console.log('🔍 Dashboard - Fetched businesses from API:', fetchedBusinesses.length);
+        
+        // Merge with existing businesses (if any) and update sessionStorage
+        const mergedBusinesses = [...allBusinesses, ...fetchedBusinesses];
+        setAllBusinesses(mergedBusinesses);
+        sessionStorage.setItem('allBusinesses', JSON.stringify(mergedBusinesses));
+        sessionStorage.setItem('totalBusinesses', mergedBusinesses.length.toString());
       }
     } catch (error) {
       console.error('Error fetching all businesses:', error);
@@ -670,6 +706,13 @@ export default function BusinessDashboard() {
         window.history.pushState({ view: 'analytics' }, '', window.location.pathname);
         break;
       case 'add-business':
+        console.log('🔍 Opening add business form. User state:', {
+          user: user,
+          userEmail: user?.email,
+          userFirstName: user?.firstName,
+          userLastName: user?.lastName,
+          isUserLoaded: !!user
+        });
         setShowAddBusiness(true);
         break;
       case 'qr-code':
@@ -679,14 +722,134 @@ export default function BusinessDashboard() {
   };
 
   const handleAddBusinessSubmit = async (data: AddBusinessData) => {
+    // Get user data from state or fallback to sessionStorage
+    let userEmail = user?.email;
+    let userFirstName = user?.firstName;
+    let userLastName = user?.lastName;
+
+    console.log('🔍 Add Business - Initial user state:', {
+      user: user,
+      userEmail: userEmail,
+      userFirstName: userFirstName,
+      userLastName: userLastName
+    });
+
+    // If user state is not available, try to get from sessionStorage
+    if (!userEmail || !userFirstName || !userLastName) {
+      console.log('⚠️ User state not available, trying sessionStorage...');
+      try {
+        const userData = sessionStorage.getItem('businessUser');
+        console.log('📋 SessionStorage user data:', userData);
+        
+        if (userData) {
+          const userObj = JSON.parse(userData);
+          userEmail = userObj.email;
+          userFirstName = userObj.firstName;
+          userLastName = userObj.lastName;
+          console.log('✅ Retrieved user data from sessionStorage:', {
+            email: userEmail,
+            firstName: userFirstName,
+            lastName: userLastName
+          });
+        }
+      } catch (error) {
+        console.error('❌ Error parsing user data from sessionStorage:', error);
+      }
+    }
+
+    // If still no user data, try to get from session API
+    if (!userEmail || !userFirstName || !userLastName) {
+      console.log('⚠️ SessionStorage also empty, trying session API...');
+      try {
+        const sessionResponse = await fetch('/api/business/check-session');
+        const sessionData = await sessionResponse.json();
+        
+        console.log('📋 Session API response:', sessionData);
+        
+        if (sessionData.hasSession && sessionData.user) {
+          userEmail = sessionData.user.email;
+          // Try to get firstName and lastName from the session user data
+          // Note: The session API might not return firstName/lastName, so we'll use email as fallback
+          userFirstName = sessionData.user.firstName || 'User';
+          userLastName = sessionData.user.lastName || 'Name';
+          
+          console.log('✅ Retrieved user data from session API:', {
+            email: userEmail,
+            firstName: userFirstName,
+            lastName: userLastName
+          });
+          
+          // Update sessionStorage with the user data
+          const userDataToStore = {
+            id: sessionData.user.id,
+            email: userEmail,
+            firstName: userFirstName,
+            lastName: userLastName,
+            role: sessionData.user.role,
+            status: 'active'
+          };
+          sessionStorage.setItem('businessUser', JSON.stringify(userDataToStore));
+          console.log('💾 Updated sessionStorage with user data');
+        }
+      } catch (error) {
+        console.error('❌ Error fetching user data from session API:', error);
+      }
+    }
+
+    // Final validation - if still no user data, try to get from business data
+    if (!userEmail || !userFirstName || !userLastName) {
+      console.log('⚠️ Session API also failed, trying business data...');
+      try {
+        const businessData = sessionStorage.getItem('businessData');
+        if (businessData) {
+          const businessObj = JSON.parse(businessData);
+          userEmail = businessObj.email;
+          userFirstName = businessObj.name?.split(' ')[0] || 'User';
+          userLastName = businessObj.name?.split(' ').slice(1).join(' ') || 'Name';
+          
+          console.log('✅ Retrieved user data from business data:', {
+            email: userEmail,
+            firstName: userFirstName,
+            lastName: userLastName
+          });
+        }
+      } catch (error) {
+        console.error('❌ Error parsing business data:', error);
+      }
+    }
+
+    // Validate that user data exists
+    if (!userEmail || !userFirstName || !userLastName) {
+      console.error('❌ User information missing after all fallbacks:', { 
+        email: userEmail, 
+        firstName: userFirstName, 
+        lastName: userLastName 
+      });
+      
+      // Log all available data for debugging
+      console.log('🔍 Debug - All available data:');
+      console.log('📋 React user state:', user);
+      console.log('📋 SessionStorage businessUser:', sessionStorage.getItem('businessUser'));
+      console.log('📋 SessionStorage businessData:', sessionStorage.getItem('businessData'));
+      console.log('📋 SessionStorage allBusinesses:', sessionStorage.getItem('allBusinesses'));
+      
+      throw new Error('User information not found. Please refresh the page and try again.');
+    }
+
     try {
+      console.log('🔄 Adding business with user info:', {
+        email: userEmail,
+        firstName: userFirstName,
+        lastName: userLastName
+      });
+
       const response = await fetch('/api/business/add-business', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-user-email': user?.email || '',
-          'x-user-firstname': user?.firstName || '',
-          'x-user-lastname': user?.lastName || '',
+          'x-user-email': userEmail,
+          'x-user-firstname': userFirstName,
+          'x-user-lastname': userLastName,
         },
         body: JSON.stringify(data),
       });
@@ -694,15 +857,21 @@ export default function BusinessDashboard() {
       const responseData = await response.json();
 
       if (!response.ok) {
+        console.error('❌ Add business API error:', responseData);
         throw new Error(responseData.error || 'Failed to add business');
       }
 
+      console.log('✅ Business added successfully:', responseData);
       setShowAddBusiness(false);
       alert('Business added successfully! It is now pending approval from our admin team.');
-      // Refresh the business list
-      fetchAllBusinesses();
+      
+      // Refresh the business list by clearing sessionStorage and fetching fresh data
+      sessionStorage.removeItem('allBusinesses');
+      sessionStorage.removeItem('totalBusinesses');
+      setAllBusinesses([]);
+      await fetchAllBusinesses();
     } catch (error) {
-      console.error('Error adding business:', error);
+      console.error('❌ Error adding business:', error);
       throw error;
     }
   };
@@ -1261,11 +1430,41 @@ export default function BusinessDashboard() {
               <div className="ml-6">
                 <select
                   value={business?.id || ''}
-                  onChange={(e) => {
+                  onChange={async (e) => {
                     const selectedBusiness = allBusinesses.find(b => b.id === e.target.value);
                     if (selectedBusiness) {
+                      console.log('🔄 Switching to business:', selectedBusiness.name);
+                      
+                      // Update the current business in state
                       setBusiness(selectedBusiness);
+                      
+                      // Update sessionStorage with the new business
                       sessionStorage.setItem('businessData', JSON.stringify(selectedBusiness));
+                      
+                      // Update the session cookie with the new business ID
+                      try {
+                        const sessionToken = sessionStorage.getItem('businessSessionToken');
+                        if (sessionToken) {
+                          const response = await fetch('/api/business/set-session', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ 
+                              sessionToken,
+                              businessId: selectedBusiness.id 
+                            }),
+                          });
+                          
+                          if (response.ok) {
+                            console.log('✅ Session updated for new business');
+                            // Refresh dashboard data for the new business
+                            fetchDashboardData();
+                          } else {
+                            console.error('❌ Failed to update session for new business');
+                          }
+                        }
+                      } catch (error) {
+                        console.error('❌ Error updating session for new business:', error);
+                      }
                     }
                   }}
                   className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
