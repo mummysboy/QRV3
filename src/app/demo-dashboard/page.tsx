@@ -882,16 +882,9 @@ export default function DemoDashboard() {
           isOpen={showCreateReward}
           onClose={() => setShowCreateReward(false)}
           onSubmit={handleCreateRewardSubmit}
-          business={{
-            id: business.id,
-            name: business.name,
-            address: business.address,
-            city: business.city,
-            state: business.state,
-            zipCode: business.zipCode,
-            category: business.category,
-            logo: business.logo,
-          }}
+          business={business}
+          allBusinesses={[business]}
+          onBusinessChange={() => {}}
           isProfileComplete={isProfileComplete}
         />
 

@@ -17,6 +17,7 @@ import Header from "@/components/Header";
 import DefaultLogo from "@/components/DefaultLogo";
 import SettingsView from "@/components/SettingsView";
 import ContactPopup from "@/components/Popups/ContactPopup";
+import BusinessDropdown from "@/components/BusinessDropdown";
 
 
 interface BusinessUser {
@@ -454,6 +455,15 @@ export default function BusinessDashboard() {
       window.removeEventListener('mousemove', handleUserInteraction);
       window.removeEventListener('touchstart', handleUserInteraction);
     };
+  }, []);
+
+  // Check for showCreateReward flag and automatically show create reward form
+  useEffect(() => {
+    const shouldShowCreateReward = sessionStorage.getItem('showCreateReward');
+    if (shouldShowCreateReward === 'true') {
+      setShowCreateReward(true);
+      sessionStorage.removeItem('showCreateReward');
+    }
   }, []);
 
 
@@ -1427,82 +1437,73 @@ export default function BusinessDashboard() {
       }`}>
         <div className="flex justify-between items-center p-6 border-b border-gray-200 bg-white/80 backdrop-blur-xl">
           <div className="flex items-center space-x-4">
-            {/* Removed the <h1>Business Dashboard</h1> banner/header from the dashboard view */}
-            
-            {/* Business Switcher */}
-            {allBusinesses.length > 1 && (
-              <div className="ml-6">
-                <select
-                  value={business?.id || ''}
-                  onChange={async (e) => {
-                    const selectedBusiness = allBusinesses.find(b => b.id === e.target.value);
-                                        if (selectedBusiness) {
-                      // Update the current business in state
-                      setBusiness(selectedBusiness);
-                      
-                      // Update sessionStorage with the new business
-                      sessionStorage.setItem('businessData', JSON.stringify(selectedBusiness));
-                      
-                      // Store the selected business ID as the last used business
-                      sessionStorage.setItem('lastBusinessId', selectedBusiness.id);
-                      
-                      // Update the session cookie with the new business ID
-                      try {
-                        const sessionToken = sessionStorage.getItem('businessSessionToken');
-                        if (sessionToken) {
-                          const response = await fetch('/api/business/set-session', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ 
-                              sessionToken,
-                              businessId: selectedBusiness.id 
-                            }),
-                          });
-                          
-                          if (response.ok) {
-                            // Show a brief message before reloading
-                            const message = document.createElement('div');
-                            message.style.cssText = `
-                              position: fixed;
-                              top: 50%;
-                              left: 50%;
-                              transform: translate(-50%, -50%);
-                              background: #10B981;
-                              color: white;
-                              padding: 12px 24px;
-                              border-radius: 8px;
-                              z-index: 9999;
-                              font-weight: 500;
-                            `;
-                            message.textContent = `Switching to ${selectedBusiness.name}...`;
-                            document.body.appendChild(message);
-                            
-                            // Force page reload to ensure everything updates
-                            setTimeout(() => {
-                              window.location.reload();
-                            }, 500);
-                          } else {
-                            console.error('Failed to update session for new business');
-                          }
-                        }
-                      } catch (error) {
-                        console.error('Error updating session for new business:', error);
-                      }
-                    }
-                  }}
-                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                >
-                  {allBusinesses.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.name} {b.status === 'pending_approval' && '(Pending)'}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
+            {/* Left side content can go here if needed */}
           </div>
 
-          {/* Removed duplicate logout button - using header navigation instead */}
+          {/* Business Switcher - Positioned on the right */}
+          <div className="flex items-center">
+            <BusinessDropdown
+              businesses={allBusinesses}
+              selectedBusiness={business}
+              onBusinessChange={async (selectedBusiness) => {
+                // Update the current business in state
+                setBusiness(selectedBusiness);
+                
+                // Update sessionStorage with the new business
+                sessionStorage.setItem('businessData', JSON.stringify(selectedBusiness));
+                
+                // Store the selected business ID as the last used business
+                sessionStorage.setItem('lastBusinessId', selectedBusiness.id);
+                
+                // Set flag to show create reward form after reload
+                sessionStorage.setItem('showCreateReward', 'true');
+                
+                // Update the session cookie with the new business ID
+                try {
+                  const sessionToken = sessionStorage.getItem('businessSessionToken');
+                  if (sessionToken) {
+                    const response = await fetch('/api/business/set-session', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ 
+                        sessionToken,
+                        businessId: selectedBusiness.id 
+                      }),
+                    });
+                    
+                    if (response.ok) {
+                      // Show a brief message before reloading
+                      const message = document.createElement('div');
+                      message.style.cssText = `
+                        position: fixed;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        background: #10B981;
+                        color: white;
+                        padding: 12px 24px;
+                        border-radius: 8px;
+                        z-index: 9999;
+                        font-weight: 500;
+                      `;
+                      message.textContent = `Switching to ${selectedBusiness.name}...`;
+                      document.body.appendChild(message);
+                      
+                      // Force page reload to ensure everything updates
+                      setTimeout(() => {
+                        window.location.reload();
+                      }, 500);
+                    } else {
+                      console.error('Failed to update session for new business');
+                    }
+                  }
+                } catch (error) {
+                  console.error('Error updating session for new business:', error);
+                }
+              }}
+              className="w-full sm:w-auto"
+            />
+          </div>
         </div>
       </div>
 
@@ -1775,15 +1776,63 @@ export default function BusinessDashboard() {
           isOpen={showCreateReward}
           onClose={() => setShowCreateReward(false)}
           onSubmit={handleCreateRewardSubmit}
-          business={{
-            id: business.id,
-            name: business.name,
-            address: business.address,
-            city: business.city,
-            state: business.state,
-            zipCode: business.zipCode,
-            category: business.category,
-            logo: business.logo,
+          business={business}
+          allBusinesses={allBusinesses}
+          onBusinessChange={async (selectedBusiness) => {
+            // Update the current business in state
+            setBusiness(selectedBusiness);
+            
+            // Update sessionStorage with the new business
+            sessionStorage.setItem('businessData', JSON.stringify(selectedBusiness));
+            
+            // Store the selected business ID as the last used business
+            sessionStorage.setItem('lastBusinessId', selectedBusiness.id);
+            
+            // Set flag to show create reward form after reload
+            sessionStorage.setItem('showCreateReward', 'true');
+            
+            // Update the session cookie with the new business ID
+            try {
+              const sessionToken = sessionStorage.getItem('businessSessionToken');
+              if (sessionToken) {
+                const response = await fetch('/api/business/set-session', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ 
+                    sessionToken,
+                    businessId: selectedBusiness.id 
+                  }),
+                });
+                
+                if (response.ok) {
+                  // Show a brief message before reloading
+                  const message = document.createElement('div');
+                  message.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: #10B981;
+                    color: white;
+                    padding: 12px 24px;
+                    border-radius: 8px;
+                    z-index: 9999;
+                    font-weight: 500;
+                  `;
+                  message.textContent = `Switching to ${selectedBusiness.name}...`;
+                  document.body.appendChild(message);
+                  
+                  // Force page reload to ensure everything updates
+                  setTimeout(() => {
+                    window.location.reload();
+                  }, 500);
+                } else {
+                  console.error('Failed to update session for new business');
+                }
+              }
+            } catch (error) {
+              console.error('Error updating session for new business:', error);
+            }
           }}
           isProfileComplete={isProfileComplete}
           isLogoProcessing={isLogoProcessing || false}

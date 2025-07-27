@@ -2,21 +2,39 @@
 
 import { useState, useEffect, useMemo } from "react";
 import CardAnimation from "@/components/CardAnimation";
+import BusinessDropdown from "@/components/BusinessDropdown";
+
+interface Business {
+  id: string;
+  name: string;
+  phone: string;
+  email: string;
+  zipCode: string;
+  category: string;
+  status: string;
+  logo: string;
+  address: string;
+  city: string;
+  state: string;
+  website: string;
+  socialMedia: string;
+  businessHours: string;
+  description: string;
+  photos: string;
+  primaryContactEmail: string;
+  primaryContactPhone: string;
+  createdAt: string;
+  updatedAt: string;
+  approvedAt: string;
+}
 
 interface CreateRewardFormProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: RewardData) => void;
-  business: {
-    id: string;
-    name: string;
-    address: string;
-    city: string;
-    state: string;
-    zipCode: string;
-    category: string;
-    logo?: string;
-  };
+  business: Business;
+  allBusinesses: Business[];
+  onBusinessChange: (business: Business) => void;
   isProfileComplete: boolean;
   isLogoProcessing?: boolean;
   shouldShowLogoProcessing?: boolean;
@@ -41,6 +59,8 @@ export default function CreateRewardForm({
   onClose, 
   onSubmit, 
   business, 
+  allBusinesses,
+  onBusinessChange,
   isProfileComplete,
   isLogoProcessing = false,
   shouldShowLogoProcessing = false
@@ -173,8 +193,6 @@ export default function CreateRewardForm({
     }));
   };
 
-
-
   const applyDateSelection = () => {
     if (selectedDate) {
       const date = new Date(selectedDate);
@@ -265,10 +283,10 @@ export default function CreateRewardForm({
       className="fixed inset-0 bg-neutral-100/80 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4"
       onClick={handleBackdropClick}
     >
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto mx-2 sm:mx-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-y-auto mx-2 sm:mx-4">
         <div className="p-4 sm:p-6 lg:p-8">
           <div className="flex justify-between items-center mb-4 sm:mb-6">
-            <h2 className="text-xl sm:text-2xl font-semibold text-gray-900">Create New Reward</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Create New Reward</h2>
             <button
               onClick={onClose}
               className="text-gray-400 hover:text-gray-600 transition-colors p-2 -m-2"
@@ -335,51 +353,20 @@ export default function CreateRewardForm({
             {/* Form Section */}
             <div className="order-1">
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Pre-filled Business Information (Read-only) */}
-                <div className="space-y-4">
-                  <h3 className="text-base sm:text-lg font-medium text-gray-900">Business Information</h3>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Business Name
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.businessName}
-                      disabled
-                      className="w-full px-3 sm:px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600 cursor-not-allowed"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Full Address
-                    </label>
-                    <input
-                      type="text"
-                      value={`${formData.businessAddress}, ${formData.businessCity}, ${formData.businessState} ${formData.businessZipCode}`}
-                      disabled
-                      className="w-full px-3 sm:px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600 cursor-not-allowed"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Category
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.businessCategory}
-                      disabled
-                      className="w-full px-3 sm:px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600 cursor-not-allowed"
+                {/* Header with Business Selection */}
+                <div className="flex justify-between items-start mb-6">
+                  <h3 className="text-lg font-medium text-gray-900">Reward Details</h3>
+                  <div className="flex-shrink-0">
+                    <BusinessDropdown
+                      businesses={allBusinesses}
+                      selectedBusiness={business}
+                      onBusinessChange={onBusinessChange}
+                      className="w-48"
                     />
                   </div>
                 </div>
-
-                {/* Editable Reward Information */}
-                <div className="space-y-4 pt-4">
-                  <h3 className="text-base sm:text-lg font-medium text-gray-900">Reward Details</h3>
-                  
+                
+                <div className="space-y-4">
                   <div>
                     <label htmlFor="subheader" className="block text-sm font-medium text-gray-700 mb-1">
                       Reward Description *
@@ -416,7 +403,7 @@ export default function CreateRewardForm({
                         {hasEnhanced && (
                           <button
                             type="button"
-                            className="px-1.5 py-0.5 text-xs text-gray-500 hover:text-gray-600 transition-colors duration-200"
+                            className="px-1.5 py-0.5 text-xs text-gray-400 hover:text-gray-600 transition-colors duration-200"
                             onClick={handleUndoEnhance}
                           >Undo</button>
                         )}
@@ -435,26 +422,20 @@ export default function CreateRewardForm({
                   {/* Preview Section - Under Description */}
                   <div className="mt-6">
                     <h4 className="text-sm font-medium text-gray-700 mb-4 text-center">Preview</h4>
-                    <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-                      <div className="flex justify-center items-center">
-                        <div className="bg-gradient-to-r from-yellow-400 via-red-500 to-green-500 p-1 rounded-xl shadow-lg">
-                          <div className="bg-white rounded-lg overflow-hidden">
-                            <CardAnimation 
-                              card={{
-                                cardid: "preview",
-                                header: formData.businessName,
-                                logokey: formData.businessLogo,
-                                addresstext: `${formData.businessAddress}, ${formData.businessCity}, ${formData.businessState} ${formData.businessZipCode}`,
-                                addressurl: "",
-                                subheader: formData.subheader || "Reward description will appear here",
-                                expires: formData.expires ? new Date(formData.expires).toISOString() : "Demo Reward Not Valid",
-                                quantity: typeof formData.quantity === 'number' ? formData.quantity : 0
-                              }}
-                              isPreview={true}
-                            />
-                          </div>
-                        </div>
-                      </div>
+                    <div className="flex justify-center items-center">
+                      <CardAnimation 
+                        card={{
+                          cardid: "preview",
+                          header: formData.businessName,
+                          logokey: formData.businessLogo,
+                          addresstext: `${formData.businessAddress}, ${formData.businessCity}, ${formData.businessState} ${formData.businessZipCode}`,
+                          addressurl: "",
+                          subheader: formData.subheader || "Reward description will appear here",
+                          expires: formData.expires,
+                          quantity: typeof formData.quantity === 'number' ? formData.quantity : 0
+                        }}
+                        isPreview={true}
+                      />
                     </div>
                   </div>
 
@@ -517,10 +498,6 @@ export default function CreateRewardForm({
                         </svg>
                       </div>
                     </div>
-
-
-
-
                   </div>
 
                   <div>
@@ -539,7 +516,6 @@ export default function CreateRewardForm({
                       className="w-full px-3 sm:px-4 py-3 border border-gray-300 rounded-xl focus:border-gray-400 focus:outline-none transition-colors text-base [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       placeholder="Enter quantity"
                     />
-
                   </div>
                 </div>
 
@@ -554,13 +530,9 @@ export default function CreateRewardForm({
                 </div>
               </form>
             </div>
-
-
           </div>
         </div>
       </div>
-
-
 
       {/* Scrollable Date Picker Modal */}
       {showDatePicker && (
@@ -606,68 +578,45 @@ export default function CreateRewardForm({
               {/* Time Selection */}
               <div className="mb-6">
                 <h4 className="text-sm font-medium text-gray-700 mb-3">Time</h4>
-                <div className="grid grid-cols-3 gap-2">
-                  {/* Hour Selection */}
+                <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-xs text-gray-500 mb-2">Hour</label>
-                    <div className="h-24 overflow-y-auto border border-gray-200 rounded-lg scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                    <label className="block text-xs text-gray-600 mb-1">Hour</label>
+                    <select
+                      value={selectedHour}
+                      onChange={(e) => setSelectedHour(parseInt(e.target.value))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                    >
                       {generateHourOptions().map((hour) => (
-                        <button
-                          key={hour}
-                          type="button"
-                          onClick={() => setSelectedHour(hour)}
-                          className={`w-full px-3 py-2 text-center hover:bg-gray-50 transition-colors flex-shrink-0 ${
-                            selectedHour === hour
-                              ? 'bg-blue-50 text-blue-700'
-                              : 'text-gray-700'
-                          }`}
-                        >
+                        <option key={hour} value={hour}>
                           {hour}
-                        </button>
+                        </option>
                       ))}
-                    </div>
+                    </select>
                   </div>
-
-                  {/* Minute Selection */}
                   <div>
-                    <label className="block text-xs text-gray-500 mb-2">Minute</label>
-                    <div className="h-24 overflow-y-auto border border-gray-200 rounded-lg scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                    <label className="block text-xs text-gray-600 mb-1">Minute</label>
+                    <select
+                      value={selectedMinute}
+                      onChange={(e) => setSelectedMinute(parseInt(e.target.value))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                    >
                       {generateMinuteOptions().map((minute) => (
-                        <button
-                          key={minute}
-                          type="button"
-                          onClick={() => setSelectedMinute(minute)}
-                          className={`w-full px-3 py-2 text-center hover:bg-gray-50 transition-colors flex-shrink-0 ${
-                            selectedMinute === minute
-                              ? 'bg-blue-50 text-blue-700'
-                              : 'text-gray-700'
-                          }`}
-                        >
-                          {minute.toString().padStart(2, '0')}
-                        </button>
+                        <option key={minute} value={minute}>
+                          {String(minute).padStart(2, '0')}
+                        </option>
                       ))}
-                    </div>
+                    </select>
                   </div>
-
-                  {/* AM/PM Selection */}
                   <div>
-                    <label className="block text-xs text-gray-500 mb-2">Period</label>
-                    <div className="h-24 overflow-y-auto border border-gray-200 rounded-lg scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-                      {['AM', 'PM'].map((period) => (
-                        <button
-                          key={period}
-                          type="button"
-                          onClick={() => setSelectedPeriod(period as 'AM' | 'PM')}
-                          className={`w-full px-3 py-2 text-center hover:bg-gray-50 transition-colors flex-shrink-0 ${
-                            selectedPeriod === period
-                              ? 'bg-blue-50 text-blue-700'
-                              : 'text-gray-700'
-                          }`}
-                        >
-                          {period}
-                        </button>
-                      ))}
-                    </div>
+                    <label className="block text-xs text-gray-600 mb-1">Period</label>
+                    <select
+                      value={selectedPeriod}
+                      onChange={(e) => setSelectedPeriod(e.target.value as 'AM' | 'PM')}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                    >
+                      <option value="AM">AM</option>
+                      <option value="PM">PM</option>
+                    </select>
                   </div>
                 </div>
               </div>
@@ -675,17 +624,14 @@ export default function CreateRewardForm({
               {/* Action Buttons */}
               <div className="flex gap-3">
                 <button
-                  type="button"
                   onClick={cancelDateSelection}
-                  className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors"
                 >
                   Cancel
                 </button>
                 <button
-                  type="button"
                   onClick={applyDateSelection}
-                  disabled={!selectedDate}
-                  className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-500 transition-colors"
+                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
                 >
                   Apply
                 </button>

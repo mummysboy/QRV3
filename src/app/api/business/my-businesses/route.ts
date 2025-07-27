@@ -140,9 +140,16 @@ export async function GET(request: NextRequest) {
       };
     });
 
+    // Sort businesses by creation date (earliest first)
+    const sortedBusinesses = businessesWithRoles.sort((a, b) => {
+      const dateA = new Date(a.createdAt).getTime();
+      const dateB = new Date(b.createdAt).getTime();
+      return dateA - dateB;
+    });
+
     return NextResponse.json({
       success: true,
-      businesses: businessesWithRoles,
+      businesses: sortedBusinesses,
     });
   } catch (error) {
     console.error("Error fetching user businesses:", error);

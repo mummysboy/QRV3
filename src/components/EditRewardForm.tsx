@@ -360,26 +360,20 @@ export default function EditRewardForm({ card, onClose, onSuccess, localEditOnly
                   {/* Preview Section - Under Description */}
                   <div className="mt-6">
                     <h4 className="text-sm font-medium text-gray-700 mb-4 text-center">Preview</h4>
-                    <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-                      <div className="flex justify-center items-center">
-                        <div className="bg-gradient-to-r from-yellow-400 via-red-500 to-green-500 p-1 rounded-xl shadow-lg">
-                          <div className="bg-white rounded-lg overflow-hidden">
-                            <CardAnimation 
-                              card={{
-                                cardid: "preview",
-                                header: businessInfo.name,
-                                logokey: businessInfo.logo,
-                                addresstext: businessInfo.address,
-                                addressurl: "",
-                                subheader: formData.subheader || "Reward description will appear here",
-                                expires: formData.expires ? new Date(formData.expires).toISOString() : "Demo Reward Not Valid",
-                                quantity: typeof formData.quantity === 'number' ? formData.quantity : 0
-                              }}
-                              isPreview={true}
-                            />
-                          </div>
-                        </div>
-                      </div>
+                    <div className="flex justify-center items-center">
+                      <CardAnimation 
+                        card={{
+                          cardid: "preview",
+                          header: businessInfo.name,
+                          logokey: businessInfo.logo,
+                          addresstext: businessInfo.address,
+                          addressurl: "",
+                          subheader: formData.subheader || "Reward description will appear here",
+                          expires: formData.expires ? new Date(formData.expires).toISOString() : "Demo Reward Not Valid",
+                          quantity: typeof formData.quantity === 'number' ? formData.quantity : 0
+                        }}
+                        isPreview={true}
+                      />
                     </div>
                   </div>
 

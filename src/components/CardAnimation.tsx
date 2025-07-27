@@ -253,8 +253,8 @@ export default function CardAnimation({ card, isPreview = false, isRedeem = fals
   }
 
   return (
-    <div className={`relative w-full max-w-sm mx-auto overflow-hidden ${isPreview ? 'h-auto min-h-[200px] flex items-center justify-center' : 'h-[60vh] sm:h-[60vh]'} rounded-lg`}>
-      {!isPreview && isRedeem && (
+    <div className={`relative w-full max-w-sm mx-auto overflow-hidden ${isPreview ? 'h-auto min-h-[400px] flex items-center justify-center' : 'h-[60vh] sm:h-[60vh]'} rounded-lg`}>
+      {(isPreview || (!isPreview && isRedeem)) && (
         <img
           src="/assets/videos/RedeemReward.png"
           alt="Reward Background"
@@ -286,9 +286,10 @@ export default function CardAnimation({ card, isPreview = false, isRedeem = fals
         className={`${isPreview ? 'relative w-full' : 'absolute inset-0'} flex items-center justify-center transition-opacity duration-[2500ms] ease-in-out ${
           isPreview ? 'opacity-100' : (showOverlay ? "opacity-100" : "opacity-0")
         }`}
+        style={isPreview ? { paddingTop: '40px' } : {}}
       >
         {/* Removed Status & Quantity Overlays */}
-        <div className={`bg-white text-black text-center px-1 py-1 rounded-lg ${isPreview ? 'max-w-[180px] w-full' : 'max-w-[160px] w-full'} flex flex-col justify-between transition-all duration-500 ${isPreview ? 'min-h-[160px]' : 'min-h-[130px]'} overflow-hidden`}>
+        <div className={`bg-white text-black text-center px-1 py-1 rounded-lg ${isPreview ? 'max-w-[150px] w-full' : 'max-w-[160px] w-full'} flex flex-col justify-between transition-all duration-500 ${isPreview ? 'min-h-[140px]' : 'min-h-[130px]'} overflow-hidden`}>
           {!card ? (
             <p className="text-xs font-semibold text-gray-700 px-1 leading-tight">
               Sorry, there are no rewards available at the moment. Please try
@@ -402,14 +403,20 @@ export default function CardAnimation({ card, isPreview = false, isRedeem = fals
                 </div>
 
                 {/* Description - Dynamic sizing */}
-                <div className={`flex-1 flex flex-col justify-center ${isPreview ? 'px-2' : 'px-1'}mt-2 mb-1`}>
+                <div className={`flex-1 flex flex-col justify-center ${isPreview ? 'px-2' : 'px-1'}mt-1 mb-0`}>
                   <p className={`${isPreview ? 'text-xs' : 'text-xs'} leading-tight break-words overflow-hidden text-ellipsis max-w-full line-clamp-3 ${(cardData?.subheader?.length || 0) > 80 ? 'text-xs' : (cardData?.subheader?.length || 0) > 40 ? 'text-sm' : 'text-base'}`}>
                     {cardData?.subheader}
                   </p>
                 </div>
 
                 {/* Expiration - Fixed at bottom */}
-                <div className={`flex-shrink-0 ${isPreview ? 'px-2' : 'px-1'} mt-4`}> 
+                <div className={`flex-shrink-0 ${isPreview ? 'px-2' : 'px-1'} mt-2 ${(() => {
+                  if (!cardData?.expires || cardData.expires === "Demo Reward Not Valid") return '';
+                  const now = new Date();
+                  const exp = new Date(cardData.expires as string);
+                  const diffInHours = (exp.getTime() - now.getTime()) / (1000 * 60 * 60);
+                  return diffInHours > 24 ? 'mb-0' : 'mb-1';
+                })()}`}> 
                   {cardData?.expires && 
                    cardData.expires !== "Demo Reward Not Valid" && 
                    (typeof cardData.expires === 'string' ? cardData.expires.trim() !== "" : true) ? (
