@@ -65,6 +65,93 @@ export async function PUT(request: NextRequest) {
 
     const client = generateClient();
 
+    // Get current business data to check if address has changed
+    const currentBusinessResult = await client.graphql({
+      query: `
+        query GetBusiness($id: String!) {
+          getBusiness(id: $id) {
+            id
+            name
+            address
+            city
+            state
+            zipCode
+            neighborhood
+          }
+        }
+      `,
+      variables: { id: businessId },
+    });
+
+    const currentBusiness = (currentBusinessResult as { data: { getBusiness?: { 
+      id: string; 
+      name: string; 
+      address: string; 
+      city: string; 
+      state: string; 
+      zipCode: string; 
+      neighborhood: string; 
+    } } }).data.getBusiness;
+
+    if (!currentBusiness) {
+      return NextResponse.json(
+        { error: "Business not found" },
+        { status: 404 }
+      );
+    }
+
+    // Check if address has changed
+    const addressChanged = (
+      (address !== undefined && address !== currentBusiness.address) ||
+      (city !== undefined && city !== currentBusiness.city) ||
+      (state !== undefined && state !== currentBusiness.state) ||
+      (zipCode !== undefined && zipCode !== currentBusiness.zipCode)
+    );
+
+    console.log('🔧 Business update: Address change detection:', {
+      addressChanged,
+      currentAddress: currentBusiness.address,
+      newAddress: address,
+      currentCity: currentBusiness.city,
+      newCity: city,
+      currentState: currentBusiness.state,
+      newState: state,
+      currentZipCode: currentBusiness.zipCode,
+      newZipCode: zipCode
+    });
+
+    // Detect neighborhood if address has changed or if neighborhood is empty
+    let neighborhood = currentBusiness.neighborhood || '';
+    const shouldDetectNeighborhood = addressChanged || !neighborhood;
+    
+    if (shouldDetectNeighborhood) {
+      console.log('🔧 Business update: Detecting neighborhood...', {
+        reason: addressChanged ? 'address changed' : 'neighborhood empty'
+      });
+      try {
+        const detectRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/detect-neighborhood`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            businessName: name || currentBusiness.name,
+            address: `${address || currentBusiness.address}, ${city || currentBusiness.city}, ${state || currentBusiness.state} ${zipCode || currentBusiness.zipCode}`
+          })
+        });
+        
+        if (detectRes.ok) {
+          const detectData = await detectRes.json();
+          neighborhood = detectData.neighborhood || '';
+          console.log('🔧 Business update: Detected neighborhood:', neighborhood);
+        } else {
+          console.error('🔧 Business update: Failed to detect neighborhood');
+        }
+      } catch (error) {
+        console.error('🔧 Business update: Error detecting neighborhood:', error);
+      }
+    } else {
+      console.log('🔧 Business update: No neighborhood detection needed, keeping existing neighborhood:', neighborhood);
+    }
+
     // Build update input
     const updateInput = {
       id: businessId,
@@ -83,6 +170,7 @@ export async function PUT(request: NextRequest) {
       ...(photos !== undefined && { photos }),
       ...(primaryContactEmail !== undefined && { primaryContactEmail }),
       ...(primaryContactPhone !== undefined && { primaryContactPhone }),
+      ...(shouldDetectNeighborhood && neighborhood && { neighborhood }), // Update neighborhood if detected
       updatedAt: new Date().toISOString(),
       // Temporarily remove profileComplete until schema is deployed
       // ...(profileComplete !== undefined && { profileComplete }),
@@ -90,7 +178,7 @@ export async function PUT(request: NextRequest) {
 
     console.log('🔧 Business update: Update input:', updateInput);
 
-    // Update business information (neighborhood is set during approval)
+    // Update business information
     const updateResult = await client.graphql({
       query: `
         mutation UpdateBusiness($input: UpdateBusinessInput!) {
@@ -106,6 +194,7 @@ export async function PUT(request: NextRequest) {
             address
             city
             state
+            neighborhood
             website
             socialMedia
             businessHours
@@ -125,52 +214,18 @@ export async function PUT(request: NextRequest) {
     });
 
     const updatedBusiness = (updateResult as { data: { updateBusiness: Business } }).data.updateBusiness;
-    console.log('✅ Business update: Successfully updated business:', {
-      id: updatedBusiness.id,
-      name: updatedBusiness.name,
-      logo: updatedBusiness.logo
-    });
-
-    // If logo was updated, update all rewards (cards) for this business to use the new logo
-    if (logo !== undefined) {
-      try {
-        // Fetch all cards for this business
-        const cardsResult = await client.graphql({
-          query: `
-            query GetBusinessCards($businessId: String!) {
-              listCards(filter: { businessId: { eq: $businessId } }) {
-                items { cardid }
-              }
-            }
-          `,
-          variables: { businessId },
-        });
-        const cards = (cardsResult as { data: { listCards: { items: Array<{ cardid: string }> } } }).data.listCards.items;
-        // Update each card's logokey
-        for (const card of cards) {
-          await client.graphql({
-            query: `
-              mutation UpdateCard($input: UpdateCardInput!) {
-                updateCard(input: $input) { cardid logokey }
-              }
-            `,
-            variables: { input: { cardid: card.cardid, logokey: logo } },
-          });
-        }
-        console.log(`✅ Updated logokey for ${cards.length} rewards to new logo.`);
-      } catch (err) {
-        console.error('❌ Failed to update rewards with new logo:', err);
-      }
-    }
+    
+    console.log('🔧 Business update: Successfully updated business:', updatedBusiness);
 
     return NextResponse.json({
       success: true,
       business: updatedBusiness,
+      neighborhoodDetected: addressChanged ? neighborhood : null,
     });
   } catch (error) {
-    console.error("❌ Business update: Error updating business:", error);
+    console.error('🔧 Business update: Error updating business:', error);
     return NextResponse.json(
-      { error: "Failed to update business information" },
+      { error: "Failed to update business" },
       { status: 500 }
     );
   }

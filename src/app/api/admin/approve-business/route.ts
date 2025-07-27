@@ -32,6 +32,7 @@ export async function POST(request: NextRequest) {
             state
             zipCode
             status
+            neighborhood
           }
         }
       `,
@@ -46,6 +47,7 @@ export async function POST(request: NextRequest) {
       state: string; 
       zipCode: string; 
       status: string; 
+      neighborhood: string; 
     } } }).data.getBusiness;
 
     if (!business) {
@@ -55,10 +57,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Detect neighborhood using AI
-    let neighborhood = '';
+    // Always detect neighborhood using AI (in case it wasn't detected during signup)
+    let neighborhood = business.neighborhood || '';
     try {
-      const detectRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3005'}/api/detect-neighborhood`, {
+      console.log('🔧 Admin approval: Detecting neighborhood...');
+      const detectRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/detect-neighborhood`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -66,26 +69,30 @@ export async function POST(request: NextRequest) {
           address: `${business.address}, ${business.city}, ${business.state} ${business.zipCode}`
         })
       });
+      
       if (detectRes.ok) {
         const detectData = await detectRes.json();
         neighborhood = detectData.neighborhood || '';
-        console.log('Detected neighborhood for business approval:', neighborhood);
+        console.log('🔧 Admin approval: Detected neighborhood:', neighborhood);
+      } else {
+        console.error('🔧 Admin approval: Failed to detect neighborhood');
       }
-    } catch (err) {
-      console.error('Neighborhood detection failed during approval:', err);
+    } catch (error) {
+      console.error('🔧 Admin approval: Error detecting neighborhood:', error);
     }
 
-    // Update business status to approved and add neighborhood
-    const result = await client.graphql({
+    // Update business status to approved and include neighborhood
+    const updateResult = await client.graphql({
       query: `
         mutation UpdateBusiness($input: UpdateBusinessInput!) {
           updateBusiness(input: $input) {
             id
             name
             status
+            neighborhood
+            updatedAt
             approvedAt
             approvedBy
-            neighborhood
           }
         }
       `,
@@ -93,36 +100,38 @@ export async function POST(request: NextRequest) {
         input: {
           id: businessId,
           status: "approved",
-          approvedAt: new Date().toISOString(),
-          approvedBy: "admin", // TODO: Get actual admin user ID
-          neighborhood, // AI-detected neighborhood
+          neighborhood: neighborhood, // Always update neighborhood
           updatedAt: new Date().toISOString(),
+          approvedAt: new Date().toISOString(),
+          approvedBy: "admin",
         },
       },
     });
 
-    const updatedBusiness = (result as { data: { updateBusiness: { 
+    const updatedBusiness = (updateResult as { data: { updateBusiness: { 
       id: string; 
       name: string; 
       status: string; 
+      neighborhood: string; 
+      updatedAt: string; 
       approvedAt: string; 
       approvedBy: string; 
-      neighborhood: string;
     } } }).data.updateBusiness;
 
-    // TODO: Send approval email to business owner
-    // TODO: Send notification to business owner
+    console.log('🔧 Admin approval: Successfully approved business:', {
+      id: updatedBusiness.id,
+      name: updatedBusiness.name,
+      neighborhood: updatedBusiness.neighborhood,
+      status: updatedBusiness.status
+    });
 
-    return NextResponse.json(
-      { 
-        success: true, 
-        message: "Business approved successfully with neighborhood detection",
-        business: updatedBusiness
-      },
-      { status: 200 }
-    );
+    return NextResponse.json({
+      success: true,
+      message: "Business approved successfully",
+      business: updatedBusiness,
+    });
   } catch (error) {
-    console.error("Error approving business:", error);
+    console.error('🔧 Admin approval: Error approving business:', error);
     return NextResponse.json(
       { error: "Failed to approve business" },
       { status: 500 }

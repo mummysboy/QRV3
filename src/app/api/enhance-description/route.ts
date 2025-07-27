@@ -44,15 +44,21 @@ export async function POST(req: Request) {
       );
     }
     const openai = new OpenAI({ apiKey: openaiKey });
-    // Compose the prompt for enhancement with advertising tone and character limit
-    const prompt = `Transform this reward description into a concise, compelling advertisement. Use an exciting, action-oriented tone that creates urgency and desire. Keep it under 80 characters and avoid concluding sentences. Make it punchy and direct.\n\nOriginal: ${description}\n\nEnhanced:`;
+    
+    // Updated prompt to be more explicit about not including quotation marks
+    const prompt = `Transform this reward description into a concise, compelling advertisement. Use an exciting, action-oriented tone that creates urgency and desire. Keep it under 80 characters and avoid concluding sentences. Make it punchy and direct. Do NOT include any quotation marks in your response.
+
+Original description: ${description}
+
+Enhanced description:`;
+    
     // Use gpt-4o, gpt-4-turbo, or fallback to gpt-3.5-turbo
     let model = 'gpt-4o';
     try {
       await openai.chat.completions.create({
         model,
         messages: [
-          { role: 'system', content: 'You are a marketing copywriter specializing in creating compelling, concise reward descriptions with an advertising tone.' },
+          { role: 'system', content: 'You are a marketing copywriter specializing in creating compelling, concise reward descriptions with an advertising tone. Never include quotation marks in your responses.' },
           { role: 'user', content: prompt }
         ],
         max_tokens: 60,
@@ -65,7 +71,7 @@ export async function POST(req: Request) {
         await openai.chat.completions.create({
           model,
           messages: [
-            { role: 'system', content: 'You are a marketing copywriter specializing in creating compelling, concise reward descriptions with an advertising tone.' },
+            { role: 'system', content: 'You are a marketing copywriter specializing in creating compelling, concise reward descriptions with an advertising tone. Never include quotation marks in your responses.' },
             { role: 'user', content: prompt }
           ],
           max_tokens: 60,
@@ -75,17 +81,22 @@ export async function POST(req: Request) {
         model = 'gpt-3.5-turbo';
       }
     }
+    
     // Actually get the completion
     const completion = await openai.chat.completions.create({
       model,
       messages: [
-        { role: 'system', content: 'You are a marketing copywriter specializing in creating compelling, concise reward descriptions with an advertising tone.' },
+        { role: 'system', content: 'You are a marketing copywriter specializing in creating compelling, concise reward descriptions with an advertising tone. Never include quotation marks in your responses.' },
         { role: 'user', content: prompt }
       ],
       max_tokens: 60,
       temperature: 0.8,
     });
+    
     let enhancedDescription = completion.choices[0]?.message?.content?.trim() || description;
+    
+    // Remove any quotation marks that might have been included despite the prompt
+    enhancedDescription = enhancedDescription.replace(/["""]/g, '');
     
     // Ensure the enhanced description doesn't exceed 80 characters
     if (enhancedDescription.length > 80) {

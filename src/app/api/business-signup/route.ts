@@ -94,24 +94,16 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const businesses = (existingBusiness as { data: { listBusinesses: { items: Array<{ id: string; name: string; zipCode: string; status: string }> } } }).data.listBusinesses.items;
+    const existingBusinesses = (existingBusiness as { data: { listBusinesses: { items: Array<{ id: string; name: string; zipCode: string; status: string }> } } }).data.listBusinesses.items;
     
-    if (businesses.length > 0) {
-      // Business exists - check if it's already claimed
-      const existingBusiness = businesses[0];
-      if (existingBusiness.status === "approved") {
-        return NextResponse.json(
-          { 
-            error: "Business already exists and is claimed",
-            businessExists: true,
-            businessId: existingBusiness.id
-          },
-          { status: 409 }
-        );
-      }
+    if (existingBusinesses.length > 0) {
+      return NextResponse.json(
+        { error: "Business already exists" },
+        { status: 409 }
+      );
     }
 
-    // Check if user already exists
+    // Check if business user already exists
     const existingUser = await client.graphql({
       query: `
         query GetBusinessUser($email: String!) {
@@ -121,6 +113,7 @@ export async function POST(request: NextRequest) {
             items {
               id
               email
+              businessId
             }
           }
         }
@@ -130,9 +123,9 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const users = (existingUser as { data: { listBusinessUsers: { items: Array<{ id: string; email: string }> } } }).data.listBusinessUsers.items;
+    const existingUsers = (existingUser as { data: { listBusinessUsers: { items: Array<{ id: string; email: string; businessId: string }> } } }).data.listBusinessUsers.items;
     
-    if (users.length > 0) {
+    if (existingUsers.length > 0) {
       return NextResponse.json(
         { error: "User with this email already exists" },
         { status: 409 }
@@ -140,10 +133,33 @@ export async function POST(request: NextRequest) {
     }
 
     // Hash password
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create business (neighborhood will be detected when approved)
+    // Detect neighborhood using AI
+    let neighborhood = '';
+    try {
+      console.log('🔧 Business signup: Detecting neighborhood...');
+      const detectRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/detect-neighborhood`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          businessName: businessName,
+          address: `${businessAddress}, ${businessCity}, ${businessState} ${businessZipCode}`
+        })
+      });
+      
+      if (detectRes.ok) {
+        const detectData = await detectRes.json();
+        neighborhood = detectData.neighborhood || '';
+        console.log('🔧 Business signup: Detected neighborhood:', neighborhood);
+      } else {
+        console.error('🔧 Business signup: Failed to detect neighborhood');
+      }
+    } catch (error) {
+      console.error('🔧 Business signup: Error detecting neighborhood:', error);
+    }
+
+    // Create business with detected neighborhood
     const businessResult = await client.graphql({
       query: `
         mutation CreateBusiness($input: CreateBusinessInput!) {
@@ -155,6 +171,10 @@ export async function POST(request: NextRequest) {
             zipCode
             category
             status
+            address
+            city
+            state
+            neighborhood
             createdAt
           }
         }
@@ -170,14 +190,14 @@ export async function POST(request: NextRequest) {
           address: businessAddress,
           city: businessCity,
           state: businessState,
-          // neighborhood will be set when approved
+          neighborhood: neighborhood, // Include detected neighborhood
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         },
       },
     });
 
-    const business = (businessResult as { data: { createBusiness: { id: string; name: string; phone: string; email: string; zipCode: string; category: string; status: string; createdAt: string } } }).data.createBusiness;
+    const business = (businessResult as { data: { createBusiness: { id: string; name: string; phone: string; email: string; zipCode: string; category: string; status: string; address: string; city: string; state: string; neighborhood: string; createdAt: string } } }).data.createBusiness;
 
     // Create business user
     const userResult = await client.graphql({
@@ -211,27 +231,34 @@ export async function POST(request: NextRequest) {
 
     const user = (userResult as { data: { createBusinessUser: { id: string; businessId: string; email: string; firstName: string; lastName: string; role: string; status: string; createdAt: string } } }).data.createBusinessUser;
 
-    return NextResponse.json(
-      { 
-        success: true, 
-        message: "Business signup submitted successfully",
-        data: {
-          business: business,
-          user: {
-            id: user.id,
-            email: user.email,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            role: user.role,
-          }
-        }
+    console.log('🔧 Business signup: Successfully created business and user:', {
+      businessId: business.id,
+      businessName: business.name,
+      neighborhood: business.neighborhood,
+      userId: user.id,
+      userEmail: user.email
+    });
+
+    return NextResponse.json({
+      success: true,
+      business: {
+        id: business.id,
+        name: business.name,
+        status: business.status,
+        neighborhood: business.neighborhood,
       },
-      { status: 201 }
-    );
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
+      message: "Business signup successful. Please wait for admin approval.",
+    });
   } catch (error) {
-    console.error("Error creating business signup:", error);
+    console.error('🔧 Business signup: Error creating business:', error);
     return NextResponse.json(
-      { error: "Failed to submit business signup" },
+      { error: "Failed to create business" },
       { status: 500 }
     );
   }
