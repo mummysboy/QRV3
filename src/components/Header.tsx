@@ -148,6 +148,15 @@ export default function Header({
   }, []);
 
   const handleLogout = async () => {
+    // Store the current business ID as the last used business before clearing session
+    if (business?.id) {
+      sessionStorage.setItem('lastBusinessId', business.id);
+      console.log('💾 Stored last business ID on logout:', business.id);
+      console.log('📋 Business name being stored:', business.name);
+    } else {
+      console.log('❌ No business ID available to store on logout');
+    }
+    
     // Clear sessionStorage
     sessionStorage.removeItem('businessUser');
     sessionStorage.removeItem('businessData');

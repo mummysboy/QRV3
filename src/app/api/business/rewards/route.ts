@@ -74,6 +74,8 @@ export async function GET(request: NextRequest) {
 
     const cards = (cardsResult as { data: { listCards: { items: Card[] } } }).data.listCards.items;
 
+
+
     // Get claimed rewards for this business
     const claimedRewardsResult = await client.graphql({
       query: `

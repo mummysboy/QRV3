@@ -178,9 +178,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Use the first approved business as the primary business for the session
-    const primaryBusiness = approvedBusinesses[0];
-    const primaryUser = users.find(user => user.businessId === primaryBusiness.id);
+    // Check if there's a stored last business ID in the request headers
+    const lastBusinessId = request.headers.get('x-last-business-id');
+    let primaryBusiness = approvedBusinesses[0]; // Default to first approved business
+    let primaryUser = users.find(user => user.businessId === primaryBusiness.id);
+
+    // ALWAYS prioritize the last business ID if provided, regardless of session cookie
+    if (lastBusinessId) {
+      const lastBusiness = approvedBusinesses.find(business => business.id === lastBusinessId);
+      
+      if (lastBusiness) {
+        primaryBusiness = lastBusiness;
+        primaryUser = users.find(user => user.businessId === primaryBusiness.id);
+      }
+    }
 
     if (!primaryUser) {
       return NextResponse.json(
@@ -218,7 +229,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Return user data, primary business, and all businesses
+    // Set the session cookie
     const response = NextResponse.json(
       {
         success: true,
@@ -238,6 +249,15 @@ export async function POST(request: NextRequest) {
       },
       { status: 200 }
     );
+
+    // Set the session cookie with the selected business ID
+    response.cookies.set('qrewards_session', sessionToken, {
+      httpOnly: true,
+      secure: false, // Temporarily disable for testing
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 30, // 30 days
+      path: '/',
+    });
 
     return response;
   } catch (error) {

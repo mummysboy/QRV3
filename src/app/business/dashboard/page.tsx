@@ -202,27 +202,39 @@ export default function BusinessDashboard() {
   // Function to fetch user and business data from session
   const fetchUserDataFromSession = async () => {
     try {
-      const response = await fetch('/api/business/check-session');
+      // Check for last business ID in sessionStorage
+      const lastBusinessId = sessionStorage.getItem('lastBusinessId');
+      
+      const headers: Record<string, string> = {};
+      if (lastBusinessId) {
+        headers['x-last-business-id'] = lastBusinessId;
+      }
+      
+      const response = await fetch('/api/business/check-session', {
+        headers
+      });
       const data = await response.json();
       
       if (data.hasSession && data.user && data.business) {
-        console.log('🔍 Dashboard - Loaded user and business data from session');
-        console.log('📋 User data from session:', data.user);
-        console.log('📋 Business data from session:', data.business);
-        
         // Store user data in sessionStorage for consistency
         sessionStorage.setItem('businessUser', JSON.stringify(data.user));
         sessionStorage.setItem('businessData', JSON.stringify(data.business));
-        console.log('💾 Stored user and business data in sessionStorage');
+        
+        // Store the current business ID as the last used business
+        if (data.business?.id) {
+          const existingLastBusinessId = sessionStorage.getItem('lastBusinessId');
+          if (existingLastBusinessId !== data.business.id) {
+            sessionStorage.setItem('lastBusinessId', data.business.id);
+          }
+        }
         
         setUser(data.user);
         setBusiness(data.business);
       } else {
-        console.error('🔍 Dashboard - No valid session data');
         router.push('/business/login');
       }
     } catch (error) {
-      console.error('🔍 Dashboard - Error fetching user data from session:', error);
+      console.error('Error fetching user data from session:', error);
       router.push('/business/login');
     }
   };
@@ -260,23 +272,31 @@ export default function BusinessDashboard() {
     if (!userData || !businessData) {
       const checkSessionAndRedirect = async () => {
         try {
-          const response = await fetch('/api/business/check-session');
+          // Check for last business ID in sessionStorage
+          const lastBusinessId = sessionStorage.getItem('lastBusinessId');
+          
+          const headers: Record<string, string> = {};
+          if (lastBusinessId) {
+            headers['x-last-business-id'] = lastBusinessId;
+          }
+          
+          const response = await fetch('/api/business/check-session', {
+            headers
+          });
           const data = await response.json();
           
           if (data.hasSession) {
-            console.log('🔍 Dashboard - Valid session cookie exists, fetching user data...');
             // We have a valid session, so we should stay on dashboard
             // Fetch user and business data from the session
             await fetchUserDataFromSession();
             setIsLoading(false);
             return;
           } else {
-            console.log('🔍 Dashboard - No valid session, redirecting to login');
             router.push('/business/login');
             return;
           }
         } catch (error) {
-          console.error('🔍 Dashboard - Error checking session:', error);
+          console.error('Error checking session:', error);
           router.push('/business/login');
           return;
         }
@@ -290,26 +310,26 @@ export default function BusinessDashboard() {
       const userObj = JSON.parse(userData);
       const businessObj = JSON.parse(businessData);
       
-      console.log('🔍 Dashboard - Loaded business data:', businessObj);
-      console.log('🔍 Dashboard - Business logo:', businessObj.logo);
-      console.log('🔍 Dashboard - Business logo type:', typeof businessObj.logo);
-      console.log('🔍 Dashboard - Business logo length:', businessObj.logo ? businessObj.logo.length : 0);
-      console.log('🔍 Dashboard - Loaded user data:', userObj);
-      console.log('🔍 Dashboard - User email:', userObj.email);
-      console.log('🔍 Dashboard - User firstName:', userObj.firstName);
-      console.log('🔍 Dashboard - User lastName:', userObj.lastName);
+
       
       setUser(userObj);
       setBusiness(businessObj);
+      
+      // Store the current business ID as the last used business
+      if (businessObj?.id) {
+        const existingLastBusinessId = sessionStorage.getItem('lastBusinessId');
+        if (existingLastBusinessId !== businessObj.id) {
+          sessionStorage.setItem('lastBusinessId', businessObj.id);
+        }
+      }
       
       // Load all businesses from sessionStorage if available
       if (allBusinessesData) {
         try {
           const allBusinessesObj = JSON.parse(allBusinessesData);
           setAllBusinesses(allBusinessesObj);
-          console.log('🔍 Dashboard - Loaded all businesses:', allBusinessesObj.length);
         } catch (error) {
-          console.error('🔍 Dashboard - Error parsing all businesses data:', error);
+          console.error('Error parsing all businesses data:', error);
         }
       }
 
@@ -331,7 +351,6 @@ export default function BusinessDashboard() {
   // Refresh business data if logo is missing
   useEffect(() => {
     if (business?.id && (!business.logo || business.logo.trim() === '')) {
-      console.log('🔄 Business logo is missing, refreshing data...');
       refreshBusinessData();
     }
   }, [business?.id, business?.logo]);
@@ -361,29 +380,33 @@ export default function BusinessDashboard() {
 
   // Check for session and show consent banner if needed
   useEffect(() => {
-    console.log('🔍 Dashboard - Consent check starting...');
     const sessionToken = sessionStorage.getItem('businessSessionToken');
-    console.log('🔍 Dashboard - sessionToken:', sessionToken ? 'present' : 'missing');
     
     // Check if we have a valid session cookie via API
     const checkSession = async () => {
       try {
-        const response = await fetch('/api/business/check-session');
+        // Check for last business ID in sessionStorage
+        const lastBusinessId = sessionStorage.getItem('lastBusinessId');
+        
+        const headers: Record<string, string> = {};
+        if (lastBusinessId) {
+          headers['x-last-business-id'] = lastBusinessId;
+        }
+        
+        const response = await fetch('/api/business/check-session', {
+          headers
+        });
         const data = await response.json();
-        console.log('🔍 Dashboard - Session check result:', data);
         
         if (data.hasSession) {
-          console.log('🔍 Dashboard - Valid session cookie exists, hiding consent banner');
           setShowConsent(false);
         } else if (sessionToken) {
-          console.log('🔍 Dashboard - No cookie but has sessionToken, showing consent banner');
           setShowConsent(true);
         } else {
-          console.log('🔍 Dashboard - No cookie or sessionToken, hiding consent banner');
           setShowConsent(false);
         }
       } catch (error) {
-        console.error('🔍 Dashboard - Error checking session:', error);
+        console.error('Error checking session:', error);
         // Fallback: show consent banner if we have sessionToken
         if (sessionToken) {
           setShowConsent(true);
@@ -439,7 +462,6 @@ export default function BusinessDashboard() {
     
     // If we already have businesses loaded from sessionStorage, don't fetch again
     if (allBusinesses.length > 0) {
-      console.log('🔍 Dashboard - Already have businesses loaded from sessionStorage, skipping fetch');
       return;
     }
     
@@ -453,7 +475,6 @@ export default function BusinessDashboard() {
       if (response.ok) {
         const data = await response.json();
         const fetchedBusinesses = data.businesses || [];
-        console.log('🔍 Dashboard - Fetched businesses from API:', fetchedBusinesses.length);
         
         // Merge with existing businesses (if any) and update sessionStorage
         const mergedBusinesses = [...allBusinesses, ...fetchedBusinesses];
@@ -471,25 +492,22 @@ export default function BusinessDashboard() {
     if (!business?.id) return;
     
     try {
-      console.log('🔄 Refreshing business data from database...');
       const response = await fetch(`/api/business/get-business?businessId=${business.id}`);
       
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.business) {
-          console.log('✅ Business data refreshed:', data.business);
-          console.log('📋 Logo field:', data.business.logo);
           
           // Update session storage with fresh data
           sessionStorage.setItem('businessData', JSON.stringify(data.business));
           setBusiness(data.business);
         }
-      } else {
-        console.error('❌ Failed to refresh business data:', response.status);
+              } else {
+          console.error('Failed to refresh business data:', response.status);
+        }
+      } catch (error) {
+        console.error('Error refreshing business data:', error);
       }
-    } catch (error) {
-      console.error('❌ Error refreshing business data:', error);
-    }
   };
 
   const fetchDashboardData = async () => {
@@ -497,6 +515,10 @@ export default function BusinessDashboard() {
     
     setIsLoadingData(true);
     try {
+      // Clear existing data first
+      setCards([]);
+      setAnalytics(null);
+      
       // Fetch rewards data
       const rewardsResponse = await fetch(`/api/business/rewards?businessId=${business.id}`);
       const rewardsData = await rewardsResponse.json();
@@ -1370,34 +1392,16 @@ export default function BusinessDashboard() {
   // Consent banner handlers
   const handleConsentAccept = async () => {
     const sessionToken = sessionStorage.getItem('businessSessionToken');
-    console.log('🔍 Consent Accept - sessionToken:', sessionToken ? 'present' : 'missing');
     if (!sessionToken) return;
-    console.log('🔍 Consent Accept - calling set-session API...');
     try {
-      const response = await fetch('/api/business/set-session', {
+      await fetch('/api/business/set-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionToken }),
       });
-      console.log('🔍 Consent Accept - API response status:', response.status);
-      const responseData = await response.json();
-      console.log('🔍 Consent Accept - API response data:', responseData);
-      console.log('🔍 Consent Accept - API call completed');
       setShowConsent(false);
-      // Check if cookie was set via API
-      setTimeout(async () => {
-        try {
-          const checkResponse = await fetch('/api/business/check-session');
-          const checkData = await checkResponse.json();
-          console.log('🔍 Consent Accept - Cookie check after API call:', checkData);
-        } catch (error) {
-          console.error('🔍 Consent Accept - Error checking cookie:', error);
-        }
-      }, 100);
-      // Optionally, remove the sessionToken from sessionStorage
-      // sessionStorage.removeItem('businessSessionToken');
     } catch (error) {
-      console.error('🔍 Consent Accept - API call failed:', error);
+      console.error('Error setting session:', error);
     }
   };
   const handleConsentDeny = () => {
@@ -1432,14 +1436,15 @@ export default function BusinessDashboard() {
                   value={business?.id || ''}
                   onChange={async (e) => {
                     const selectedBusiness = allBusinesses.find(b => b.id === e.target.value);
-                    if (selectedBusiness) {
-                      console.log('🔄 Switching to business:', selectedBusiness.name);
-                      
+                                        if (selectedBusiness) {
                       // Update the current business in state
                       setBusiness(selectedBusiness);
                       
                       // Update sessionStorage with the new business
                       sessionStorage.setItem('businessData', JSON.stringify(selectedBusiness));
+                      
+                      // Store the selected business ID as the last used business
+                      sessionStorage.setItem('lastBusinessId', selectedBusiness.id);
                       
                       // Update the session cookie with the new business ID
                       try {
@@ -1455,15 +1460,33 @@ export default function BusinessDashboard() {
                           });
                           
                           if (response.ok) {
-                            console.log('✅ Session updated for new business');
-                            // Refresh dashboard data for the new business
-                            fetchDashboardData();
+                            // Show a brief message before reloading
+                            const message = document.createElement('div');
+                            message.style.cssText = `
+                              position: fixed;
+                              top: 50%;
+                              left: 50%;
+                              transform: translate(-50%, -50%);
+                              background: #10B981;
+                              color: white;
+                              padding: 12px 24px;
+                              border-radius: 8px;
+                              z-index: 9999;
+                              font-weight: 500;
+                            `;
+                            message.textContent = `Switching to ${selectedBusiness.name}...`;
+                            document.body.appendChild(message);
+                            
+                            // Force page reload to ensure everything updates
+                            setTimeout(() => {
+                              window.location.reload();
+                            }, 500);
                           } else {
-                            console.error('❌ Failed to update session for new business');
+                            console.error('Failed to update session for new business');
                           }
                         }
                       } catch (error) {
-                        console.error('❌ Error updating session for new business:', error);
+                        console.error('Error updating session for new business:', error);
                       }
                     }
                   }}
@@ -1665,18 +1688,19 @@ export default function BusinessDashboard() {
                     </div>
                   </button>
 
+
                 </div>
               </div>
             </div>
 
             {/* Rewards Section */}
-            <div className="transition-all duration-600 delay-500 ease-in-out mb-12">
+            <div key={`rewards-${business?.id}`} className="transition-all duration-600 delay-500 ease-in-out mb-12">
               <div className="mb-6">
                 <h3 className="text-2xl font-light text-gray-900">Your Rewards</h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {cards.map((card, idx) => (
-                  <div key={idx} className="group relative">
+                  <div key={`${business?.id}-${card.cardid}-${idx}`} className="group relative">
                     {/* Real Card - exactly like the claim reward page */}
                     <div className="relative w-full max-w-sm mx-auto">
                       <CardAnimation 

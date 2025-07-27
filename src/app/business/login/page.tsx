@@ -17,7 +17,18 @@ export default function BusinessLogin() {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const response = await fetch('/api/business/check-session');
+        // Check for last business ID in sessionStorage
+        const lastBusinessId = sessionStorage.getItem('lastBusinessId');
+        
+        const headers: Record<string, string> = {};
+        if (lastBusinessId) {
+          headers['x-last-business-id'] = lastBusinessId;
+          console.log('🔍 Login - Sending last business ID to check-session:', lastBusinessId);
+        }
+        
+        const response = await fetch('/api/business/check-session', {
+          headers
+        });
         const data = await response.json();
         
         if (data.hasSession) {
@@ -46,11 +57,25 @@ export default function BusinessLogin() {
     setError("");
 
     try {
+      // Check if there's a stored last business ID
+      const lastBusinessId = sessionStorage.getItem('lastBusinessId');
+      console.log('🔍 Login - Checking for last business ID in sessionStorage:', lastBusinessId);
+      
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      
+      // Add last business ID to headers if it exists
+      if (lastBusinessId) {
+        headers['x-last-business-id'] = lastBusinessId;
+        console.log('🔍 Login - ✅ Sending last business ID with login request:', lastBusinessId);
+      } else {
+        console.log('🔍 Login - ❌ No last business ID found in sessionStorage');
+      }
+
       const response = await fetch('/api/business-login', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify(formData),
       });
 

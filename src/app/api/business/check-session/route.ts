@@ -41,6 +41,10 @@ interface Business {
 export async function GET(request: NextRequest) {
   try {
     const sessionToken = request.cookies.get('qrewards_session')?.value;
+    const lastBusinessId = request.headers.get('x-last-business-id');
+    
+    console.log('🔍 Check-Session - Session token:', sessionToken ? 'present' : 'missing');
+    console.log('🔍 Check-Session - Last business ID from header:', lastBusinessId || 'not provided');
     
     if (!sessionToken) {
       return NextResponse.json({ 
@@ -92,7 +96,48 @@ export async function GET(request: NextRequest) {
         });
       }
       
-      // Fetch business data
+      // Determine which business ID to use
+      let targetBusinessId = decoded.businessId; // Default to session cookie business ID
+      
+      // If lastBusinessId is provided, check if user has access to it
+      if (lastBusinessId && lastBusinessId !== decoded.businessId) {
+        console.log('🔍 Check-Session - Last business ID provided, checking access...');
+        
+        // Check if user has access to the last business ID
+        const userAccessResult = await client.graphql({
+          query: `
+            query GetBusinessUser($email: String!, $businessId: String!) {
+              listBusinessUsers(filter: {
+                email: { eq: $email },
+                businessId: { eq: $businessId }
+              }) {
+                items {
+                  id
+                  businessId
+                  status
+                }
+              }
+            }
+          `,
+          variables: {
+            email: user.email,
+            businessId: lastBusinessId,
+          },
+        });
+        
+        const userAccess = (userAccessResult as { data: { listBusinessUsers: { items: Array<{ id: string; businessId: string; status: string }> } } }).data.listBusinessUsers.items;
+        
+        if (userAccess.length > 0 && userAccess[0].status === 'active') {
+          targetBusinessId = lastBusinessId;
+          console.log('🔍 Check-Session - ✅ User has access to last business, using it:', lastBusinessId);
+        } else {
+          console.log('🔍 Check-Session - ❌ User does not have access to last business, using session business:', decoded.businessId);
+        }
+      } else {
+        console.log('🔍 Check-Session - Using session business ID:', decoded.businessId);
+      }
+      
+      // Fetch business data using the determined business ID
       const businessResult = await client.graphql({
         query: `
           query GetBusiness($id: String!) {
@@ -122,7 +167,7 @@ export async function GET(request: NextRequest) {
           }
         `,
         variables: {
-          id: decoded.businessId,
+          id: targetBusinessId,
         },
       });
 
