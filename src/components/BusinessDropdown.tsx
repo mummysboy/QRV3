@@ -118,14 +118,7 @@ export default function BusinessDropdown({
     return parts[0]?.trim() || "";
   };
 
-  // Helper function to format creation date
-  const formatCreationDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      year: 'numeric' 
-    });
-  };
+
 
   if (businesses.length <= 1) {
     return null;
@@ -208,11 +201,6 @@ export default function BusinessDropdown({
                       {/* Street Address */}
                       <div className="text-xs text-gray-500 truncate mt-0.5">
                         {getStreetAddress(business.address)}
-                      </div>
-                      
-                      {/* Creation Date */}
-                      <div className="text-xs text-gray-400 mt-0.5">
-                        Created {formatCreationDate(business.createdAt)}
                       </div>
                     </div>
                     

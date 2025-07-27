@@ -198,10 +198,18 @@ export default function BusinessDashboard() {
     };
   }, [currentView]);
 
-  // Handle page refresh - ensure we start on dashboard view
+  // Handle page refresh - restore saved view state or default to dashboard
   useEffect(() => {
-    // If user refreshes the page, always start on dashboard view
-    setCurrentView('dashboard');
+    // Check if there's a saved view state from business switching
+    const savedView = sessionStorage.getItem('currentView') as 'dashboard' | 'analytics' | 'settings' | null;
+    if (savedView && ['dashboard', 'analytics', 'settings'].includes(savedView)) {
+      setCurrentView(savedView);
+      // Clear the saved view state after restoring it
+      sessionStorage.removeItem('currentView');
+    } else {
+      // If user refreshes the page normally, start on dashboard view
+      setCurrentView('dashboard');
+    }
   }, []);
 
   // Function to fetch user and business data from session
@@ -1471,6 +1479,9 @@ export default function BusinessDashboard() {
                 // Store the selected business ID as the last used business
                 sessionStorage.setItem('lastBusinessId', selectedBusiness.id);
                 
+                // Store the current view state to restore after reload
+                sessionStorage.setItem('currentView', currentView);
+                
                 // Update the session cookie with the new business ID
                 try {
                   const sessionToken = sessionStorage.getItem('businessSessionToken');
@@ -1800,6 +1811,9 @@ export default function BusinessDashboard() {
             
             // Store the selected business ID as the last used business
             sessionStorage.setItem('lastBusinessId', selectedBusiness.id);
+            
+            // Store the current view state to restore after reload
+            sessionStorage.setItem('currentView', currentView);
             
             // Set flag to show create reward form after reload
             sessionStorage.setItem('showCreateReward', 'true');
