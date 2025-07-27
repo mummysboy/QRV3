@@ -147,6 +147,40 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Content moderation check - simplified for now
+    console.log('🔍 Checking content moderation for:', subheader);
+    try {
+      // Simple keyword-based moderation for now
+      const explicitKeywords = [
+        'beer', 'wine', 'liquor', 'alcohol', 'drunk', 'jerk', 'stupid', 'idiot',
+        'damn', 'hell', 'ass', 'bitch', 'fuck', 'shit', 'piss', 'cock', 'dick',
+        'pussy', 'vagina', 'penis', 'sex', 'sexual', 'nude', 'naked', 'porn',
+        'kill', 'murder', 'death', 'die', 'hate', 'racist', 'sexist', 'homophobic'
+      ];
+      
+      const lowerSubheader = subheader.toLowerCase();
+      const hasExplicitContent = explicitKeywords.some(keyword => 
+        lowerSubheader.includes(keyword)
+      );
+      
+      if (hasExplicitContent) {
+        console.log('🔍 Content moderation: EXPLICIT content detected');
+        return NextResponse.json(
+          { 
+            error: "Content moderation failed",
+            message: "Sorry, it looks like there is explicit content in this reward",
+            isExplicit: true
+          },
+          { status: 400 }
+        );
+      } else {
+        console.log('🔍 Content moderation: SAFE content');
+      }
+    } catch (moderationError) {
+      console.error('❌ Content moderation error:', moderationError);
+      console.warn('⚠️ Content moderation failed, proceeding with reward creation');
+    }
+
     const client = generateClient();
 
     // Generate unique card ID
@@ -258,6 +292,42 @@ export async function PUT(request: NextRequest) {
         { error: "Card ID is required" },
         { status: 400 }
       );
+    }
+
+    // Content moderation check for updates - simplified
+    if (subheader) {
+      console.log('🔍 Checking content moderation for update:', subheader);
+      try {
+        // Simple keyword-based moderation for now
+        const explicitKeywords = [
+          'beer', 'wine', 'liquor', 'alcohol', 'drunk', 'jerk', 'stupid', 'idiot',
+          'damn', 'hell', 'ass', 'bitch', 'fuck', 'shit', 'piss', 'cock', 'dick',
+          'pussy', 'vagina', 'penis', 'sex', 'sexual', 'nude', 'naked', 'porn',
+          'kill', 'murder', 'death', 'die', 'hate', 'racist', 'sexist', 'homophobic'
+        ];
+        
+        const lowerSubheader = subheader.toLowerCase();
+        const hasExplicitContent = explicitKeywords.some(keyword => 
+          lowerSubheader.includes(keyword)
+        );
+        
+        if (hasExplicitContent) {
+          console.log('🔍 Content moderation for update: EXPLICIT content detected');
+          return NextResponse.json(
+            { 
+              error: "Content moderation failed",
+              message: "Sorry, it looks like there is explicit content in this reward",
+              isExplicit: true
+            },
+            { status: 400 }
+          );
+        } else {
+          console.log('🔍 Content moderation for update: SAFE content');
+        }
+      } catch (moderationError) {
+        console.error('❌ Content moderation error for update:', moderationError);
+        console.warn('⚠️ Content moderation failed for update, proceeding');
+      }
     }
 
     const client = generateClient();

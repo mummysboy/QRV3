@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import CreateRewardForm from "@/components/CreateRewardForm";
 import EditRewardForm from "@/components/EditRewardForm";
@@ -18,6 +18,7 @@ import DefaultLogo from "@/components/DefaultLogo";
 import SettingsView from "@/components/SettingsView";
 import ContactPopup from "@/components/Popups/ContactPopup";
 import BusinessDropdown from "@/components/BusinessDropdown";
+import { useNotifications } from "@/components/NotificationProvider";
 
 
 interface BusinessUser {
@@ -119,6 +120,15 @@ type TimeRange = 'day' | 'week' | 'month';
 
 
 export default function BusinessDashboard() {
+  const router = useRouter();
+  const { showSuccess, showError } = useNotifications();
+  
+  // Test notification on component mount (commented out for now)
+  // React.useEffect(() => {
+  //   console.log('🔔 BusinessDashboard: Testing notification system');
+  //   showSuccess('Test Notification', 'This is a test notification to verify the system is working');
+  // }, [showSuccess]);
+  
   const [user, setUser] = useState<BusinessUser | null>(null);
   const [business, setBusiness] = useState<Business | null>(null);
   const [allBusinesses, setAllBusinesses] = useState<Business[]>([]);
@@ -161,12 +171,6 @@ export default function BusinessDashboard() {
     description: ''
   });
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
-
-
-
-
-
-  const router = useRouter();
 
   // Handle browser back button navigation
   useEffect(() => {
@@ -570,14 +574,14 @@ export default function BusinessDashboard() {
       if (response.ok) {
         console.log('Reward deleted successfully');
         fetchDashboardData(); // Refresh data
-        alert('Reward deleted successfully!');
+        showSuccess('Reward Deleted', 'Reward deleted successfully!');
       } else {
         const error = await response.json();
-        alert(error.error || 'Failed to delete reward');
+        showError('Delete Failed', error.error || 'Failed to delete reward');
       }
     } catch (error) {
       console.error('Error deleting reward:', error);
-      alert('Failed to delete reward');
+      showError('Delete Failed', 'Failed to delete reward');
     }
   };
 
@@ -712,15 +716,27 @@ export default function BusinessDashboard() {
         console.log('Reward created successfully:', result);
         setShowCreateReward(false);
         fetchDashboardData();
-        alert('Reward created successfully!');
+        showSuccess('Reward Created', 'Reward created successfully!');
       } else {
         const error = await response.json();
         console.error('Failed to create reward:', error);
-        alert(error.error || 'Failed to create reward');
+        
+        // Check if it's a content moderation error
+        if (error.message?.includes('explicit content') || error.isExplicit) {
+          showError('Content Moderation Failed', error.message || 'Sorry, it looks like there is explicit content in this reward. Please revise your description.');
+          // Throw error so CreateRewardForm can handle it
+          throw new Error(error.message || 'Content moderation failed');
+        } else {
+          showError('Creation Failed', error.error || error.message || 'Failed to create reward');
+          // Throw error so CreateRewardForm can handle it
+          throw new Error(error.error || error.message || 'Failed to create reward');
+        }
       }
     } catch (error) {
       console.error('Error creating reward:', error);
-      alert('Failed to create reward');
+      showError('Creation Failed', 'Network error. Please check your connection and try again.');
+      // Re-throw the error so CreateRewardForm can handle it
+      throw error;
     }
   };
 
@@ -1935,7 +1951,7 @@ export default function BusinessDashboard() {
             <p className="mt-4 sm:mt-6 text-gray-500 text-xs sm:text-sm text-center px-4">
               {qrLayout === 'single' 
                 ? 'Print and post this card anywhere you want to find customers!'
-                : `Print and cut out ${qrLayout === '2x2' ? '4' : qrLayout === '3x3' ? '9' : '16'} QR codes to place around your business!`
+                : `Print and cut out ${qrLayout === '2x2' ? '4' : qrLayout === '3x3' ? '9' : '16'} QR codes to place wherever you want to find customers!`
               }
             </p>
           </div>

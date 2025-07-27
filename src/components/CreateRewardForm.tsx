@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import CardAnimation from "@/components/CardAnimation";
 import BusinessDropdown from "@/components/BusinessDropdown";
+import { useNotifications } from "@/components/NotificationProvider";
 
 interface Business {
   id: string;
@@ -65,6 +66,7 @@ export default function CreateRewardForm({
   isLogoProcessing = false,
   shouldShowLogoProcessing = false
 }: CreateRewardFormProps) {
+  const { showSuccess, showError } = useNotifications();
   // Ensure business.logo is never undefined
   const businessWithLogo = useMemo(() => ({
     ...business,
@@ -120,12 +122,13 @@ export default function CreateRewardForm({
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [prevDescription, setPrevDescription] = useState<string | null>(null);
   const [hasEnhanced, setHasEnhanced] = useState(false);
+  const [explicitContentError, setExplicitContentError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!isProfileComplete) {
-      alert("Please complete your business profile by uploading a logo before creating rewards.");
+      showError("Profile Incomplete", "Please complete your business profile by uploading a logo before creating rewards.");
       return;
     }
 
@@ -136,6 +139,7 @@ export default function CreateRewardForm({
     }
 
     setIsSubmitting(true);
+    setExplicitContentError(null);
     
     try {
       await onSubmit(formData);
@@ -153,8 +157,25 @@ export default function CreateRewardForm({
         quantity: 100,
         expires: "",
       });
-    } catch (error) {
+      showSuccess("Reward Created!", "Your reward has been successfully created and is now live.");
+    } catch (error: unknown) {
       console.error("Error creating reward:", error);
+      
+      // Check if it's an explicit content error
+      const errorMessage = error instanceof Error ? error.message : '';
+      const errorObj = error as { isExplicit?: boolean };
+      
+      if (errorMessage.includes('explicit content') || errorMessage.includes('Content moderation failed') || errorObj.isExplicit) {
+        setExplicitContentError("Sorry, it looks like there is explicit content in this reward");
+        showError("Content Moderation Failed", "Sorry, it looks like there is explicit content in this reward. Please revise your description.");
+        // Clear the description field
+        setFormData(prev => ({
+          ...prev,
+          subheader: ""
+        }));
+      } else {
+        showError("Creation Failed", "Failed to create reward. Please try again.");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -379,11 +400,25 @@ export default function CreateRewardForm({
                         onChange={handleInputChange}
                         required
                         rows={4}
-                        className="w-full px-3 sm:px-4 py-3 pr-20 border border-gray-300 rounded-xl focus:border-gray-400 focus:outline-none transition-colors text-base resize-none"
+                        className={`w-full px-3 sm:px-4 py-3 pr-20 border rounded-xl focus:outline-none transition-colors text-base resize-none ${
+                          explicitContentError 
+                            ? 'border-red-500 focus:border-red-500' 
+                            : 'border-gray-300 focus:border-gray-400'
+                        }`}
                         placeholder="Describe your reward offer (e.g., Get a free coffee with any purchase, 20% off your next visit, Buy one get one free)"
                         disabled={isEnhancing}
                         maxLength={80}
                       />
+                      {explicitContentError && (
+                        <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                          <div className="flex items-center">
+                            <svg className="h-5 w-5 text-red-400 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                            </svg>
+                            <span className="text-sm text-red-800 font-medium">{explicitContentError}</span>
+                          </div>
+                        </div>
+                      )}
                       <div className="absolute bottom-2 right-2 flex items-center gap-2">
                         {formData.subheader.trim() && (
                           <button
