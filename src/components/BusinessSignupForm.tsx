@@ -23,6 +23,7 @@ export interface BusinessSignupData {
   password: string;
   firstName: string;
   lastName: string;
+  agreedToTerms: boolean;
 }
 
 interface FieldErrors {
@@ -37,6 +38,7 @@ interface FieldErrors {
   password?: string;
   firstName?: string;
   lastName?: string;
+  agreedToTerms?: string;
   customCategory?: string;
   general?: string;
 }
@@ -68,6 +70,7 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
     password: "",
     firstName: "",
     lastName: "",
+    agreedToTerms: false,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showCustomCategory, setShowCustomCategory] = useState(false);
@@ -177,11 +180,18 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
     ];
 
     requiredFields.forEach(field => {
-      if (!formData[field] || formData[field].trim() === '') {
+      const value = formData[field];
+      if (typeof value === 'string' && (!value || value.trim() === '')) {
         errors[field] = `This field is required.`;
         hasErrors = true;
       }
     });
+
+    // Check terms agreement
+    if (!formData.agreedToTerms) {
+      errors.agreedToTerms = "You must agree to the Terms and Conditions to continue.";
+      hasErrors = true;
+    }
 
     // Check custom category if "Other" is selected
     if (formData.category === "Other" && (!customCategory || customCategory.trim() === '')) {
@@ -193,10 +203,12 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
     Object.keys(formData).forEach(key => {
       const fieldName = key as keyof BusinessSignupData;
       const value = formData[fieldName];
-      const error = validateField(key, value);
-      if (error) {
-        errors[fieldName] = error;
-        hasErrors = true;
+      if (typeof value === 'string') {
+        const error = validateField(key, value);
+        if (error) {
+          errors[fieldName] = error;
+          hasErrors = true;
+        }
       }
     });
 
@@ -227,6 +239,7 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
         password: "",
         firstName: "",
         lastName: "",
+        agreedToTerms: false,
       });
       setCustomCategory("");
       setShowCustomCategory(false);
@@ -621,6 +634,44 @@ export default function BusinessSignupForm({ isOpen, onClose, onSubmit }: Busine
                     )}
                   </div>
                   <p className="text-xs text-gray-500 mt-1">Password must be at least 8 characters long</p>
+                </div>
+
+                {/* Terms and Conditions */}
+                <div className="pt-4">
+                  <div className="flex items-start space-x-3">
+                    <input
+                      type="checkbox"
+                      id="agreedToTerms"
+                      name="agreedToTerms"
+                      checked={formData.agreedToTerms}
+                      onChange={(e) => {
+                        clearFieldError('agreedToTerms');
+                        setFormData(prev => ({
+                          ...prev,
+                          agreedToTerms: e.target.checked
+                        }));
+                      }}
+                      className="mt-1 h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                    />
+                    <div className="flex-1">
+                      <label htmlFor="agreedToTerms" className="text-sm text-gray-700">
+                        I agree to the{" "}
+                        <a
+                          href="/terms-and-conditions.html"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-green-600 hover:text-green-700 underline"
+                        >
+                          Terms and Conditions
+                        </a>
+                        {" "}and acknowledge that I have read and understood them.
+                        {fieldErrors.agreedToTerms && <span className="text-red-500 ml-1">*</span>}
+                      </label>
+                      {fieldErrors.agreedToTerms && (
+                        <span className="text-red-500 text-xs mt-1 block">{fieldErrors.agreedToTerms}</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 <div className="pt-4 sm:pt-6">

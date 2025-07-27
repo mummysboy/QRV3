@@ -15,6 +15,7 @@ interface BusinessSignupData {
   password: string;
   firstName: string;
   lastName: string;
+  agreedToTerms: boolean;
 }
 
 export async function POST(request: NextRequest) {
@@ -32,12 +33,21 @@ export async function POST(request: NextRequest) {
       password,
       firstName,
       lastName,
+      agreedToTerms,
     }: BusinessSignupData = body;
 
     // Validate required fields
     if (!businessName || !businessPhone || !businessAddress || !businessCity || !businessState || !businessZipCode || !category || !email || !password || !firstName || !lastName) {
       return NextResponse.json(
         { error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    // Validate terms agreement
+    if (!agreedToTerms) {
+      return NextResponse.json(
+        { error: "You must agree to the Terms and Conditions to continue" },
         { status: 400 }
       );
     }
