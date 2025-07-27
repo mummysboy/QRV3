@@ -417,7 +417,7 @@ export default function CardAnimation({ card, isPreview = false, isRedeem = fals
                   const now = new Date();
                   const exp = new Date(cardData.expires as string);
                   const diffInHours = (exp.getTime() - now.getTime()) / (1000 * 60 * 60);
-                  return diffInHours > 24 ? '-mb-3' : '-mb-3';
+                  return diffInHours > 24 ? '-mb-3' : '-mb-0';
                 })()}`}> 
                   {cardData?.expires && 
                    cardData.expires !== "Demo Reward Not Valid" && 
