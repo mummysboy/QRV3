@@ -1455,9 +1455,6 @@ export default function BusinessDashboard() {
                 // Store the selected business ID as the last used business
                 sessionStorage.setItem('lastBusinessId', selectedBusiness.id);
                 
-                // Set flag to show create reward form after reload
-                sessionStorage.setItem('showCreateReward', 'true');
-                
                 // Update the session cookie with the new business ID
                 try {
                   const sessionToken = sessionStorage.getItem('businessSessionToken');
