@@ -1137,8 +1137,8 @@ export default function BusinessDashboard() {
       
       case '2x2':
         return (
-          <div className="w-full max-w-[500px] sm:max-w-[680px] h-auto bg-white p-3 sm:p-8 rounded-xl border-2 border-gray-200">
-            <div className="grid grid-cols-2 gap-3 sm:gap-8 justify-items-center">
+          <div className="w-full max-w-[600px] sm:max-w-[800px] h-auto bg-white p-6 sm:p-12 rounded-xl border-2 border-gray-200">
+            <div className="grid grid-cols-2 gap-6 sm:gap-12 justify-items-center">
               {Array.from({ length: 4 }).map((_, index) => (
                 <QRRewardCard key={index} size="medium" />
               ))}
@@ -1148,8 +1148,8 @@ export default function BusinessDashboard() {
       
       case '3x3':
         return (
-          <div className="w-full max-w-[500px] sm:max-w-[680px] h-auto bg-white p-2 sm:p-6 rounded-xl border-2 border-gray-200">
-            <div className="grid grid-cols-3 gap-2 sm:gap-4 justify-items-center">
+          <div className="w-full max-w-[600px] sm:max-w-[800px] h-auto bg-white p-4 sm:p-8 rounded-xl border-2 border-gray-200">
+            <div className="grid grid-cols-3 gap-4 sm:gap-6 justify-items-center">
               {Array.from({ length: 9 }).map((_, index) => (
                 <QRRewardCard key={index} size="small" />
               ))}
@@ -1159,8 +1159,8 @@ export default function BusinessDashboard() {
       
       case '4x4':
         return (
-          <div className="w-full max-w-[500px] sm:max-w-[680px] h-auto bg-white p-2 sm:p-4 rounded-xl border-2 border-gray-200">
-            <div className="grid grid-cols-4 gap-1 sm:gap-3 justify-items-center">
+          <div className="w-full max-w-[600px] sm:max-w-[800px] h-auto bg-white p-3 sm:p-6 rounded-xl border-2 border-gray-200">
+            <div className="grid grid-cols-4 gap-2 sm:gap-4 justify-items-center">
               {Array.from({ length: 16 }).map((_, index) => (
                 <QRRewardCard key={index} size="tiny" />
               ))}
@@ -1915,7 +1915,7 @@ export default function BusinessDashboard() {
       {/* QR Code Modal */}
       {showQRCodeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-2 sm:p-4">
-          <div className="relative bg-white rounded-2xl shadow-2xl p-4 sm:p-6 w-full max-w-4xl mx-auto flex flex-col items-center max-h-[95vh] overflow-y-auto">
+          <div className="relative bg-white rounded-2xl shadow-2xl p-4 sm:p-6 w-full max-w-6xl mx-auto flex flex-col items-center max-h-[95vh] overflow-y-auto">
             <button
               className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 z-10"
               onClick={() => setShowQRCodeModal(false)}
@@ -1952,7 +1952,7 @@ export default function BusinessDashboard() {
             </div>
             
             {/* QR Code Display */}
-            <div ref={qrRef} className="flex justify-center w-full overflow-hidden">
+            <div ref={qrRef} className="flex justify-center w-full p-4">
               {renderQRLayout()}
             </div>
             
