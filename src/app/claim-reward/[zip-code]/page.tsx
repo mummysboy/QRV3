@@ -12,6 +12,7 @@ import { generateClient } from "aws-amplify/api";
 import ContactPopup from "@/components/Popups/ContactPopup";
 import { useParams } from "next/navigation";
 import { trackCardView } from "@/lib/analytics";
+import { isCardExpired } from "@/lib/utils";
 
 interface CardData {
   cardid: string;
@@ -208,6 +209,14 @@ export default function ClaimRewardPage() {
         }
 
         console.log("📋 Setting card data:", data);
+        
+        // Additional safety check: verify the card is not expired
+        if (data && isCardExpired(data.expires)) {
+          console.log("⚠️ Card is expired, not displaying:", data.cardid);
+          setCard(null);
+          return;
+        }
+        
         setCard(data);
         
         // Track the card view for analytics

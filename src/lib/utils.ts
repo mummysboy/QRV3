@@ -49,3 +49,34 @@ export function getCookie(name: string): string | null {
 export function deleteCookie(name: string, options: { path?: string } = {}) {
   document.cookie = `${name}=; Max-Age=0; path=${options.path || '/'}; expires=Thu, 01 Jan 1970 00:00:01 GMT;`;
 }
+
+/**
+ * Check if a card is expired based on its expiration date
+ * @param expires - The expiration date string (ISO format)
+ * @returns true if the card is expired, false otherwise
+ */
+export function isCardExpired(expires: string | null | undefined): boolean {
+  if (!expires || expires.trim() === '') {
+    return false; // No expiration date means it doesn't expire
+  }
+  
+  try {
+    const expirationDate = new Date(expires);
+    const currentDate = new Date();
+    
+    // Check if the expiration date is in the past
+    return expirationDate < currentDate;
+  } catch (error) {
+    console.error('Error parsing expiration date:', error);
+    return false; // If we can't parse the date, assume it's not expired
+  }
+}
+
+/**
+ * Filter out expired cards from an array
+ * @param cards - Array of cards with expiration dates
+ * @returns Array of non-expired cards
+ */
+export function filterExpiredCards<T extends { expires?: string | null }>(cards: T[]): T[] {
+  return cards.filter(card => !isCardExpired(card.expires));
+}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { isCardExpired } from "@/lib/utils";
 
 interface CardData {
   cardid: string;
@@ -91,6 +92,13 @@ export default function ClaimRewardPopup({
     console.log("🔵 email:", email);
     console.log("🔵 phone:", phone);
     console.log("🔵 card:", card);
+    
+    // Check if card is expired
+    if (card.expires && isCardExpired(card.expires)) {
+      console.log("🔴 Card is expired, cannot claim");
+      setError("This reward has expired and cannot be claimed.");
+      return;
+    }
     
     if (deliveryMethod === "email") {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

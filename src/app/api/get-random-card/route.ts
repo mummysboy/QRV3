@@ -4,6 +4,7 @@ import { generateClient } from "aws-amplify/api";
 import { Amplify } from "aws-amplify";
 import { Schema } from "../../../../amplify/data/resource";
 import outputs from "../../../../amplify_outputs.json";
+import { filterExpiredCards } from "@/lib/utils";
 
 Amplify.configure(outputs);
 const client = generateClient<Schema>();
@@ -18,8 +19,17 @@ export async function GET() {
       return NextResponse.json({ error: "No cards available" }, { status: 404 });
     }
 
-    // Pick a random card
-    const card = cards[Math.floor(Math.random() * cards.length)];
+    // Filter out expired cards
+    const validCards = filterExpiredCards(cards);
+    
+    if (validCards.length === 0) {
+      return NextResponse.json({ error: "No non-expired cards available" }, { status: 404 });
+    }
+
+    console.log(`📊 Total cards: ${cards.length}, Non-expired cards: ${validCards.length}`);
+
+    // Pick a random card from non-expired cards
+    const card = validCards[Math.floor(Math.random() * validCards.length)];
 
     return NextResponse.json(card);
   } catch (err) {

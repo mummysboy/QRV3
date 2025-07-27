@@ -4,6 +4,7 @@ import { Amplify } from "aws-amplify";
 import { generateClient } from "aws-amplify/api";
 import { Schema } from "../../../../amplify/data/resource";
 import outputs from "../../../../amplify_outputs.json";
+import { isCardExpired } from "@/lib/utils";
 
 Amplify.configure(outputs);
 const client = generateClient<Schema>();
@@ -42,7 +43,7 @@ export async function POST(req: Request) {
     }
 
     // ✅ 1. Get current card and decrement quantity (skip for demo)
-    let card: { quantity: number; businessId?: string | null } | null = null;
+    let card: { quantity: number; businessId?: string | null; expires?: string | null } | null = null;
     if (!isDemo) {
       try {
         console.log("🔍 Attempting to get card with cardid:", cardid);
@@ -60,7 +61,16 @@ export async function POST(req: Request) {
         card = cardResponse.data;
         console.log("🔍 Found card:", JSON.stringify(card, null, 2));
         
-        if (card.quantity <= 0) {
+        // Check if card is expired
+        if (card && card.expires && isCardExpired(card.expires)) {
+          console.error("❌ Card is expired:", cardid);
+          return NextResponse.json(
+            { error: "Card has expired" },
+            { status: 400 }
+          );
+        }
+        
+        if (card && card.quantity <= 0) {
           console.error("❌ Card is out of stock. Current quantity:", card.quantity);
           return NextResponse.json(
             { error: "Card is out of stock" },

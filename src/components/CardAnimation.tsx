@@ -41,6 +41,7 @@ function CountdownTimer({ expirationDate }: { expirationDate: string }) {
     minutes: number;
     seconds: number;
   }>({ hours: 0, minutes: 0, seconds: 0 });
+  const [isExpired, setIsExpired] = useState(false);
 
   useEffect(() => {
     const calculateTimeLeft = () => {
@@ -54,8 +55,10 @@ function CountdownTimer({ expirationDate }: { expirationDate: string }) {
         const seconds = Math.floor((difference % (1000 * 60)) / 1000);
         
         setTimeLeft({ hours, minutes, seconds });
+        setIsExpired(false);
       } else {
         setTimeLeft({ hours: 0, minutes: 0, seconds: 0 });
+        setIsExpired(true);
       }
     };
 
@@ -64,6 +67,11 @@ function CountdownTimer({ expirationDate }: { expirationDate: string }) {
 
     return () => clearInterval(timer);
   }, [expirationDate]);
+
+  // Don't render anything if the card is expired
+  if (isExpired) {
+    return null;
+  }
 
   return (
     <div className="text-xs font-light leading-tight">
@@ -233,6 +241,16 @@ export default function CardAnimation({ card, isPreview = false, isRedeem = fals
       };
     }
   }, [showOverlay, hasTriggered, isRedeem]);
+
+  // Check if card is expired and don't render if it is (unless it's a preview)
+  if (card && !isPreview && card.expires) {
+    const now = new Date();
+    const expiration = new Date(card.expires);
+    if (expiration.getTime() <= now.getTime()) {
+      console.log("⚠️ Card is expired, not rendering:", card.cardid);
+      return null;
+    }
+  }
 
   return (
     <div className={`relative w-full max-w-sm mx-auto overflow-hidden ${isPreview ? 'h-auto min-h-[200px] flex items-center justify-center' : 'h-[60vh] sm:h-[60vh]'} rounded-lg`}>

@@ -3,6 +3,7 @@ import { generateClient } from "aws-amplify/api";
 import { Amplify } from "aws-amplify";
 import { Schema } from "../../../../amplify/data/resource";
 import outputs from "../../../../amplify_outputs.json";
+import { filterExpiredCards } from "@/lib/utils";
 
 Amplify.configure(outputs);
 const client = generateClient<Schema>();
@@ -461,10 +462,17 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "No cards available" }, { status: 404 });
     }
 
-    console.log(`📊 Total cards found: ${cards.length}`);
+    // Filter out expired cards
+    const nonExpiredCards = filterExpiredCards(cards);
+    
+    if (nonExpiredCards.length === 0) {
+      return NextResponse.json({ error: "No non-expired cards available" }, { status: 404 });
+    }
+
+    console.log(`📊 Total cards found: ${cards.length}, Non-expired cards: ${nonExpiredCards.length}`);
 
     // Extract zip codes from address text for cards without business associations
-    const cardsWithZipCodes = cards.map(card => {
+    const cardsWithZipCodes = nonExpiredCards.map(card => {
       // Try to extract zip code from addresstext
       const zipCodeMatch = card.addresstext?.match(/\b\d{5}\b/);
       const extractedZipCode = zipCodeMatch ? zipCodeMatch[0] : null;
