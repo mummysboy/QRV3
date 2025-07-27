@@ -244,7 +244,7 @@ export default function RewardPage() {
         >
           <div className={`transition-opacity duration-1000 ease-in-out`}>
             <LogoVideo playbackRate={15} />
-            <CardAnimation card={card} playbackRate={15} isPreview={false} />
+            <CardAnimation card={card} isPreview={false} isRedeem={true} />
             <div className="flex justify-center mt-4">
               <button
                 className="bg-green-800 hover:bg-green-700 transition text-white text-lg font-semibold px-8 py-3 rounded-full shadow-md"
@@ -301,7 +301,7 @@ export default function RewardPage() {
       >
         <div className={`transition-opacity duration-1000 ease-in-out`}>
           <LogoVideo playbackRate={15} />
-          <CardAnimation card={card} playbackRate={15} isPreview={false} />
+          <CardAnimation card={card} isPreview={false} isRedeem={true} />
           <form
             className="max-w-md mx-auto mt-8 bg-white p-8 rounded-xl shadow-lg flex flex-col gap-4"
             onSubmit={handleClaim}

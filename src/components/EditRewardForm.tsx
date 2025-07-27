@@ -375,7 +375,6 @@ export default function EditRewardForm({ card, onClose, onSuccess, localEditOnly
                                 expires: formData.expires ? new Date(formData.expires).toISOString() : "Demo Reward Not Valid",
                                 quantity: typeof formData.quantity === 'number' ? formData.quantity : 0
                               }}
-                              playbackRate={1}
                               isPreview={true}
                             />
                           </div>

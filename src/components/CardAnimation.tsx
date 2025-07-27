@@ -75,7 +75,7 @@ function CountdownTimer({ expirationDate }: { expirationDate: string }) {
   );
 }
 
-export default function CardAnimation({ card, playbackRate = 1, isPreview = false }: { card: CardProps | null, playbackRate?: number, isPreview?: boolean }) {
+export default function CardAnimation({ card, isPreview = false, isRedeem = false }: { card: CardProps | null, isPreview?: boolean, isRedeem?: boolean }) {
   const [showOverlay, setShowOverlay] = useState(false);
   const [hasTriggered, setHasTriggered] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -157,72 +157,97 @@ export default function CardAnimation({ card, playbackRate = 1, isPreview = fals
   }, [card, cardData, logoUrl]);
 
   useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    video.playbackRate = playbackRate;
-
-    const handleTimeUpdate = () => {
-      // Trigger overlay at 5.7 seconds of video playback, but only if it hasn't been triggered yet
-      if (video.currentTime >= 5.7 && !showOverlay && !hasTriggered) {
-        setShowOverlay(true);
-        setHasTriggered(true);
-      }
-    };
-
-    const handleCanPlay = () => {
-      // Only auto-play if overlay hasn't been triggered yet
+    if (isRedeem) {
+      // For redeem context, use image with simple timeout
       if (!hasTriggered) {
-        video.play().catch((error) => {
-          console.log("Video autoplay failed, trying user interaction:", error);
-        });
-      }
-    };
+        const timer = setTimeout(() => {
+          setShowOverlay(true);
+          setHasTriggered(true);
+        }, 1000); // 1 second delay
 
-    const handleLoadedMetadata = () => {
-      // Only auto-play if overlay hasn't been triggered yet
-      if (!hasTriggered && video.readyState >= 1) {
-        video.play().catch(console.error);
-      }
-    };
-
-    // Mobile-specific event to handle user interaction
-    const handleUserInteraction = () => {
-      if (video.paused && !hasTriggered) {
-        video.play().catch(console.error);
-      }
-    };
-
-    // Only add event listeners if overlay hasn't been triggered
-    if (!hasTriggered) {
-      video.addEventListener('timeupdate', handleTimeUpdate);
-      video.addEventListener('canplay', handleCanPlay);
-      video.addEventListener('loadedmetadata', handleLoadedMetadata);
-      
-      // Add touch/click handlers for mobile
-      document.addEventListener('touchstart', handleUserInteraction, { once: true });
-      document.addEventListener('click', handleUserInteraction, { once: true });
-
-      // Try to play immediately if the video is ready
-      if (video.readyState >= 3) {
-        video.play().catch(console.error);
+        return () => clearTimeout(timer);
+      } else {
+        setShowOverlay(true);
       }
     } else {
-      // If already triggered, ensure overlay stays visible
-      setShowOverlay(true);
-    }
+      // For claim context, use video with original timing logic
+      const video = videoRef.current;
+      if (!video) return;
 
-    return () => {
-      video.removeEventListener('timeupdate', handleTimeUpdate);
-      video.removeEventListener('canplay', handleCanPlay);
-      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      document.removeEventListener('touchstart', handleUserInteraction);
-      document.removeEventListener('click', handleUserInteraction);
-    };
-  }, [showOverlay, hasTriggered, playbackRate]);
+      const handleTimeUpdate = () => {
+        // Trigger overlay at 5.7 seconds of video playback, but only if it hasn't been triggered yet
+        if (video.currentTime >= 5.7 && !showOverlay && !hasTriggered) {
+          setShowOverlay(true);
+          setHasTriggered(true);
+        }
+      };
+
+      const handleCanPlay = () => {
+        // Only auto-play if overlay hasn't been triggered yet
+        if (!hasTriggered) {
+          video.play().catch((error) => {
+            console.log("Video autoplay failed, trying user interaction:", error);
+          });
+        }
+      };
+
+      const handleLoadedMetadata = () => {
+        // Only auto-play if overlay hasn't been triggered yet
+        if (!hasTriggered && video.readyState >= 1) {
+          video.play().catch(console.error);
+        }
+      };
+
+      // Mobile-specific event to handle user interaction
+      const handleUserInteraction = () => {
+        if (video.paused && !hasTriggered) {
+          video.play().catch(console.error);
+        }
+      };
+
+      // Only add event listeners if overlay hasn't been triggered
+      if (!hasTriggered) {
+        video.addEventListener('timeupdate', handleTimeUpdate);
+        video.addEventListener('canplay', handleCanPlay);
+        video.addEventListener('loadedmetadata', handleLoadedMetadata);
+        
+        // Add touch/click handlers for mobile
+        document.addEventListener('touchstart', handleUserInteraction, { once: true });
+        document.addEventListener('click', handleUserInteraction, { once: true });
+
+        // Try to play immediately if the video is ready
+        if (video.readyState >= 3) {
+          video.play().catch(console.error);
+        }
+      } else {
+        // If already triggered, ensure overlay stays visible
+        setShowOverlay(true);
+      }
+
+      return () => {
+        video.removeEventListener('timeupdate', handleTimeUpdate);
+        video.removeEventListener('canplay', handleCanPlay);
+        video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+        document.removeEventListener('touchstart', handleUserInteraction);
+        document.removeEventListener('click', handleUserInteraction);
+      };
+    }
+  }, [showOverlay, hasTriggered, isRedeem]);
 
   return (
     <div className={`relative w-full max-w-sm mx-auto overflow-hidden ${isPreview ? 'h-auto min-h-[200px] flex items-center justify-center' : 'h-[60vh] sm:h-[60vh]'} rounded-lg`}>
-      {!isPreview && (
+      {!isPreview && isRedeem && (
+        <img
+          src="/assets/videos/RedeemReward.png"
+          alt="Reward Background"
+          className="absolute top-0 left-0 w-full h-full object-cover rounded-lg"
+          style={{
+            objectPosition: "center",
+            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+          }}
+        />
+      )}
+      {!isPreview && !isRedeem && (
         <video
           ref={videoRef}
           src="/assets/videos/Comp%201.mp4"

@@ -4,69 +4,17 @@
 import { useState, useEffect } from "react";
 import LogoVideo from "@/components/LogoVideo";
 import BusinessSignupForm, { BusinessSignupData } from "@/components/BusinessSignupForm";
-import { Smartphone, Mail, Building2, ArrowRight, Zap, Target, BarChart3, ChevronLeft, ChevronRight, Sparkles, PartyPopper } from "lucide-react";
+import { Smartphone, Mail, Building2, ArrowRight, Zap, Target, BarChart3, Sparkles, PartyPopper } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function Home() {
   const [isVisible, setIsVisible] = useState(false);
-  const [currentReview, setCurrentReview] = useState(0);
   const [showBusinessSignupForm, setShowBusinessSignupForm] = useState(false);
   const [showCustomerDemo, setShowCustomerDemo] = useState(false);
   const [customerZipCode, setCustomerZipCode] = useState("");
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const [visibleSections, setVisibleSections] = useState<Set<string>>(new Set());
 
-  const reviews = [
-    {
-      name: "Marcus Chen",
-      role: "Coffee Shop Owner",
-      business: "Brew & Bean",
-      text: "So easy to set up. I created my first offer in under 2 minutes and had customers using it the same day. We've seen a 40% increase in afternoon traffic since using QR Rewards.",
-      rating: 5,
-      date: "2 weeks ago"
-    },
-    {
-      name: "Sarah Johnson",
-      role: "Boutique Owner",
-      business: "Style Haven",
-      text: "Love being able to create new offers instantly when we have slow periods. It really helps bring in extra customers. Our conversion rate went from 15% to 28% in just one month!",
-      rating: 5,
-      date: "1 week ago"
-    },
-    {
-      name: "David Rodriguez",
-      role: "Restaurant Manager",
-      business: "Taco Fiesta",
-      text: "Perfect for our afternoon slump. We can quickly create a happy hour special and have it live in seconds. Last week we filled 20 empty tables during our slow period.",
-      rating: 5,
-      date: "3 days ago"
-    },
-    {
-      name: "Emily Chen",
-      role: "Salon Owner",
-      business: "Glamour Studio",
-      text: "No complicated software to learn. I can update our offers from my phone whenever I want. Our clients love the instant rewards and we've increased our repeat bookings by 35%.",
-      rating: 5,
-      date: "5 days ago"
-    },
-    {
-      name: "Michael Thompson",
-      role: "Gym Owner",
-      business: "FitLife Gym",
-      text: "Great for filling empty class spots. I can create a last-minute offer and get people in the door quickly. We've increased our class attendance by 45% since implementing QR Rewards.",
-      rating: 5,
-      date: "1 week ago"
-    },
-    {
-      name: "Lisa Park",
-      role: "Bookstore Owner",
-      business: "Chapter & Verse",
-      text: "Simple and effective. Our customers love the instant rewards and we love how easy it is to manage. We've seen a 60% increase in foot traffic during our slow periods.",
-      rating: 5,
-      date: "4 days ago"
-    }
-  ];
+
 
   const router = useRouter();
 
@@ -120,13 +68,7 @@ export default function Home() {
     };
   }, []);
 
-  // Auto-advance reviews for demo effect
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentReview((prev) => (prev + 1) % reviews.length);
-    }, 12000);
-    return () => clearInterval(interval);
-  }, [reviews.length]);
+
 
   const handleGetStarted = () => {
     setShowBusinessSignupForm(true);
@@ -186,39 +128,7 @@ export default function Home() {
     setCustomerZipCode("");
   };
 
-  // Swipe handlers for reviews carousel
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
-  };
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > 50;
-    const isRightSwipe = distance < -50;
-
-    if (isLeftSwipe) {
-      setCurrentReview((prev) => (prev + 1) % reviews.length);
-    }
-    if (isRightSwipe) {
-      setCurrentReview((prev) => (prev - 1 + reviews.length) % reviews.length);
-    }
-  };
-
-  // Navigation handlers for reviews
-  const handlePreviousReview = () => {
-    setCurrentReview((prev) => (prev - 1 + reviews.length) % reviews.length);
-  };
-
-  const handleNextReview = () => {
-    setCurrentReview((prev) => (prev + 1) % reviews.length);
-  };
 
   const businessSteps = [
     {
@@ -673,99 +583,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Reviews section - Ultra Elegant */}
-      <section
-        id="reviews"
-        data-animate="slide-right"
-        className={`transition-all duration-1000 ease-out ${
-          visibleSections.has("reviews")
-            ? "opacity-100 translate-x-0"
-            : "opacity-0 -translate-x-12"
-        }`}
-      >
-        <div className="w-full py-12 md:py-16 lg:py-20">
-          <div className="text-center max-w-2xl mx-auto mb-12">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-light mb-4 tracking-tight text-slate-800">
-              What our customers say
-            </h2>
-            <p
-              className="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto text-center"
-              style={{ textAlign: "center" }}
-            >
-              Local businesses trust QR Rewards to grow their customer base
-            </p>
-          </div>
 
-          {/* Carousel container */}
-          <div className="relative max-w-3xl mx-auto">
-            {/* Navigation arrows - ultra subtle */}
-            <button
-              onClick={handlePreviousReview}
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white/60 backdrop-blur-sm rounded-full shadow-sm border border-slate-200/50 flex items-center justify-center hover:bg-white/80 transition-all duration-200 -translate-x-4 opacity-0 group-hover:opacity-100"
-            >
-              <ChevronLeft className="w-3 h-3 text-slate-400" />
-            </button>
-
-            <button
-              onClick={handleNextReview}
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white/60 backdrop-blur-sm rounded-full shadow-sm border border-slate-200/50 flex items-center justify-center hover:bg-white/80 transition-all duration-200 translate-x-4 opacity-0 group-hover:opacity-100"
-            >
-              <ChevronRight className="w-3 h-3 text-slate-400" />
-            </button>
-
-            {/* Review cards */}
-            <div
-              className="relative h-72 md:h-80 overflow-hidden px-8 group"
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
-            >
-              {reviews.map((review, index) => (
-                <div
-                  key={index}
-                  className={`absolute inset-0 transition-all duration-800 ease-out ${
-                    currentReview === index
-                      ? "opacity-100 translate-x-0"
-                      : "opacity-0 translate-x-full"
-                  }`}
-                >
-                  <div className="bg-white/50 backdrop-blur-sm rounded-xl p-8 md:p-10 shadow-sm border border-slate-200/30 h-full flex flex-col justify-center">
-                    {/* Review text */}
-                    <blockquote className="text-slate-700 text-lg md:text-xl mb-12 leading-relaxed text-center font-light">
-                      &ldquo;{review.text}&rdquo;
-                    </blockquote>
-
-                    {/* Reviewer info - minimal */}
-                    <div className="text-center">
-                      <p className="font-medium text-slate-900 text-base mb-1">
-                        {review.name}
-                      </p>
-                      <p className="text-slate-500 text-sm">
-                        {review.role} • {review.business}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Dots indicator - minimal */}
-            <div className="flex justify-center space-x-1.5 mt-16">
-              {reviews.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentReview(index)}
-                  className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
-                    currentReview === index
-                      ? "bg-slate-500"
-                      : "bg-slate-300 hover:bg-slate-400"
-                  }`}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Final CTA - Minimalist */}
       <section
