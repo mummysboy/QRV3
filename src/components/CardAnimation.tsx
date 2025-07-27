@@ -404,13 +404,13 @@ export default function CardAnimation({ card, isPreview = false, isRedeem = fals
 
                 {/* Description - Dynamic sizing */}
                 <div className={`flex-1 flex flex-col justify-center ${isPreview ? 'px-2' : 'px-1'}mt-1 mb-0`}>
-                  <p className={`${isPreview ? 'text-xs' : 'text-xs'} leading-tight break-words overflow-hidden text-ellipsis max-w-full line-clamp-3 ${(cardData?.subheader?.length || 0) > 80 ? 'text-xs' : (cardData?.subheader?.length || 0) > 40 ? 'text-sm' : 'text-base'}`}>
+                  <p className={`${isPreview ? 'text-xs' : 'text-xs'} leading-tight break-words overflow-hidden text-ellipsis max-w-full line-clamp-4 ${(cardData?.subheader?.length || 0) > 80 ? 'text-xs' : (cardData?.subheader?.length || 0) > 40 ? 'text-sm' : 'text-base'}`}>
                     {cardData?.subheader}
                   </p>
                 </div>
 
                 {/* Expiration - Fixed at bottom */}
-                <div className={`flex-shrink-0 ${isPreview ? 'px-2' : 'px-1'} mt-2 ${(() => {
+                <div className={`flex-shrink-0 ${isPreview ? 'px-2' : 'px-1'} mt-0.5 ${(() => {
                   if (!cardData?.expires || cardData.expires === "Demo Reward Not Valid") return '';
                   const now = new Date();
                   const exp = new Date(cardData.expires as string);
