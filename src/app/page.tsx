@@ -205,6 +205,71 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Image Carousel */}
+      <div className="relative z-10 w-full">
+        <div className="relative overflow-hidden">
+          <div className="flex transition-transform duration-500 ease-in-out" id="carousel">
+            <img
+              src="/HomePagePhotos/small business owner.jpg"
+              alt="Small Business Owner"
+              className="w-full h-[400px] md:h-[500px] lg:h-[600px] object-cover object-top flex-shrink-0"
+            />
+            <img
+              src="/HomePagePhotos/cafe.jpeg"
+              alt="Cafe"
+              className="w-full h-[400px] md:h-[500px] lg:h-[600px] object-cover flex-shrink-0"
+            />
+            <img
+              src="/HomePagePhotos/dogGroomer.jpeg"
+              alt="Dog Groomer"
+              className="w-full h-[400px] md:h-[500px] lg:h-[600px] object-cover flex-shrink-0"
+            />
+            <img
+              src="/HomePagePhotos/pilates.jpeg"
+              alt="Pilates Studio"
+              className="w-full h-[400px] md:h-[500px] lg:h-[600px] object-cover flex-shrink-0"
+            />
+            <img
+              src="/HomePagePhotos/boutiqueOwner.jpeg"
+              alt="Boutique Owner"
+              className="w-full h-[400px] md:h-[500px] lg:h-[600px] object-cover flex-shrink-0"
+            />
+            <img
+              src="/HomePagePhotos/carpenter.jpeg"
+              alt="Carpenter"
+              className="w-full h-[400px] md:h-[500px] lg:h-[600px] object-cover flex-shrink-0"
+            />
+            <img
+              src="/HomePagePhotos/HairDresser.jpeg"
+              alt="Hair Dresser"
+              className="w-full h-[400px] md:h-[500px] lg:h-[600px] object-cover flex-shrink-0"
+            />
+            <img
+              src="/HomePagePhotos/pizza.jpeg"
+              alt="Pizza Restaurant"
+              className="w-full h-[400px] md:h-[500px] lg:h-[600px] object-cover flex-shrink-0"
+            />
+          </div>
+        </div>
+      </div>
+
+      <script dangerouslySetInnerHTML={{
+        __html: `
+          let currentSlide = 0;
+          const carousel = document.getElementById('carousel');
+          const slides = carousel.children;
+          const totalSlides = slides.length;
+
+          function nextSlide() {
+            currentSlide = (currentSlide + 1) % totalSlides;
+            carousel.style.transform = \`translateX(-\${currentSlide * 100}%)\`;
+          }
+
+          // Auto-advance every 4 seconds
+          setInterval(nextSlide, 4000);
+        `
+      }} />
+
       {/* Hero Section */}
       <section className="relative z-10 w-full py-12 md:py-16 lg:py-20">
         <div
