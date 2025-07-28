@@ -4,7 +4,8 @@
 import { useState, useEffect } from "react";
 import LogoVideo from "@/components/LogoVideo";
 import BusinessSignupForm, { BusinessSignupData } from "@/components/BusinessSignupForm";
-import { Smartphone, Mail, Building2, ArrowRight, Zap, Target, BarChart3, Sparkles, PartyPopper } from "lucide-react";
+import CardAnimation from "@/components/CardAnimation";
+import { Smartphone, Mail, Building2, ArrowRight, BarChart3, Sparkles, PartyPopper } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function Home() {
@@ -132,25 +133,25 @@ export default function Home() {
 
   const businessSteps = [
     {
-      title: "Assess Your Business Needs",
+      title: "Create Real-Time Promotions",
       caption:
-        "Is it a slow day? Overstocked on something? Lunch rush not as big as expected? Identify what you want to improve or move today.",
+        "Instantly create targeted ads for slow days, overstock items, or special events. No waiting, no delays - just immediate advertising power.",
       icon: BarChart3,
       color:
         "bg-gradient-to-br from-yellow-50 to-amber-50 text-amber-600 border border-amber-100",
     },
     {
-      title: "Create an AI-Assisted Ad",
+      title: "Reach Local Customers Instantly",
       caption:
-        "Use our AI to craft a last-minute, attention-grabbing offer that brings in customers for your unique situation.",
+        "Your promotions appear immediately to customers in your area. No expensive ad agencies or complex campaigns needed.",
       icon: Sparkles,
       color:
         "bg-gradient-to-br from-blue-50 to-indigo-50 text-blue-600 border border-blue-100",
     },
     {
-      title: "Publish and Watch Customers Come In",
+      title: "Track Results and Boost Sales",
       caption:
-        "Go live instantly and see new faces walk through your door—no technical skills required!",
+        "Watch customers respond to your ads in real-time. Simple dashboard shows you exactly what's working.",
       icon: PartyPopper,
       color:
         "bg-gradient-to-br from-green-50 to-emerald-50 text-green-600 border border-green-100",
@@ -233,21 +234,25 @@ export default function Home() {
               src="/HomePagePhotos/boutiqueOwner.jpeg"
               alt="Boutique Owner"
               className="w-full h-[400px] md:h-[500px] lg:h-[600px] object-cover flex-shrink-0"
+              style={{ objectPosition: "center 30%" }}
             />
             <img
               src="/HomePagePhotos/carpenter.jpeg"
               alt="Carpenter"
               className="w-full h-[400px] md:h-[500px] lg:h-[600px] object-cover flex-shrink-0"
+              style={{ objectPosition: "center 30%" }}
             />
             <img
               src="/HomePagePhotos/HairDresser.jpeg"
               alt="Hair Dresser"
               className="w-full h-[400px] md:h-[500px] lg:h-[600px] object-cover flex-shrink-0"
+              style={{ objectPosition: "center 30%" }}
             />
             <img
               src="/HomePagePhotos/pizza.jpeg"
               alt="Pizza Restaurant"
               className="w-full h-[400px] md:h-[500px] lg:h-[600px] object-cover flex-shrink-0"
+              style={{ objectPosition: "center 30%" }}
             />
           </div>
         </div>
@@ -293,14 +298,13 @@ export default function Home() {
               className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light text-slate-800 mb-6 tracking-tight leading-tight text-center"
               style={{ textAlign: "center" }}
             >
-              Helping small businesses increase their profit margin
+              Give your small business the power to advertise in real-time
             </h1>
             <p
               className="text-lg sm:text-xl md:text-2xl text-slate-600 font-light mb-8 tracking-wide max-w-3xl mx-auto text-center"
               style={{ textAlign: "center" }}
             >
-              A low-cost, high-impact tool that allows small business owners to
-              make advertisements that are best for their business.
+              Create instant promotions, reach local customers, and boost sales with our easy-to-use dashboard. First month free, then just $10/month.
             </p>
           </div>
 
@@ -312,17 +316,6 @@ export default function Home() {
                 : "opacity-0 translate-y-8"
             }`}
           >
-            <p
-              className="text-base sm:text-lg text-slate-700 mb-12 max-w-2xl mx-auto leading-relaxed text-center"
-              style={{ textAlign: "center" }}
-            >
-              <em>
-                &ldquo;Small businesses shouldn’t have to discount to stay
-                competitive. They should be able to adjust to what’s happening
-                in real-time and still make great money doing it.&rdquo; - Isaac
-                Hirsch
-              </em>
-            </p>
           </div>
 
           {/* Hero CTA Buttons */}
@@ -452,15 +445,68 @@ export default function Home() {
               className="text-2xl sm:text-3xl md:text-4xl font-light mb-4 tracking-tight text-slate-800 text-center !text-center"
               style={{ textAlign: "center", width: "100%" }}
             >
-              How Businesses Use QRewards
+              Real-Time Advertising Made Simple
             </h2>
             <p
               className="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto text-center !text-center"
               style={{ textAlign: "center", width: "100%" }}
             >
-              Simple steps to start attracting more customers to your business
+              Create, publish, and track ads instantly with our easy-to-use dashboard
             </p>
           </div>
+
+          {/* Demo Reward Card */}
+          <div 
+            id="demo-reward-section"
+            className="w-full mt-8 mb-12 overflow-hidden" 
+            style={{ height: '60vh' }}
+          >
+            <div className="relative w-full h-full" style={{ transform: 'scale(1.25)', transformOrigin: 'center center' }}>
+              <CardAnimation 
+                card={{
+                  cardid: "demo-home",
+                  header: "Market Street Cafe",
+                  logokey: "/market-street-cafe-logo.png",
+                  addresstext: "500 Market St, San Francisco, CA 94105",
+                  addressurl: "",
+                  subheader: "Enjoy a complimentary single-origin espresso – crafted for creators.",
+                  expires: new Date(Date.now() + 60 * 60 * 1000).toISOString(), // 1 hour from now
+                  quantity: 100,
+                }}
+                disableAutoplay={true}
+              />
+            </div>
+          </div>
+
+          <script dangerouslySetInnerHTML={{
+            __html: `
+              // Scroll-based video trigger
+              let videoStarted = false;
+              
+              function checkScrollAndStartVideo() {
+                if (videoStarted) return;
+                
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+                const scrollPercent = (scrollTop / docHeight) * 100;
+                
+                if (scrollPercent >= 90) {
+                  const video = document.querySelector('#demo-reward-section video');
+                  if (video && video.paused) {
+                    console.log('Page scrolled 35%, starting video');
+                    video.play().catch(console.error);
+                    videoStarted = true;
+                  }
+                }
+              }
+              
+              // Listen for scroll events
+              window.addEventListener('scroll', checkScrollAndStartVideo);
+              
+              // Check on page load in case user is already scrolled down
+              checkScrollAndStartVideo();
+            `
+          }} />
 
           {/* Business Steps */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-12">
@@ -484,8 +530,26 @@ export default function Home() {
             ))}
           </div>
 
+          {/* Pricing Section */}
+          <div className="mt-12 p-8 bg-white/90 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-lg max-w-2xl mx-auto">
+            <h3 className="text-2xl font-semibold mb-4 text-slate-800 text-center">
+              Simple, Transparent Pricing
+            </h3>
+            <div className="text-center mb-6">
+              <div className="text-4xl font-bold text-emerald-600 mb-2">$10</div>
+              <div className="text-lg text-slate-600 mb-4">per month after free trial</div>
+              <div className="text-sm text-slate-500">
+                ✓ First month completely free<br/>
+                ✓ Easy-to-use dashboard<br/>
+                ✓ Real-time advertising<br/>
+                ✓ Local customer reach<br/>
+                ✓ Cancel anytime
+              </div>
+            </div>
+          </div>
+
           {/* Business CTA */}
-          <div className="text-center">
+          <div className="text-center mt-8">
             <div className="mb-2 text-gray-500 text-base font-medium">
               Test our simple dashboard!
             </div>
@@ -579,74 +643,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Benefits section - Clean grid */}
-      <section
-        id="benefits"
-        data-animate="fade-scale"
-        className={`transition-all duration-1000 ease-out bg-gradient-to-br from-slate-50 to-purple-50/30 ${
-          visibleSections.has("benefits")
-            ? "opacity-100 scale-100"
-            : "opacity-0 scale-95"
-        }`}
-      >
-        <div className="w-full py-16 md:py-20 lg:py-24 text-center">
-          <div className="text-center max-w-4xl mx-auto mb-16">
-            <h2
-              className="text-2xl sm:text-3xl md:text-4xl font-light mb-6 tracking-tight text-slate-800 text-center"
-              style={{ textAlign: "center" }}
-            >
-              Why Choose QRewards
-            </h2>
-            <p
-              className="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto text-center"
-              style={{ textAlign: "center" }}
-            >
-              Powerful features that make customer acquisition simple and
-              effective
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-12">
-            <div className="text-center p-6 md:p-8 bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-105 hover:border-slate-300">
-              <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-yellow-50 to-amber-50 text-amber-600 border border-amber-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-md">
-                <Zap size={32} />
-              </div>
-              <h3 className="text-xl md:text-2xl font-medium mb-4 text-slate-800 text-center">
-                Instant Setup
-              </h3>
-              <p className="text-slate-600 leading-relaxed text-sm md:text-base text-center">
-                Get your first reward live in under 2 minutes. No technical
-                skills required.
-              </p>
-            </div>
 
-            <div className="text-center p-6 md:p-8 bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-105 hover:border-slate-300">
-              <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-red-50 to-pink-50 text-red-600 border border-red-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-md">
-                <Target size={32} />
-              </div>
-              <h3 className="text-xl md:text-2xl font-medium mb-4 text-slate-800 text-center">
-                Local Customers
-              </h3>
-              <p className="text-slate-600 leading-relaxed text-sm md:text-base text-center">
-                Attract customers already in your area with location-based
-                rewards.
-              </p>
-            </div>
-
-            <div className="text-center p-6 md:p-8 bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-105 hover:border-slate-300">
-              <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-indigo-50 to-purple-50 text-indigo-600 border border-indigo-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-md">
-                <BarChart3 size={32} />
-              </div>
-              <h3 className="text-xl md:text-2xl font-medium mb-4 text-slate-800 text-center">
-                Track Results
-              </h3>
-              <p className="text-slate-600 leading-relaxed text-sm md:text-base text-center">
-                See exactly how many customers your rewards are bringing in with
-                real-time analytics.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
 
 
 
@@ -666,7 +663,7 @@ export default function Home() {
               className="text-2xl sm:text-3xl md:text-4xl font-light mb-4 tracking-tight text-slate-800 text-center"
               style={{ textAlign: "center" }}
             >
-              Ready to get more customers?
+              Ready to advertise in real-time?
             </h2>
             <div className="flex flex-col items-center mb-6">
               <button
@@ -676,7 +673,7 @@ export default function Home() {
                 Start Your Free Trial
               </button>
               <p className="text-base md:text-lg text-slate-500 text-center">
-                Free to start • No setup fees • Cancel anytime
+                First month free • $10/month after • Easy dashboard • Cancel anytime
               </p>
 
               {/* Social Media Icons */}

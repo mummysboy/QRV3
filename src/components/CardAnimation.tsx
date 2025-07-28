@@ -83,7 +83,7 @@ function CountdownTimer({ expirationDate }: { expirationDate: string }) {
   );
 }
 
-export default function CardAnimation({ card, isPreview = false, isRedeem = false }: { card: CardProps | null, isPreview?: boolean, isRedeem?: boolean }) {
+export default function CardAnimation({ card, isPreview = false, isRedeem = false, disableAutoplay = false }: { card: CardProps | null, isPreview?: boolean, isRedeem?: boolean, disableAutoplay?: boolean }) {
   const [showOverlay, setShowOverlay] = useState(false);
   const [hasTriggered, setHasTriggered] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -146,23 +146,12 @@ export default function CardAnimation({ card, isPreview = false, isRedeem = fals
         : getStorageUrlSync(cardData.logokey)
     : null;
 
-  // Debug: Log card data
-  console.log('CardAnimation - card prop:', card);
-  console.log('CardAnimation - cardData:', cardData);
-  console.log('CardAnimation - logokey:', cardData?.logokey);
-  console.log('CardAnimation - constructed logoUrl:', logoUrl);
-  console.log('CardAnimation - addresstext:', cardData?.addresstext);
-  console.log('CardAnimation - addressurl:', cardData?.addressurl);
-  console.log('CardAnimation - neighborhood:', cardData?.neighborhood);
-  // Remove this debug line that's causing the double URL issue
-  // console.log('CardAnimation - storage utility result:', getStorageUrlSync(cardData?.logokey || ''));
-
-  // Debug when card prop changes
+  // Debug: Log card data (only once on mount)
   useEffect(() => {
-    console.log('CardAnimation - card prop changed:', card);
-    console.log('CardAnimation - cardData after change:', cardData);
-    console.log('CardAnimation - logoUrl after change:', logoUrl);
-  }, [card, cardData, logoUrl]);
+    console.log('CardAnimation - card prop:', card);
+    console.log('CardAnimation - cardData:', cardData);
+    console.log('CardAnimation - logoUrl:', logoUrl);
+  }, []); // Only run once on mount
 
   useEffect(() => {
     if (isRedeem) {
@@ -191,8 +180,8 @@ export default function CardAnimation({ card, isPreview = false, isRedeem = fals
       };
 
       const handleCanPlay = () => {
-        // Only auto-play if overlay hasn't been triggered yet
-        if (!hasTriggered) {
+        // Only auto-play if overlay hasn't been triggered yet and autoplay is not disabled
+        if (!hasTriggered && !disableAutoplay) {
           video.play().catch((error) => {
             console.log("Video autoplay failed, trying user interaction:", error);
           });
@@ -200,15 +189,15 @@ export default function CardAnimation({ card, isPreview = false, isRedeem = fals
       };
 
       const handleLoadedMetadata = () => {
-        // Only auto-play if overlay hasn't been triggered yet
-        if (!hasTriggered && video.readyState >= 1) {
+        // Only auto-play if overlay hasn't been triggered yet and autoplay is not disabled
+        if (!hasTriggered && video.readyState >= 1 && !disableAutoplay) {
           video.play().catch(console.error);
         }
       };
 
       // Mobile-specific event to handle user interaction
       const handleUserInteraction = () => {
-        if (video.paused && !hasTriggered) {
+        if (video.paused && !hasTriggered && !disableAutoplay) {
           video.play().catch(console.error);
         }
       };
@@ -219,12 +208,14 @@ export default function CardAnimation({ card, isPreview = false, isRedeem = fals
         video.addEventListener('canplay', handleCanPlay);
         video.addEventListener('loadedmetadata', handleLoadedMetadata);
         
-        // Add touch/click handlers for mobile
-        document.addEventListener('touchstart', handleUserInteraction, { once: true });
-        document.addEventListener('click', handleUserInteraction, { once: true });
+        // Add touch/click handlers for mobile (only if autoplay is not disabled)
+        if (!disableAutoplay) {
+          document.addEventListener('touchstart', handleUserInteraction, { once: true });
+          document.addEventListener('click', handleUserInteraction, { once: true });
+        }
 
-        // Try to play immediately if the video is ready
-        if (video.readyState >= 3) {
+        // Try to play immediately if the video is ready (only if autoplay is not disabled)
+        if (video.readyState >= 3 && !disableAutoplay) {
           video.play().catch(console.error);
         }
       } else {
@@ -240,7 +231,7 @@ export default function CardAnimation({ card, isPreview = false, isRedeem = fals
         document.removeEventListener('click', handleUserInteraction);
       };
     }
-  }, [showOverlay, hasTriggered, isRedeem]);
+  }, [showOverlay, hasTriggered, isRedeem, disableAutoplay]);
 
   // Check if card is expired and don't render if it is (unless it's a preview)
   if (card && !isPreview && card.expires) {
@@ -268,7 +259,7 @@ export default function CardAnimation({ card, isPreview = false, isRedeem = fals
       {!isPreview && !isRedeem && (
         <video
           ref={videoRef}
-          src="/assets/videos/Comp%201.mp4"
+          src="/assets/videos/Comp 1.mp4"
           muted
           playsInline
           autoPlay
@@ -279,6 +270,9 @@ export default function CardAnimation({ card, isPreview = false, isRedeem = fals
             boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
           }}
           preload="metadata"
+          onError={(e) => console.error('Video failed to load:', e)}
+          onLoadStart={() => console.log('Video loading started')}
+          onCanPlay={() => console.log('Video can play')}
         />
       )}
 
@@ -392,7 +386,7 @@ export default function CardAnimation({ card, isPreview = false, isRedeem = fals
                         addressLines.push(neighborhood);
                       }
                       
-                      console.log('CardAnimation - Address lines:', addressLines, 'street:', street, 'city:', city, 'state:', state, 'neighborhood:', neighborhood);
+
                       
                       return addressLines.map((line, index) => (
                         <span key={index}>
