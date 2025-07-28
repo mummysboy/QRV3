@@ -399,7 +399,7 @@ export default function CardAnimation({ card, isPreview = false, isRedeem = fals
                 </div>
 
                 {/* Description - Dynamic sizing */}
-                <div className={`flex-1 flex flex-col justify-center ${isPreview ? 'px-2' : 'px-1'}-mt-1 -mb-3`}>
+                <div className={`flex-1 flex flex-col justify-center ${isPreview ? 'px-2' : 'px-1'} mt-2 mb-2`}>
                   <p className={`${isPreview ? 'text-xs' : 'text-xs'} leading-tight break-words overflow-hidden text-ellipsis max-w-full line-clamp-4 ${(cardData?.subheader?.length || 0) > 80 ? 'text-xs' : (cardData?.subheader?.length || 0) > 40 ? 'text-sm' : 'text-base'}`}>
                     {cardData?.subheader}
                   </p>

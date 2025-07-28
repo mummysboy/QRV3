@@ -469,9 +469,9 @@ export default function Home() {
                   logokey: "/market-street-cafe-logo.png",
                   addresstext: "500 Market St, San Francisco, CA 94105",
                   addressurl: "",
-                  subheader: "Enjoy a complimentary single-origin espresso – crafted for creators.",
+                  subheader: "Last call on baked goods! Get 50% off our end of the day selection. Limit 2 per reward.",
                   expires: new Date(Date.now() + 60 * 60 * 1000).toISOString(), // 1 hour from now
-                  quantity: 100,
+                  quantity: 50,
                 }}
                 disableAutoplay={true}
               />
@@ -530,23 +530,7 @@ export default function Home() {
             ))}
           </div>
 
-          {/* Pricing Section */}
-          <div className="mt-12 p-8 bg-white/90 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-lg max-w-2xl mx-auto">
-            <h3 className="text-2xl font-semibold mb-4 text-slate-800 text-center">
-              Simple, Transparent Pricing
-            </h3>
-            <div className="text-center mb-6">
-              <div className="text-4xl font-bold text-emerald-600 mb-2">$10</div>
-              <div className="text-lg text-slate-600 mb-4">per month after free trial</div>
-              <div className="text-sm text-slate-500">
-                ✓ First month completely free<br/>
-                ✓ Easy-to-use dashboard<br/>
-                ✓ Real-time advertising<br/>
-                ✓ Local customer reach<br/>
-                ✓ Cancel anytime
-              </div>
-            </div>
-          </div>
+
 
           {/* Business CTA */}
           <div className="text-center mt-8">
