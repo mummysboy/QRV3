@@ -7,7 +7,8 @@ import LogoUpload from "@/components/LogoUpload";
 import CardAnimation from "@/components/CardAnimation";
 import AddBusinessForm from "@/components/AddBusinessForm";
 import Header from "@/components/Header";
-import { BarChart3, CheckCircle, Target, PartyPopper, TrendingUp, Gift } from "lucide-react";
+import { BarChart3, CheckCircle, Target, PartyPopper, TrendingUp, Gift, QrCode, X } from "lucide-react";
+import { QRCodeCanvas } from 'qrcode.react';
 
 // Mock business user and business info
 const mockBusiness = {
@@ -212,6 +213,8 @@ export default function DemoDashboard() {
   const [editingCard, setEditingCard] = useState<ReturnType<typeof getMockCards>[0] | null>(null);
   const [showLogoUpload, setShowLogoUpload] = useState(false);
   const [showAddBusiness, setShowAddBusiness] = useState(false);
+  const [showQRCodeModal, setShowQRCodeModal] = useState(false);
+  const [qrLayout, setQrLayout] = useState<'single' | '2x2' | '3x3' | '4x4'>('single');
   const [timeRange, setTimeRange] = useState<'day' | 'week' | 'month'>('month');
   const [business, setBusiness] = useState(mockBusiness);
   
@@ -326,7 +329,7 @@ export default function DemoDashboard() {
   }, []);
 
   // Handlers
-  const handleQuickAction = (action: 'create' | 'analytics' | 'settings' | 'add-business') => {
+  const handleQuickAction = (action: 'create' | 'analytics' | 'settings' | 'add-business' | 'qr-code') => {
     switch (action) {
       case 'create':
         setShowCreateReward(true);
@@ -339,6 +342,9 @@ export default function DemoDashboard() {
         break;
       case 'add-business':
         setShowAddBusiness(true);
+        break;
+      case 'qr-code':
+        setShowQRCodeModal(true);
         break;
     }
   };
@@ -398,6 +404,98 @@ export default function DemoDashboard() {
     
     // Remove the reward from the cards array
     setCards((prev: ReturnType<typeof getMockCards>) => prev.filter(card => card.cardid !== cardid));
+  };
+
+  const handleDownloadQR = async () => {
+    alert('Demo: QR code would be downloaded');
+  };
+
+  const renderQRLayout = () => {
+    const qrValue = `https://www.qrewards.net/claim-reward/${business?.zipCode || ''}`;
+    
+    const QRRewardCard = ({ size = 'large' }: { size?: 'large' | 'medium' | 'small' | 'tiny' }) => {
+      const cardSizes = {
+        large: { width: 340, height: 480, qrSize: 170 },
+        medium: { width: 200, height: 250, qrSize: 90 },
+        small: { width: 140, height: 180, qrSize: 60 },
+        tiny: { width: 100, height: 130, qrSize: 40 }
+      };
+      
+      const { width, height, qrSize } = cardSizes[size];
+      
+      return (
+        <div 
+          className="relative"
+          style={{ 
+            width: `min(${width}px, 100%)`, 
+            height: `min(${height}px, 100%)`,
+            maxWidth: `${width}px`,
+            maxHeight: `${height}px`
+          }}
+        >
+          {/* Background Image */}
+          <img
+            src="/blankReward.png"
+            alt="QRewards Card Background"
+            className="w-full h-full object-contain"
+            style={{ zIndex: 1 }}
+          />
+          
+          {/* QR Code */}
+          <div className="absolute left-1/2" style={{ top: '55%', transform: 'translate(-50%, -50%)', zIndex: 2 }}>
+            <QRCodeCanvas
+              value={qrValue}
+              size={qrSize}
+              bgColor="#ffffff"
+              fgColor="#000000"
+              level="H"
+              includeMargin={false}
+            />
+          </div>
+        </div>
+      );
+    };
+    
+    switch (qrLayout) {
+      case 'single':
+        return <QRRewardCard size="large" />;
+      
+      case '2x2':
+        return (
+          <div className="w-full max-w-[600px] sm:max-w-[800px] h-auto bg-white p-6 sm:p-12 rounded-xl border-2 border-gray-200">
+            <div className="grid grid-cols-2 gap-6 sm:gap-12 justify-items-center">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <QRRewardCard key={index} size="medium" />
+              ))}
+            </div>
+          </div>
+        );
+      
+      case '3x3':
+        return (
+          <div className="w-full max-w-[600px] sm:max-w-[800px] h-auto bg-white p-4 sm:p-8 rounded-xl border-2 border-gray-200">
+            <div className="grid grid-cols-3 gap-4 sm:gap-6 justify-items-center">
+              {Array.from({ length: 9 }).map((_, index) => (
+                <QRRewardCard key={index} size="small" />
+              ))}
+            </div>
+          </div>
+        );
+      
+      case '4x4':
+        return (
+          <div className="w-full max-w-[600px] sm:max-w-[800px] h-auto bg-white p-3 sm:p-6 rounded-xl border-2 border-gray-200">
+            <div className="grid grid-cols-4 gap-2 sm:gap-4 justify-items-center">
+              {Array.from({ length: 16 }).map((_, index) => (
+                <QRRewardCard key={index} size="tiny" />
+              ))}
+            </div>
+          </div>
+        );
+      
+      default:
+        return null;
+    }
   };
 
   // Analytics View Component
@@ -767,7 +865,7 @@ export default function DemoDashboard() {
             }`}>
               <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100 mb-8">
                 <h3 className="text-2xl font-light text-gray-900 mb-6">Quick Actions</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <button 
                     onClick={() => handleQuickAction('create')}
                     className="flex items-center space-x-4 p-4 bg-green-50 rounded-2xl hover:bg-green-100 transition-all duration-200 ease-in-out"
@@ -789,23 +887,13 @@ export default function DemoDashboard() {
                     </div>
                   </button>
                   <button 
-                    onClick={() => handleQuickAction('add-business')}
-                    className="flex items-center space-x-4 p-4 bg-orange-50 rounded-2xl hover:bg-orange-100 transition-all duration-200 ease-in-out"
+                    onClick={() => handleQuickAction('qr-code')}
+                    className="flex items-center space-x-4 p-4 bg-indigo-50 rounded-2xl hover:bg-indigo-100 transition-all duration-200 ease-in-out"
                   >
-                    <span className="text-2xl">🏢</span>
+                    <QrCode size={24} className="text-indigo-600" />
                     <div className="text-left">
-                      <div className="font-medium text-gray-900">Add Business</div>
-                      <div className="text-sm text-gray-600">Register new location</div>
-                    </div>
-                  </button>
-                  <button 
-                    onClick={() => handleQuickAction('settings')}
-                    className="flex items-center space-x-4 p-4 bg-purple-50 rounded-2xl hover:bg-purple-100 transition-all duration-200 ease-in-out"
-                  >
-                    <span className="text-2xl">⚙️</span>
-                    <div className="text-left">
-                      <div className="font-medium text-gray-900">Settings</div>
-                      <div className="text-sm text-gray-600">Manage account</div>
+                      <div className="font-medium text-gray-900">My QR Code</div>
+                      <div className="text-sm text-gray-600">Download & print</div>
                     </div>
                   </button>
                 </div>
@@ -939,6 +1027,66 @@ export default function DemoDashboard() {
           onClose={() => setShowAddBusiness(false)}
           onSubmit={handleAddBusinessSubmit}
         />
+
+        {/* QR Code Modal */}
+        {showQRCodeModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-2 sm:p-4">
+            <div className="relative bg-white rounded-2xl shadow-2xl p-4 sm:p-6 w-full max-w-6xl mx-auto flex flex-col items-center max-h-[95vh] overflow-y-auto">
+              <button
+                className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 z-10"
+                onClick={() => setShowQRCodeModal(false)}
+                aria-label="Close QR code modal"
+              >
+                <X size={24} />
+              </button>
+              <h3 className="text-xl sm:text-2xl font-semibold mb-4 text-center">My QRewards Code</h3>
+              
+              {/* Layout Selector */}
+              <div className="mb-4 sm:mb-6 w-full max-w-md">
+                <label className="block text-sm font-medium text-gray-700 mb-2 sm:mb-3 text-center">Choose Layout</label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {[
+                    { value: 'single', label: 'Single', description: '1 Large' },
+                    { value: '2x2', label: '2x2', description: '4 Medium' },
+                    { value: '3x3', label: '3x3', description: '9 Small' },
+                    { value: '4x4', label: '4x4', description: '16 Tiny' }
+                  ].map((layout) => (
+                    <button
+                      key={layout.value}
+                      onClick={() => setQrLayout(layout.value as 'single' | '2x2' | '3x3' | '4x4')}
+                      className={`p-2 sm:p-3 rounded-xl border-2 transition-all ${
+                        qrLayout === layout.value
+                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          : 'border-gray-200 bg-gray-50 text-gray-700 hover:border-gray-300 hover:bg-gray-100'
+                      }`}
+                    >
+                      <div className="text-xs sm:text-sm font-medium">{layout.label}</div>
+                      <div className="text-xs text-gray-500">{layout.description}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              {/* QR Code Display */}
+              <div className="flex justify-center w-full p-4">
+                {renderQRLayout()}
+              </div>
+              
+              <button
+                className="mb-4 sm:mb-6 mt-4 sm:mt-6 px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium shadow transition-all text-sm sm:text-base"
+                onClick={handleDownloadQR}
+              >
+                Download {qrLayout === 'single' ? 'Single' : qrLayout === '2x2' ? '4 QR Codes' : qrLayout === '3x3' ? '9 QR Codes' : '16 QR Codes'}
+              </button>
+              <p className="mt-4 sm:mt-6 text-gray-500 text-xs sm:text-sm text-center px-4">
+                {qrLayout === 'single' 
+                  ? 'Print and post this card anywhere you want to find customers!'
+                  : `Print and cut out ${qrLayout === '2x2' ? '4' : qrLayout === '3x3' ? '9' : '16'} QR codes to place wherever you want to find customers!`
+                }
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </main>
   );
