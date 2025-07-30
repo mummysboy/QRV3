@@ -170,7 +170,7 @@ export async function PUT(request: NextRequest) {
       ...(photos !== undefined && { photos }),
       ...(primaryContactEmail !== undefined && { primaryContactEmail }),
       ...(primaryContactPhone !== undefined && { primaryContactPhone }),
-      ...(shouldDetectNeighborhood && neighborhood && { neighborhood }), // Update neighborhood if detected
+      ...(shouldDetectNeighborhood && { neighborhood }), // Update neighborhood if detected
       updatedAt: new Date().toISOString(),
       // Temporarily remove profileComplete until schema is deployed
       // ...(profileComplete !== undefined && { profileComplete }),

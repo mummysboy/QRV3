@@ -1,0 +1,22 @@
+[
+  {
+    "id": "update_cffb81b1-6d57-425a-9770-fe48e0e1b7bc_1753913381385",
+    "businessId": "cffb81b1-6d57-425a-9770-fe48e0e1b7bc",
+    "userEmail": "isaac1@gmail.com",
+    "businessName": "State Street Crossfit",
+    "userFirstName": "Isaac",
+    "userLastName": "Hirsch",
+    "currentData": {},
+    "requestedUpdates": {
+      "name": "Pancake Biz",
+      "address": "231 Cortland Ave",
+      "city": "San Francisco",
+      "state": "CA",
+      "zipCode": "94110",
+      "category": "Restaurant"
+    },
+    "status": "approved",
+    "submittedAt": "2025-07-30T22:09:41.385Z",
+    "approvedAt": "2025-07-30T22:12:49.157Z"
+  }
+]
