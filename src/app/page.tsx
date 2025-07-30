@@ -327,7 +327,7 @@ export default function Home() {
             >
               Create instant promotions, reach local customers, and boost sales
               with our easy-to-use dashboard. First month free, then just $10
-              per-month.
+              per month.
             </p>
           </div>
 
@@ -687,7 +687,7 @@ export default function Home() {
                 <span>Start Free Trial</span>
               </button>
               <p className="text-base md:text-lg text-slate-500 text-center">
-                First month free • $10 per-month after • Easy dashboard • Cancel
+                First month free • $10 per month after • Easy dashboard • Cancel
                 anytime
               </p>
 
