@@ -35,7 +35,7 @@ export default function ClaimRewardPopup({
 
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [deliveryMethod, setDeliveryMethod] = useState<"email" | "sms">("email");
+  const [deliveryMethod, setDeliveryMethod] = useState<"email" | "sms">("sms");
   const [error, setError] = useState("");
   const [isVisible, setIsVisible] = useState(false);
   const [isFullyClosing, setIsFullyClosing] = useState(false);

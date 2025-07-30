@@ -209,57 +209,77 @@ export default function Home() {
       {/* Image Carousel */}
       <div className="relative z-10 w-full">
         <div className="relative overflow-hidden">
-          <div className="flex transition-transform duration-500 ease-in-out" id="carousel">
+          <div
+            className="flex transition-transform duration-500 ease-in-out"
+            id="carousel"
+          >
             <img
-              src="/HomePagePhotos/small business owner.jpg"
+              src="/HomePagePhotos/small-business-owner.webp"
               alt="Small Business Owner"
               className="w-full h-[400px] md:h-[500px] lg:h-[600px] object-cover object-top flex-shrink-0"
+              loading="eager"
+              decoding="async"
             />
             <img
-              src="/HomePagePhotos/cafe.jpeg"
+              src="/HomePagePhotos/cafe.webp"
               alt="Cafe"
               className="w-full h-[400px] md:h-[500px] lg:h-[600px] object-cover flex-shrink-0"
+              loading="eager"
+              decoding="async"
             />
             <img
-              src="/HomePagePhotos/dogGroomer.jpeg"
+              src="/HomePagePhotos/dogGroomer.webp"
               alt="Dog Groomer"
               className="w-full h-[400px] md:h-[500px] lg:h-[600px] object-cover flex-shrink-0"
+              loading="eager"
+              decoding="async"
             />
             <img
-              src="/HomePagePhotos/pilates.jpeg"
+              src="/HomePagePhotos/pilates.webp"
               alt="Pilates Studio"
               className="w-full h-[400px] md:h-[500px] lg:h-[600px] object-cover flex-shrink-0"
+              loading="eager"
+              decoding="async"
             />
             <img
-              src="/HomePagePhotos/boutiqueOwner.jpeg"
+              src="/HomePagePhotos/boutiqueOwner.webp"
               alt="Boutique Owner"
               className="w-full h-[400px] md:h-[500px] lg:h-[600px] object-cover flex-shrink-0"
               style={{ objectPosition: "center 30%" }}
+              loading="eager"
+              decoding="async"
             />
             <img
-              src="/HomePagePhotos/carpenter.jpeg"
+              src="/HomePagePhotos/carpenter.webp"
               alt="Carpenter"
               className="w-full h-[400px] md:h-[500px] lg:h-[600px] object-cover flex-shrink-0"
               style={{ objectPosition: "center 30%" }}
+              loading="eager"
+              decoding="async"
             />
             <img
-              src="/HomePagePhotos/HairDresser.jpeg"
+              src="/HomePagePhotos/HairDresser.webp"
               alt="Hair Dresser"
               className="w-full h-[400px] md:h-[500px] lg:h-[600px] object-cover flex-shrink-0"
               style={{ objectPosition: "center 30%" }}
+              loading="eager"
+              decoding="async"
             />
             <img
-              src="/HomePagePhotos/pizza.jpeg"
+              src="/HomePagePhotos/pizza.webp"
               alt="Pizza Restaurant"
               className="w-full h-[400px] md:h-[500px] lg:h-[600px] object-cover flex-shrink-0"
               style={{ objectPosition: "center 30%" }}
+              loading="eager"
+              decoding="async"
             />
           </div>
         </div>
       </div>
 
-      <script dangerouslySetInnerHTML={{
-        __html: `
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `
           let currentSlide = 0;
           const carousel = document.getElementById('carousel');
           const slides = carousel.children;
@@ -272,8 +292,9 @@ export default function Home() {
 
           // Auto-advance every 4 seconds
           setInterval(nextSlide, 4000);
-        `
-      }} />
+        `,
+        }}
+      />
 
       {/* Hero Section */}
       <section className="relative z-10 w-full py-12 md:py-16 lg:py-20">
@@ -298,13 +319,15 @@ export default function Home() {
               className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light text-slate-800 mb-6 tracking-tight leading-tight text-center"
               style={{ textAlign: "center" }}
             >
-              Give your small business the power to advertise in real-time
+              Give your business the power to advertise in real-time
             </h1>
             <p
               className="text-lg sm:text-xl md:text-2xl text-slate-600 font-light mb-8 tracking-wide max-w-3xl mx-auto text-center"
               style={{ textAlign: "center" }}
             >
-              Create instant promotions, reach local customers, and boost sales with our easy-to-use dashboard. First month free, then just $10/month.
+              Create instant promotions, reach local customers, and boost sales
+              with our easy-to-use dashboard. First month free, then just $10
+              per-month.
             </p>
           </div>
 
@@ -315,8 +338,7 @@ export default function Home() {
                 ? "opacity-100 translate-y-0"
                 : "opacity-0 translate-y-8"
             }`}
-          >
-          </div>
+          ></div>
 
           {/* Hero CTA Buttons */}
           <div
@@ -373,9 +395,11 @@ export default function Home() {
                   </svg>
                 </a>
                 <a
-                  href="#"
+                  href="https://www.facebook.com/profile.php?id=61578483827425"
                   className="group transition-all duration-300"
                   aria-label="Follow us on Facebook"
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
                   <svg
                     width="24"
@@ -391,9 +415,11 @@ export default function Home() {
                   </svg>
                 </a>
                 <a
-                  href="#"
+                  href="https://www.tiktok.com/@_qrewards_"
                   className="group transition-all duration-300"
                   aria-label="Follow us on TikTok"
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
                   <svg
                     width="24"
@@ -451,25 +477,33 @@ export default function Home() {
               className="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto text-center !text-center"
               style={{ textAlign: "center", width: "100%" }}
             >
-              Create, publish, and track ads instantly with our easy-to-use dashboard
+              Create, publish, and track ads instantly with our easy-to-use
+              dashboard
             </p>
           </div>
 
           {/* Demo Reward Card */}
-          <div 
+          <div
             id="demo-reward-section"
-            className="w-full mt-8 mb-12 overflow-hidden" 
-            style={{ height: '60vh' }}
+            className="w-full mt-8 mb-12 overflow-hidden"
+            style={{ height: "60vh" }}
           >
-            <div className="relative w-full h-full" style={{ transform: 'scale(1.25)', transformOrigin: 'center center' }}>
-              <CardAnimation 
+            <div
+              className="relative w-full h-full"
+              style={{
+                transform: "scale(1.25)",
+                transformOrigin: "center center",
+              }}
+            >
+              <CardAnimation
                 card={{
                   cardid: "demo-home",
                   header: "Market Street Cafe",
                   logokey: "/market-street-cafe-logo.png",
                   addresstext: "500 Market St, San Francisco, CA 94105",
                   addressurl: "",
-                  subheader: "Last call on baked goods! Get 50% off our end of the day selection. Limit 2 per reward.",
+                  subheader:
+                    "Last call on baked goods! Get 50% off our end of the day selection. Limit 2 per reward.",
                   expires: new Date(Date.now() + 60 * 60 * 1000).toISOString(), // 1 hour from now
                   quantity: 50,
                 }}
@@ -478,8 +512,9 @@ export default function Home() {
             </div>
           </div>
 
-          <script dangerouslySetInnerHTML={{
-            __html: `
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
               // Scroll-based video trigger
               let videoStarted = false;
               
@@ -505,8 +540,9 @@ export default function Home() {
               
               // Check on page load in case user is already scrolled down
               checkScrollAndStartVideo();
-            `
-          }} />
+            `,
+            }}
+          />
 
           {/* Business Steps */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-12">
@@ -529,8 +565,6 @@ export default function Home() {
               </div>
             ))}
           </div>
-
-
 
           {/* Business CTA */}
           <div className="text-center mt-8">
@@ -627,10 +661,6 @@ export default function Home() {
         </div>
       </section>
 
-
-
-
-
       {/* Final CTA - Minimalist */}
       <section
         id="final-cta"
@@ -652,12 +682,13 @@ export default function Home() {
             <div className="flex flex-col items-center mb-6">
               <button
                 onClick={handleGetStarted}
-                className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white text-lg font-medium px-8 py-4 rounded-2xl transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl mb-14 mt-10"
+                className="inline-flex items-center space-x-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white px-8 py-4 rounded-2xl shadow-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl mb-14 mt-10"
               >
-                Start Your Free Trial
+                <span>Start Free Trial</span>
               </button>
               <p className="text-base md:text-lg text-slate-500 text-center">
-                First month free • $10/month after • Easy dashboard • Cancel anytime
+                First month free • $10 per-month after • Easy dashboard • Cancel
+                anytime
               </p>
 
               {/* Social Media Icons */}
@@ -700,9 +731,11 @@ export default function Home() {
                     </svg>
                   </a>
                   <a
-                    href="#"
+                    href="https://www.facebook.com/profile.php?id=61578483827425"
                     className="group transition-all duration-300"
                     aria-label="Follow us on Facebook"
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
                     <svg
                       width="24"
@@ -718,9 +751,11 @@ export default function Home() {
                     </svg>
                   </a>
                   <a
-                    href="#"
+                    href="https://www.tiktok.com/@_qrewards_"
                     className="group transition-all duration-300"
                     aria-label="Follow us on TikTok"
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
                     <svg
                       width="24"
