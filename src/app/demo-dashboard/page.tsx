@@ -1,5 +1,6 @@
 "use client";
 
+// Demo dashboard for testing and demonstration purposes
 import { useState, useEffect, useMemo } from "react";
 import CreateRewardForm from "@/components/CreateRewardForm";
 import EditRewardForm from "@/components/EditRewardForm";
