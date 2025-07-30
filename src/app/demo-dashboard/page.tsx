@@ -85,10 +85,10 @@ const generateMockAnalytics = () => {
     const month = d.date.slice(0, 7);
     monthsMap[month] = (monthsMap[month] || 0) + d.count;
   });
-  // Views, claims, redeemed by day
-  const viewsByDay = days.map((d, i) => ({ date: d.date, count: (i === days.length - 1 ? 3 : d.count * 2) })); // 3 views today
-  const claimsByDay = days.map((d, i) => ({ date: d.date, count: (i === days.length - 1 ? 5 : d.count) })); // 5 claims today
-  const redeemedByDay = days.map((d, i) => ({ date: d.date, count: (i === days.length - 1 ? 2 : Math.floor(d.count * 0.5)) })); // 2 redeemed today
+  // Views, claims, redeemed by day - ensure claims < views
+  const viewsByDay = days.map((d, i) => ({ date: d.date, count: (i === days.length - 1 ? 8 : d.count * 2) })); // 8 views today
+  const claimsByDay = days.map((d, i) => ({ date: d.date, count: (i === days.length - 1 ? 5 : Math.floor(d.count * 0.7)) })); // 5 claims today, 70% of base
+  const redeemedByDay = days.map((d, i) => ({ date: d.date, count: (i === days.length - 1 ? 2 : Math.floor(d.count * 0.3)) })); // 2 redeemed today, 30% of base
   const claimsByWeek = weeks.map((w, i) => ({ week: w.week, count: claimsByDay.slice(i * 7, (i + 1) * 7).reduce((s, d) => s + d.count, 0) }));
   const viewsByWeek = weeks.map((w, i) => ({ week: w.week, count: viewsByDay.slice(i * 7, (i + 1) * 7).reduce((s, d) => s + d.count, 0) }));
   const redeemedByWeek = weeks.map((w, i) => ({ week: w.week, count: redeemedByDay.slice(i * 7, (i + 1) * 7).reduce((s, d) => s + d.count, 0) }));
