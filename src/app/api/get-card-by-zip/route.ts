@@ -11,7 +11,10 @@ console.log("🔧 REGION:", process.env.REGION);
 console.log("🔧 AWS_REGION:", process.env.AWS_REGION);
 console.log("🔧 NODE_ENV:", process.env.NODE_ENV);
 
+// Configure Amplify with the outputs
 Amplify.configure(outputs);
+
+// Generate client without explicit credentials (uses IAM roles in production)
 const client = generateClient<Schema>();
 
 // Zip code to coordinates mapping (focusing on California zip codes)
