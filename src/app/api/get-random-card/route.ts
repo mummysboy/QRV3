@@ -1,4 +1,5 @@
 // File: /src/app/api/get-random-card/route.ts
+// Trigger deployment - API route for getting random cards
 import { NextResponse } from "next/server";
 import { generateClient } from "aws-amplify/api";
 import { Amplify } from "aws-amplify";
