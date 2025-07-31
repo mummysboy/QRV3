@@ -62,10 +62,12 @@ export function isCardExpired(expires: string | null | undefined): boolean {
   
   try {
     const expirationDate = new Date(expires);
-    const currentDate = new Date();
+    // Use timestamp comparison to avoid timezone issues between local and AWS deployment
+    const currentTimestamp = Date.now();
+    const expirationTimestamp = expirationDate.getTime();
     
-    // Check if the expiration date is in the past
-    return expirationDate < currentDate;
+    // Check if the expiration timestamp is in the past
+    return expirationTimestamp < currentTimestamp;
   } catch (error) {
     console.error('Error parsing expiration date:', error);
     return false; // If we can't parse the date, assume it's not expired
