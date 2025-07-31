@@ -5,6 +5,12 @@ import { Schema } from "../../../../amplify/data/resource";
 import outputs from "../../../../amplify_outputs.json";
 import { filterExpiredCards } from "@/lib/utils";
 
+console.log("🔧 Get-Card-By-Zip - Amplify outputs:", JSON.stringify(outputs, null, 2));
+console.log("🔧 Get-Card-By-Zip - Environment variables:");
+console.log("🔧 REGION:", process.env.REGION);
+console.log("🔧 AWS_REGION:", process.env.AWS_REGION);
+console.log("🔧 NODE_ENV:", process.env.NODE_ENV);
+
 Amplify.configure(outputs);
 const client = generateClient<Schema>();
 
@@ -414,16 +420,21 @@ function sortCardsByZipDistance(cards: CardWithBusiness[], targetZip: string): C
 
 export async function GET(request: Request) {
   try {
+    console.log("🔍 Get-Card-By-Zip - Starting request");
+    
     const { searchParams } = new URL(request.url);
     const zipCode = searchParams.get('zip');
     
     if (!zipCode) {
+      console.log("❌ Get-Card-By-Zip - No zip code provided");
       return NextResponse.json({ error: "Zip code parameter is required" }, { status: 400 });
     }
 
-    console.log(`🔍 Fetching cards for zip code: ${zipCode}`);
+    console.log(`🔍 Get-Card-By-Zip - Fetching cards for zip code: ${zipCode}`);
 
     // Fetch all cards with their associated business data using explicit GraphQL query
+    console.log("🔍 Get-Card-By-Zip - Executing GraphQL query");
+    
     const cardsResult = await client.graphql({
       query: `
         query ListCards {
@@ -445,6 +456,8 @@ export async function GET(request: Request) {
       `
     });
 
+    console.log("🔍 Get-Card-By-Zip - GraphQL query completed");
+
     const cards = (cardsResult as { data: { listCards: { items: Array<{
       cardid: string;
       quantity: number;
@@ -458,7 +471,10 @@ export async function GET(request: Request) {
       businessId?: string;
     }> } } }).data.listCards.items;
 
+    console.log("🔍 Get-Card-By-Zip - Cards extracted:", cards?.length || 0);
+
     if (!cards || cards.length === 0) {
+      console.log("❌ Get-Card-By-Zip - No cards available");
       return NextResponse.json({ error: "No cards available" }, { status: 404 });
     }
 
