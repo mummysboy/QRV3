@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateClient } from "aws-amplify/api";
 import "../../../lib/amplify-client";
 import bcrypt from "bcryptjs";
+import { sendStatusChangeEmail } from "../../../lib/email-notifications";
 
 interface BusinessSignupData {
   businessName: string;
@@ -248,6 +249,19 @@ export async function POST(request: NextRequest) {
       userId: user.id,
       userEmail: user.email
     });
+
+    // Send confirmation email to the user
+    try {
+      await sendStatusChangeEmail({
+        userEmail: user.email,
+        businessName: business.name,
+        userName: `${user.firstName} ${user.lastName}`,
+        status: 'pending_approval',
+      });
+    } catch (emailError) {
+      console.error("Failed to send signup confirmation email:", emailError);
+      // Don't fail the signup if email fails
+    }
 
     return NextResponse.json({
       success: true,

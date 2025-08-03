@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { loadPendingUpdates, savePendingUpdates } from "@/lib/pending-updates";
 import { generateClient } from "aws-amplify/api";
 import "../../../../lib/amplify-client";
+import { sendStatusChangeEmail } from "../../../../lib/email-notifications";
 
 export async function POST(request: NextRequest) {
   try {
@@ -118,11 +119,38 @@ export async function POST(request: NextRequest) {
       update.status = 'approved';
       update.approvedAt = new Date().toISOString();
       console.log("✅ Update approved and business data updated");
+      
+      // Send approval email
+      try {
+        await sendStatusChangeEmail({
+          userEmail: update.userEmail,
+          businessName: update.businessName,
+          userName: `${update.userFirstName} ${update.userLastName}`,
+          status: 'update_approved',
+        });
+      } catch (emailError) {
+        console.error("Failed to send update approval email:", emailError);
+        // Don't fail the entire request if email fails
+      }
     } else {
       // Mark as rejected
       update.status = 'rejected';
       update.rejectedAt = new Date().toISOString();
       console.log("❌ Update rejected");
+      
+      // Send rejection email
+      try {
+        await sendStatusChangeEmail({
+          userEmail: update.userEmail,
+          businessName: update.businessName,
+          userName: `${update.userFirstName} ${update.userLastName}`,
+          status: 'update_rejected',
+          reason: 'Your profile update request did not meet our approval criteria. Please review your changes and ensure all information is accurate and complete.',
+        });
+      } catch (emailError) {
+        console.error("Failed to send update rejection email:", emailError);
+        // Don't fail the entire request if email fails
+      }
     }
 
     // Save the updated pending updates

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateClient } from "aws-amplify/api";
 import "../../../../lib/amplify-client";
+import { sendStatusChangeEmail } from "../../../../lib/email-notifications";
 
 interface RejectBusinessData {
   businessId: string;
@@ -48,8 +49,44 @@ export async function POST(request: NextRequest) {
       updatedAt: string; 
     } } }).data.updateBusiness;
 
-    // TODO: Send rejection email to business owner
-    // TODO: Send notification to business owner
+    // Send rejection email to business owner
+    try {
+      // Get business users to find the primary contact
+      const usersResult = await client.graphql({
+        query: `
+          query GetBusinessUsers($businessId: String!) {
+            listBusinessUsers(filter: {
+              businessId: { eq: $businessId }
+            }) {
+              items {
+                id
+                email
+                firstName
+                lastName
+              }
+            }
+          }
+        `,
+        variables: { businessId },
+      });
+      
+      const users = (usersResult as { data: { listBusinessUsers: { items: Array<{ id: string; email: string; firstName: string; lastName: string }> } } }).data.listBusinessUsers.items;
+      
+      if (users && users.length > 0) {
+        const primaryUser = users[0];
+        
+        await sendStatusChangeEmail({
+          userEmail: primaryUser.email,
+          businessName: updatedBusiness.name,
+          userName: `${primaryUser.firstName} ${primaryUser.lastName}`,
+          status: 'rejected',
+          reason: 'Your business application did not meet our current approval criteria. Please review your information and consider resubmitting with additional details or documentation.',
+        });
+      }
+    } catch (emailError) {
+      console.error("Failed to send rejection email:", emailError);
+      // Don't fail the entire request if email fails
+    }
 
     return NextResponse.json(
       { 
