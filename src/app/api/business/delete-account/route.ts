@@ -1,17 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, DeleteCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { generateClient } from "aws-amplify/api";
+import "../../../../lib/amplify-client";
 import { S3Client, DeleteObjectCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
 
-const dynamoClient = new DynamoDBClient({ region: "us-west-1" });
-const docClient = DynamoDBDocumentClient.from(dynamoClient);
 const s3Client = new S3Client({ region: "us-west-1" });
-
-const BUSINESS_TABLE = "qrewards-businesses-dev";
-const USER_TABLE = "qrewards-users-dev";
-const REWARDS_TABLE = "qrewards-rewards-dev";
-const CLAIMS_TABLE = "qrewards-claims-dev";
-const ANALYTICS_TABLE = "qrewards-analytics-dev";
 const S3_BUCKET = "qrewards-media6367c-dev";
 
 export async function DELETE(request: NextRequest) {
@@ -24,145 +16,229 @@ export async function DELETE(request: NextRequest) {
 
     console.log(`🗑️ Starting account deletion for user: ${userEmail}`);
 
-    // Step 1: Get all businesses for this user
-    const businessesResponse = await docClient.send(new QueryCommand({
-      TableName: BUSINESS_TABLE,
-      IndexName: "UserEmailIndex",
-      KeyConditionExpression: "userEmail = :userEmail",
-      ExpressionAttributeValues: {
-        ":userEmail": userEmail
-      }
-    }));
+    const client = generateClient();
 
-    const businesses = businessesResponse.Items || [];
-    console.log(`📋 Found ${businesses.length} businesses to delete`);
-
-    // Step 2: Delete all rewards for each business
-    for (const business of businesses) {
-      const rewardsResponse = await docClient.send(new QueryCommand({
-        TableName: REWARDS_TABLE,
-        KeyConditionExpression: "businessId = :businessId",
-        ExpressionAttributeValues: {
-          ":businessId": business.id
-        }
-      }));
-
-      const rewards = rewardsResponse.Items || [];
-      console.log(`🎁 Deleting ${rewards.length} rewards for business ${business.id}`);
-
-      // Delete each reward
-      for (const reward of rewards) {
-        await docClient.send(new DeleteCommand({
-          TableName: REWARDS_TABLE,
-          Key: {
-            cardid: reward.cardid,
-            businessId: reward.businessId
-          }
-        }));
-      }
-
-      // Delete claims for this business
-      const claimsResponse = await docClient.send(new QueryCommand({
-        TableName: CLAIMS_TABLE,
-        IndexName: "BusinessIdIndex",
-        KeyConditionExpression: "businessId = :businessId",
-        ExpressionAttributeValues: {
-          ":businessId": business.id
-        }
-      }));
-
-      const claims = claimsResponse.Items || [];
-      console.log(`📝 Deleting ${claims.length} claims for business ${business.id}`);
-
-      for (const claim of claims) {
-        await docClient.send(new DeleteCommand({
-          TableName: CLAIMS_TABLE,
-          Key: {
-            id: claim.id,
-            businessId: claim.businessId
-          }
-        }));
-      }
-
-      // Delete analytics for this business
-      const analyticsResponse = await docClient.send(new QueryCommand({
-        TableName: ANALYTICS_TABLE,
-        KeyConditionExpression: "businessId = :businessId",
-        ExpressionAttributeValues: {
-          ":businessId": business.id
-        }
-      }));
-
-      const analytics = analyticsResponse.Items || [];
-      console.log(`📊 Deleting ${analytics.length} analytics records for business ${business.id}`);
-
-      for (const analytic of analytics) {
-        await docClient.send(new DeleteCommand({
-          TableName: ANALYTICS_TABLE,
-          Key: {
-            businessId: analytic.businessId,
-            date: analytic.date
-          }
-        }));
-      }
-
-      // Delete business logos from S3
-      if (business.logo && business.logo.trim() !== '') {
-        try {
-          let logoKey = business.logo;
-          
-          // If it's a full URL, extract just the key
-          if (business.logo.startsWith('http')) {
-            const urlParts = business.logo.split('/');
-            if (urlParts.length > 3) {
-              logoKey = urlParts.slice(3).join('/');
+    // Step 1: Find all business users for this email
+    const userResult = await client.graphql({
+      query: `
+        query GetBusinessUser($email: String!) {
+          listBusinessUsers(filter: {
+            email: { eq: $email }
+          }) {
+            items {
+              id
+              businessId
+              email
+              firstName
+              lastName
+              role
+              status
             }
           }
-
-          if (logoKey.startsWith('logos/')) {
-            console.log(`🖼️ Deleting logo: ${logoKey}`);
-            await s3Client.send(new DeleteObjectCommand({
-              Bucket: S3_BUCKET,
-              Key: logoKey
-            }));
-          }
-        } catch (error) {
-          console.warn(`⚠️ Failed to delete logo ${business.logo}:`, error);
         }
-      }
+      `,
+      variables: {
+        email: userEmail,
+      },
+    });
 
-      // Delete the business
-      await docClient.send(new DeleteCommand({
-        TableName: BUSINESS_TABLE,
-        Key: {
-          id: business.id
-        }
-      }));
+    const users = (userResult as { data: { listBusinessUsers: { items: Array<{ 
+      id: string; 
+      businessId: string; 
+      email: string; 
+      firstName: string; 
+      lastName: string; 
+      role: string; 
+      status: string; 
+    }> } } }).data.listBusinessUsers.items;
+
+    console.log(`📋 Found ${users.length} business users to delete`);
+
+    if (users.length === 0) {
+      return NextResponse.json({ 
+        error: "No user found with this email" 
+      }, { status: 404 });
     }
 
-    // Step 3: Delete user
-    const userResponse = await docClient.send(new QueryCommand({
-      TableName: USER_TABLE,
-      IndexName: "EmailIndex",
-      KeyConditionExpression: "email = :email",
-      ExpressionAttributeValues: {
-        ":email": userEmail
-      }
-    }));
-
-    const users = userResponse.Items || [];
-    console.log(`👤 Deleting ${users.length} user records`);
-
+    // Step 2: For each user, delete their associated business and data
     for (const user of users) {
-      await docClient.send(new DeleteCommand({
-        TableName: USER_TABLE,
-        Key: {
-          id: user.id
+      console.log(`🗑️ Processing user: ${user.email} with business: ${user.businessId}`);
+
+      // Get the business details
+      const businessResult = await client.graphql({
+        query: `
+          query GetBusiness($id: String!) {
+            getBusiness(id: $id) {
+              id
+              name
+              logo
+              status
+            }
+          }
+        `,
+        variables: {
+          id: user.businessId,
+        },
+      });
+
+      const business = (businessResult as { data: { getBusiness: { 
+        id: string; 
+        name: string; 
+        logo: string; 
+        status: string; 
+      } | null } }).data.getBusiness;
+
+      if (business) {
+        console.log(`🏢 Found business: ${business.name}`);
+
+        // Delete all Cards for this business
+        const cardsResult = await client.graphql({
+          query: `
+            query ListCards($businessId: String!) {
+              listCards(filter: { businessId: { eq: $businessId } }) {
+                items {
+                  cardid
+                  businessId
+                }
+              }
+            }
+          `,
+          variables: { businessId: business.id },
+        });
+
+        const cards = (cardsResult as { data: { listCards: { items: Array<{ 
+          cardid: string; 
+          businessId: string; 
+        }> } } }).data.listCards.items;
+
+        console.log(`🎁 Deleting ${cards.length} cards for business ${business.id}`);
+
+        for (const card of cards) {
+          try {
+            await client.graphql({
+              query: `
+                mutation DeleteCard($cardid: ID!) {
+                  deleteCard(input: { cardid: $cardid }) {
+                    cardid
+                  }
+                }
+              `,
+              variables: { cardid: card.cardid },
+            });
+          } catch (error) {
+            console.warn(`⚠️ Failed to delete card ${card.cardid}:`, error);
+          }
         }
-      }));
+
+        // Delete all ClaimedRewards for this business
+        const rewardsResult = await client.graphql({
+          query: `
+            query ListClaimedRewards($businessId: String!) {
+              listClaimedRewards(filter: { businessId: { eq: $businessId } }) {
+                items {
+                  id
+                  businessId
+                }
+              }
+            }
+          `,
+          variables: { businessId: business.id },
+        });
+
+        const rewards = (rewardsResult as { data: { listClaimedRewards: { items: Array<{ 
+          id: string; 
+          businessId: string; 
+        }> } } }).data.listClaimedRewards.items;
+
+        console.log(`📝 Deleting ${rewards.length} claimed rewards for business ${business.id}`);
+
+        for (const reward of rewards) {
+          try {
+            await client.graphql({
+              query: `
+                mutation DeleteClaimedReward($id: ID!) {
+                  deleteClaimedReward(input: { id: $id }) {
+                    id
+                  }
+                }
+              `,
+              variables: { id: reward.id },
+            });
+          } catch (error) {
+            console.warn(`⚠️ Failed to delete claimed reward ${reward.id}:`, error);
+          }
+        }
+
+        // Delete business logos from S3
+        if (business.logo && business.logo.trim() !== '') {
+          try {
+            let logoKey = business.logo;
+            
+            // If it's a full URL, extract just the key
+            if (business.logo.startsWith('http')) {
+              const urlParts = business.logo.split('/');
+              if (urlParts.length > 3) {
+                logoKey = urlParts.slice(3).join('/');
+              }
+            }
+
+            if (logoKey.startsWith('logos/')) {
+              console.log(`🖼️ Deleting logo: ${logoKey}`);
+              await s3Client.send(new DeleteObjectCommand({
+                Bucket: S3_BUCKET,
+                Key: logoKey
+              }));
+            }
+          } catch (error) {
+            console.warn(`⚠️ Failed to delete logo ${business.logo}:`, error);
+          }
+        }
+
+        // Delete the business
+        try {
+          await client.graphql({
+            query: `
+                      mutation DeleteBusiness($id: String!) {
+          deleteBusiness(input: { id: $id }) {
+            id
+            name
+          }
+        }
+            `,
+            variables: {
+              id: business.id,
+            },
+          });
+          console.log(`✅ Deleted business: ${business.name}`);
+        } catch (error) {
+          console.warn(`⚠️ Failed to delete business ${business.id}:`, error);
+        }
+      } else {
+        console.log(`⚠️ Business ${user.businessId} not found`);
+      }
+
+      // Delete the business user
+      try {
+        await client.graphql({
+          query: `
+                    mutation DeleteBusinessUser($id: String!) {
+          deleteBusinessUser(input: { id: $id }) {
+            id
+            email
+          }
+        }
+          `,
+          variables: {
+            id: user.id,
+          },
+        });
+        console.log(`✅ Deleted business user: ${user.email}`);
+      } catch (error) {
+        console.warn(`⚠️ Failed to delete business user ${user.id}:`, error);
+      }
     }
 
-    // Step 4: Clear any remaining S3 objects for this user
+    // Step 3: Clear any remaining S3 objects for this user
     try {
       const listResponse = await s3Client.send(new ListObjectsV2Command({
         Bucket: S3_BUCKET,
