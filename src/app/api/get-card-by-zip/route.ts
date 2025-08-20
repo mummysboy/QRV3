@@ -1,18 +1,22 @@
 import { NextResponse } from "next/server";
-import { generateClient } from "aws-amplify/api";
-import { Amplify } from "aws-amplify";
-import { Schema } from "../../../../amplify/data/resource";
-import outputs from "../../../../amplify_outputs.json";
+import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb";
+import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { filterExpiredCards } from "@/lib/utils";
 
-console.log("🔧 Get-Card-By-Zip - Amplify outputs:", JSON.stringify(outputs, null, 2));
+console.log("🔧 Get-Card-By-Zip - Using direct DynamoDB access");
 console.log("🔧 Get-Card-By-Zip - Environment variables:");
 console.log("🔧 REGION:", process.env.REGION);
 console.log("🔧 AWS_REGION:", process.env.AWS_REGION);
 console.log("🔧 NODE_ENV:", process.env.NODE_ENV);
 
-Amplify.configure(outputs);
-const client = generateClient<Schema>();
+// Create DynamoDB client
+const dynamoClient = new DynamoDBClient({
+  region: process.env.REGION || "us-west-1",
+  credentials: {
+    accessKeyId: process.env.ACCESS_KEY_ID!,
+    secretAccessKey: process.env.SECRET_ACCESS_KEY!,
+  },
+});
 
 // Zip code to coordinates mapping (focusing on California zip codes)
 const ZIP_COORDINATES: { [key: string]: { lat: number; lng: number } } = {
@@ -432,44 +436,18 @@ export async function GET(request: Request) {
 
     console.log(`🔍 Get-Card-By-Zip - Fetching cards for zip code: ${zipCode}`);
 
-    // Fetch all cards with their associated business data using explicit GraphQL query
-    console.log("🔍 Get-Card-By-Zip - Executing GraphQL query");
+    // Fetch all cards directly from DynamoDB
+    console.log("🔍 Get-Card-By-Zip - Executing DynamoDB scan");
     
-    const cardsResult = await client.graphql({
-      query: `
-        query ListCards {
-          listCards {
-            items {
-              cardid
-              quantity
-              logokey
-              header
-              subheader
-              addressurl
-              addresstext
-              neighborhood
-              expires
-              businessId
-            }
-          }
-        }
-      `
+    const scanCommand = new ScanCommand({
+      TableName: "Card-7cdlttoiifewxgyh7sodc6czx4-NONE",
+      Limit: 100
     });
+    
+    const scanResult = await dynamoClient.send(scanCommand);
+    const cards = scanResult.Items?.map(item => unmarshall(item)) || [];
 
-    console.log("🔍 Get-Card-By-Zip - GraphQL query completed");
-
-    const cards = (cardsResult as { data: { listCards: { items: Array<{
-      cardid: string;
-      quantity: number;
-      logokey?: string;
-      header?: string;
-      subheader?: string;
-      addressurl?: string;
-      addresstext?: string;
-      neighborhood?: string;
-      expires?: string;
-      businessId?: string;
-    }> } } }).data.listCards.items;
+    console.log("🔍 Get-Card-By-Zip - DynamoDB scan completed");
 
     console.log("🔍 Get-Card-By-Zip - Cards extracted:", cards?.length || 0);
 
@@ -478,17 +456,17 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "No cards available" }, { status: 404 });
     }
 
-    // Filter out expired cards
-    const nonExpiredCards = filterExpiredCards(cards);
+    // Filter out expired cards and cards with quantity <= 0
+    const availableCards = filterExpiredCards(cards).filter(card => card.quantity > 0);
     
-    if (nonExpiredCards.length === 0) {
-      return NextResponse.json({ error: "No non-expired cards available" }, { status: 404 });
+    if (availableCards.length === 0) {
+      return NextResponse.json({ error: "No available cards (all expired or out of stock)" }, { status: 404 });
     }
 
-    console.log(`📊 Total cards found: ${cards.length}, Non-expired cards: ${nonExpiredCards.length}`);
+    console.log(`📊 Total cards found: ${cards.length}, Available cards: ${availableCards.length}`);
 
     // Extract zip codes from address text for cards without business associations
-    const cardsWithZipCodes = nonExpiredCards.map(card => {
+    const cardsWithZipCodes = availableCards.map(card => {
       // Try to extract zip code from addresstext
       const zipCodeMatch = card.addresstext?.match(/\b\d{5}\b/);
       const extractedZipCode = zipCodeMatch ? zipCodeMatch[0] : null;

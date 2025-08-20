@@ -1,16 +1,10 @@
 {
-  "name": "amplify-backend",
+  "name": "qrewards-amplify-backend",
   "version": "1.0.0",
   "type": "module",
-  "scripts": {
-    "build": "tsc"
-  },
-  "devDependencies": {
-    "typescript": "^5.4.0"
-  },
   "dependencies": {
-    "@aws-amplify/backend": "^1.16.1",
-    "@types/aws-sdk": "^0.0.42",
-    "aws-sdk": "^2.1692.0"
+    "@aws-amplify/backend": "^0.10.0",
+    "@aws-amplify/backend-cli": "^0.10.0"
   }
 }
+

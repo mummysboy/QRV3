@@ -82,6 +82,8 @@ export default function Home() {
 
   const handleBusinessSignupSubmit = async (data: BusinessSignupData) => {
     try {
+      console.log('🔧 Frontend: Submitting business signup data:', data);
+      
       const response = await fetch('/api/business-signup', {
         method: 'POST',
         headers: {
@@ -91,15 +93,25 @@ export default function Home() {
       });
 
       const responseData = await response.json();
+      console.log('🔧 Frontend: Response received:', responseData);
 
       if (!response.ok) {
-        throw new Error(responseData.error || 'Failed to submit business signup');
+        const errorMessage = responseData.error || `HTTP ${response.status}: ${response.statusText}`;
+        console.error('🔧 Frontend: Business signup failed:', errorMessage);
+        throw new Error(errorMessage);
       }
 
+      console.log('🔧 Frontend: Business signup successful');
       setShowBusinessSignupForm(false);
     } catch (error) {
-      console.error('Error submitting business signup:', error);
-      throw error;
+      console.error('🔧 Frontend: Error submitting business signup:', error);
+      
+      // Re-throw the error so the form can handle it
+      if (error instanceof Error) {
+        throw error;
+      } else {
+        throw new Error('An unexpected error occurred during business signup');
+      }
     }
   };
 

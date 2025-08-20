@@ -1,0 +1,27 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowAllDynamoDBAccess",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:*"
+      ],
+      "Resource": [
+        "arn:aws:dynamodb:us-west-1:851725394837:table/*",
+        "arn:aws:dynamodb:us-west-1:851725394837:table/*/index/*"
+      ]
+    },
+    {
+      "Sid": "AllowDynamoDBStreams",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:DescribeStream",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:ListStreams"
+      ],
+      "Resource": "arn:aws:dynamodb:us-west-1:851725394837:table/*/stream/*"
+    }
+  ]
+}
