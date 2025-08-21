@@ -8,7 +8,7 @@ import { filterExpiredCards } from "@/lib/utils";
 console.log("🔧 API Route - Using direct DynamoDB access");
 console.log("🔧 API Route - Environment variables:");
 console.log("🔧 REGION:", process.env.REGION);
-console.log("🔧 AWS_REGION:", process.env.AWS_REGION);
+console.log("🔧 REGION:", process.env.REGION);
 console.log("🔧 NODE_ENV:", process.env.NODE_ENV);
 
 // Create DynamoDB client

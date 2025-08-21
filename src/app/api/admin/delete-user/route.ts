@@ -6,7 +6,7 @@ import outputsJson from "../../../../amplify_outputs.json";
 
 interface AmplifyOutputs {
   auth: {
-    aws_region: string;
+  region: string;
     user_pool_id: string;
   };
 }
@@ -154,7 +154,7 @@ export async function POST(req: Request) {
     // Delete from Cognito User Pool as well
     try {
       const cognitoClient = new CognitoIdentityProviderClient({
-        region: outputs.auth.aws_region
+  region: outputs.auth.region
       });
       const adminDeleteUserCommand = new AdminDeleteUserCommand({
         UserPoolId: outputs.auth.user_pool_id,
@@ -346,7 +346,7 @@ export async function DELETE() {
       // Delete from Cognito
       try {
         const cognitoClient = new CognitoIdentityProviderClient({
-          region: outputs.auth.aws_region
+          region: outputs.auth.region
         });
         const adminDeleteUserCommand = new AdminDeleteUserCommand({
           UserPoolId: outputs.auth.user_pool_id,

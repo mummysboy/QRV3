@@ -12,7 +12,7 @@ export async function POST(req: Request) {
   console.log("🔍 DEBUG: ACCESS_KEY_ID exists:", !!process.env.ACCESS_KEY_ID);
   console.log("🔍 DEBUG: SECRET_ACCESS_KEY exists:", !!process.env.SECRET_ACCESS_KEY);
   console.log("🔍 DEBUG: REGION:", process.env.REGION);
-  console.log("🔍 DEBUG: AWS_REGION:", process.env.AWS_REGION);
+  console.log("🔍 DEBUG: REGION:", process.env.REGION);
 
   try {
     // Create SNS client with explicit configuration

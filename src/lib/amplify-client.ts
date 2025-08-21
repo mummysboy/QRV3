@@ -8,7 +8,7 @@ Amplify.configure(outputs);
 
 console.log('🔧 Amplify configured with:', {
   apiEndpoint: outputs.data?.url,
-  region: outputs.data?.aws_region || 'unknown',
+  region: outputs.data?.region || 'unknown',
   authType: outputs.data?.default_authorization_type,
   hasApiKey: !!outputs.data?.api_key
 });
