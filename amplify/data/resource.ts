@@ -17,7 +17,7 @@ const schema = a.schema({
       updatedAt: a.string(),
     })
     .identifier(["cardid"])
-    .authorization([a.allow.public("apiKey")]),
+  .authorization(allow => [allow.publicApiKey()]),
 
   ClaimedReward: a
     .model({
@@ -33,7 +33,7 @@ const schema = a.schema({
       claimed_at: a.string(),
     })
     .identifier(["id"])
-    .authorization([a.allow.public("apiKey")]),
+  .authorization(allow => [allow.publicApiKey()]),
 
   Business: a
     .model({
@@ -61,7 +61,7 @@ const schema = a.schema({
       approvedAt: a.string(),
       approvedBy: a.string(),
     })
-    .authorization([a.allow.public("apiKey")]),
+  .authorization(allow => [allow.publicApiKey()]),
 
   BusinessUser: a
     .model({
@@ -76,7 +76,7 @@ const schema = a.schema({
       createdAt: a.string(),
       updatedAt: a.string(),
     })
-    .authorization([a.allow.public("apiKey")]),
+  .authorization(allow => [allow.publicApiKey()]),
 
   BusinessAnalytics: a
     .model({
@@ -87,7 +87,7 @@ const schema = a.schema({
       createdAt: a.string(),
       updatedAt: a.string(),
     })
-    .authorization([a.allow.public("apiKey")]),
+  .authorization(allow => [allow.publicApiKey()]),
 
   User: a
     .model({
@@ -101,7 +101,7 @@ const schema = a.schema({
       createdAt: a.string(),
       updatedAt: a.string(),
     })
-    .authorization([a.allow.public("apiKey")]),
+  .authorization(allow => [allow.publicApiKey()]),
 
   Signup: a
     .model({
@@ -115,7 +115,7 @@ const schema = a.schema({
       createdAt: a.string(),
       updatedAt: a.string(),
     })
-    .authorization([a.allow.public("apiKey")]),
+  .authorization(allow => [allow.publicApiKey()]),
 
   // Contact: a
   //   .model({
@@ -137,7 +137,7 @@ const schema = a.schema({
       timestamp: a.string(),
       createdAt: a.string(),
     })
-    .authorization([a.allow.public("apiKey")]),
+  .authorization(allow => [allow.publicApiKey()]),
 
   AdminUser: a
     .model({
@@ -151,7 +151,7 @@ const schema = a.schema({
       createdAt: a.string(),
       updatedAt: a.string(),
     })
-    .authorization([a.allow.public("apiKey")]),
+  .authorization(allow => [allow.publicApiKey()]),
 });
 
 export type Schema = ClientSchema<typeof schema>;
