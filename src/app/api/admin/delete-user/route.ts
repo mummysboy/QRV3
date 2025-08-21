@@ -6,11 +6,19 @@ import outputsJson from "../../../../amplify_outputs.json";
 
 interface AmplifyOutputs {
   auth: {
-  region: string;
+    region?: string;
     user_pool_id: string;
+  };
+  data?: {
+    aws_region?: string;
+    region?: string;
   };
 }
 const outputs = outputsJson as unknown as AmplifyOutputs;
+// For backwards compatibility, prefer outputs.data.aws_region if present
+if (outputs.data && outputs.data.aws_region && !outputs.data.region) {
+  outputs.data.region = outputs.data.aws_region;
+}
 
 export async function POST(req: Request) {
   try {
@@ -82,6 +90,7 @@ export async function POST(req: Request) {
     // Verify user is actually deleted from database
     console.log("✅ Verifying user deletion from database...");
     try {
+      type VerifyResult = { data?: { getBusinessUser?: { id: string; email: string; firstName: string; lastName: string } } };
       const verifyResult = await client.graphql({
         query: `
           query VerifyUserDeleted($id: ID!) {
@@ -96,18 +105,19 @@ export async function POST(req: Request) {
         variables: {
           id: user.id,
         },
-      });
-      
+      }) as VerifyResult;
+
       // If we get here, the user still exists (deletion failed)
       console.log("❌ User still exists in database after deletion:", JSON.stringify(verifyResult, null, 2));
+      const getBusinessUser = verifyResult.data?.getBusinessUser;
       return NextResponse.json({
         success: false,
         error: "User deletion failed - user still exists in database",
-        user: verifyResult.data.getBusinessUser,
+        user: getBusinessUser,
         deleteResult: deleteResult
       }, { status: 500 });
       
-    } catch (verifyError) {
+    } catch {
       // This error is expected if the user was successfully deleted
       console.log("✅ User successfully deleted from database (verification query failed as expected)");
     }
@@ -147,7 +157,7 @@ export async function POST(req: Request) {
       } else {
         console.log("✅ User not found by email after deletion (success)");
       }
-    } catch (emailCheckError) {
+    } catch {
       console.log("✅ Email verification completed successfully");
     }
 
