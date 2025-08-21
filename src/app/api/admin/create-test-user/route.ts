@@ -17,7 +17,7 @@ export async function POST(request: Request) {
 
     console.log("🔍 Creating test user with:", { email, password: "***", businessId });
 
-    const client = generateClient();
+    const client = generateClient({ authMode: "apiKey" });
 
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);

@@ -4,7 +4,7 @@ import "../../../../lib/amplify-client";
 
 export async function GET() {
   try {
-    const client = generateClient();
+    const client = generateClient({ authMode: "apiKey" });
 
     // Test a simple query
     const result = await client.graphql({

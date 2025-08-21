@@ -7,7 +7,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const email = searchParams.get('email');
     
-    const client = generateClient();
+    const client = generateClient({ authMode: "apiKey" });
 
     if (email) {
       // Check for specific email in both Signups and BusinessUsers

@@ -1,59 +1,152 @@
 import { NextResponse } from "next/server";
-import { DynamoDBClient, ScanCommand, ListTablesCommand } from "@aws-sdk/client-dynamodb";
+import { generateClient } from "aws-amplify/api";
+import "../../../lib/amplify-client";
+
+interface GraphQLResult<T> {
+  data: T;
+}
 
 export async function GET() {
   try {
-    const dynamoClient = new DynamoDBClient({
-      region: process.env.REGION || "us-west-1",
-      credentials: {
-        accessKeyId: process.env.ACCESS_KEY_ID!,
-        secretAccessKey: process.env.SECRET_ACCESS_KEY!,
-      },
-    });
-
-    // Test 1: List all tables (basic connectivity)
-    console.log("🔍 Testing DynamoDB connectivity...");
-    const listTablesCommand = new ListTablesCommand({});
-    const tablesResult = await dynamoClient.send(listTablesCommand);
+    console.log("🔍 Testing GraphQL connectivity...");
     
-    console.log("📋 Available tables:", tablesResult.TableNames);
+    const client = generateClient({ authMode: 'apiKey' });
 
-    // Test 2: Try to scan a specific table (actual data access)
-    if (tablesResult.TableNames && tablesResult.TableNames.length > 0) {
-      const firstTable = tablesResult.TableNames[0];
-      console.log(`🔍 Testing access to table: ${firstTable}`);
-      
-      const scanCommand = new ScanCommand({
-        TableName: firstTable,
-        Limit: 1 // Just get 1 item to test access
-      });
-      
-      const scanResult = await dynamoClient.send(scanCommand);
-      console.log(`✅ Successfully scanned ${firstTable}, found ${scanResult.Items?.length || 0} items`);
-    }
+    // Test 1: Test basic GraphQL connectivity by listing businesses
+    console.log("🔍 Testing GraphQL business query...");
+    const businessesResult = await client.graphql({
+      query: `
+        query TestBusinesses {
+          listBusinesses(limit: 1) {
+            items {
+              id
+              name
+              email
+              status
+            }
+          }
+        }
+      `,
+    });
+    
+    const businesses = (businessesResult as GraphQLResult<any>).data.listBusinesses.items;
+    console.log("✅ Successfully queried businesses:", businesses.length);
+
+    // Test 2: Test other models to ensure they're accessible
+    console.log("🔍 Testing other models...");
+    
+    // Test Cards
+    const cardsResult = await client.graphql({
+      query: `
+        query TestCards {
+          listCards(limit: 1) {
+            items {
+              cardid
+              quantity
+              businessId
+            }
+          }
+        }
+      `,
+    });
+    const cards = (cardsResult as GraphQLResult<any>).data.listCards.items;
+    console.log("✅ Successfully queried cards:", cards.length);
+
+    // Test ClaimedRewards
+    const claimedRewardsResult = await client.graphql({
+      query: `
+        query TestClaimedRewards {
+          listClaimedRewards(limit: 1) {
+            items {
+              id
+              cardid
+              email
+            }
+          }
+        }
+      `,
+    });
+    const claimedRewards = (claimedRewardsResult as GraphQLResult<any>).data.listClaimedRewards.items;
+    console.log("✅ Successfully queried claimed rewards:", claimedRewards.length);
+
+    // Test BusinessUsers
+    const businessUsersResult = await client.graphql({
+      query: `
+        query TestBusinessUsers {
+          listBusinessUsers(limit: 1) {
+            items {
+              id
+              email
+              businessId
+            }
+          }
+        }
+      `,
+    });
+    const businessUsers = (businessUsersResult as GraphQLResult<any>).data.listBusinessUsers.items;
+    console.log("✅ Successfully queried business users:", businessUsers.length);
+
+    // Test Signups
+    const signupsResult = await client.graphql({
+      query: `
+        query TestSignups {
+          listSignups(limit: 1) {
+            items {
+              id
+              email
+              businessName
+            }
+          }
+        }
+      `,
+    });
+    const signups = (signupsResult as GraphQLResult<any>).data.listSignups.items;
+    console.log("✅ Successfully queried signups:", signups.length);
+
+    // Test Contacts
+    const contactsResult = await client.graphql({
+      query: `
+        query TestContacts {
+          listContacts(limit: 1) {
+            items {
+              id
+              email
+              name
+            }
+          }
+        }
+      `,
+    });
+    const contacts = (contactsResult as GraphQLResult<any>).data.listContacts.items;
+    console.log("✅ Successfully queried contacts:", contacts.length);
 
     return NextResponse.json({
       success: true,
-      message: "DynamoDB connection test successful",
-      tables: tablesResult.TableNames,
+      message: "GraphQL connection test successful",
+      results: {
+        businesses: businesses.length,
+        cards: cards.length,
+        claimedRewards: claimedRewards.length,
+        businessUsers: businessUsers.length,
+        signups: signups.length,
+        contacts: contacts.length,
+      },
       region: process.env.REGION || "us-west-1"
     });
 
   } catch (error: any) {
-    console.error("❌ DynamoDB connection test failed:", error);
+    console.error("❌ GraphQL connection test failed:", error);
     
     // Provide specific error details
     let errorType = "Unknown";
-    let errorMessage = error.message || "Unknown error";
+    const errorMessage = error.message || "Unknown error";
     
-    if (error.name === "ResourceNotFoundException") {
-      errorType = "Table not found";
-    } else if (error.name === "AccessDeniedException") {
-      errorType = "Access denied - check IAM permissions";
-    } else if (error.name === "UnrecognizedClientException") {
-      errorType = "Invalid region or endpoint";
-    } else if (error.name === "InvalidSignatureException") {
-      errorType = "Invalid credentials";
+    if (error.name === "GraphQLError") {
+      errorType = "GraphQL Error";
+    } else if (error.name === "NetworkError") {
+      errorType = "Network Error";
+    } else if (error.name === "UnauthorizedError") {
+      errorType = "Unauthorized - check API key";
     }
     
     return NextResponse.json({

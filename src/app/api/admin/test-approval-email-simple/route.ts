@@ -15,7 +15,7 @@ export async function POST(req: Request) {
     console.log("🧪 Testing approval email for business:", businessId);
     console.log("🧪 Test email address:", testEmail);
 
-    const client = generateClient();
+    const client = generateClient({ authMode: "apiKey" });
 
     // Step 1: Test basic GraphQL connection
     console.log("🔍 Step 1: Testing GraphQL connection...");

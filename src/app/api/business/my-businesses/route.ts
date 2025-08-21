@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const client = generateClient();
+    const client = generateClient({ authMode: "apiKey" });
 
     // Get all business users for this email
     const businessUsersResult = await client.graphql({

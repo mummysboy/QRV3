@@ -2,28 +2,38 @@
 // Trigger deployment - API route for getting random cards
 import { NextResponse } from "next/server";
 import { generateClient } from "aws-amplify/api";
-import { Amplify } from "aws-amplify";
-import { Schema } from "../../../../amplify/data/resource";
-import outputs from "../../../../amplify_outputs.json";
+import "../../../lib/amplify-client";
 import { filterExpiredCards } from "@/lib/utils";
-
-console.log("🔧 API Route - Amplify outputs:", JSON.stringify(outputs, null, 2));
-console.log("🔧 API Route - Environment variables:");
-console.log("🔧 REGION:", process.env.REGION);
-console.log("🔧 AWS_REGION:", process.env.AWS_REGION);
-console.log("🔧 NODE_ENV:", process.env.NODE_ENV);
-
-Amplify.configure(outputs);
-const client = generateClient<Schema>();
 
 export async function GET() {
   try {
     console.log("🔍 API Route - Starting get-random-card request");
     
-    // Fetch all cards from the Amplify-managed Card table
-    const result = await client.models.Card.list();
-    const cards = result.data;
+    const client = generateClient({ authMode: 'apiKey' });
+    
+    // Fetch all cards using GraphQL
+    const result = await client.graphql({
+      query: `
+        query ListCards {
+          listCards {
+            items {
+              cardid
+              quantity
+              logokey
+              header
+              subheader
+              addressurl
+              addresstext
+              neighborhood
+              expires
+              businessId
+            }
+          }
+        }
+      `
+    });
 
+    const cards = result.data.listCards.items;
     console.log("🔍 API Route - Cards fetched:", cards?.length || 0);
 
     if (!cards || cards.length === 0) {
@@ -50,7 +60,7 @@ export async function GET() {
 
     return NextResponse.json(card);
   } catch (err) {
-    console.error("❌ API Route - Error fetching random card from DynamoDB:", err);
+    console.error("❌ API Route - Error fetching random card:", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

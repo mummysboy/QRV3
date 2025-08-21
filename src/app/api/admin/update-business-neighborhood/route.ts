@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const client = generateClient();
+    const client = generateClient({ authMode: "apiKey" });
 
     // Update the business with the neighborhood
     const updateResult = await client.graphql({

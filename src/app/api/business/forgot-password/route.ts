@@ -20,7 +20,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const client = generateClient();
+    const client = generateClient({ authMode: "apiKey" });
 
     // Find the business user by email
     const userResult = await client.graphql({

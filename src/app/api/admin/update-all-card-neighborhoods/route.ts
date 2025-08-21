@@ -13,7 +13,7 @@ interface UpdateDetail {
 
 export async function POST() {
   try {
-    const client = generateClient();
+    const client = generateClient({ authMode: "apiKey" });
 
     // Get all cards
     console.log('🔧 Starting neighborhood update for all cards...');

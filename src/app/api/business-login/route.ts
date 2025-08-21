@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const client = generateClient();
+    const client = generateClient({ authMode: 'apiKey' });
 
     // Find all users by email (user might have multiple businesses)
     const userResult = await client.graphql({

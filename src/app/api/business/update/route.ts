@@ -63,7 +63,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const client = generateClient();
+    const client = generateClient({ authMode: "apiKey" });
 
     // Get current business data to check if address has changed
     const currentBusinessResult = await client.graphql({

@@ -16,7 +16,7 @@ export async function POST(req: Request) {
     console.log("🧪 Testing password reset for email:", email);
     console.log("🧪 Test email address:", testEmail);
 
-    const client = generateClient();
+    const client = generateClient({ authMode: "apiKey" });
 
     // Find the business user by email
     const userResult = await client.graphql({

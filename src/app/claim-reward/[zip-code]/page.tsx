@@ -145,7 +145,7 @@ export default function ClaimRewardPage() {
         if (code) {
           console.log("🔍 Fetching claimed reward with code:", code);
 
-          const client = generateClient();
+          const client = generateClient({ authMode: "apiKey" });
 
           const result = await client.graphql({
             query: `

@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
     try {
       const decoded = jwt.verify(sessionToken, JWT_SECRET) as JWTPayload;
       
-      const client = generateClient();
+      const client = generateClient({ authMode: "apiKey" });
       
       // Fetch user data to get firstName and lastName
       const userResult = await client.graphql({

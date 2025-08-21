@@ -1,50 +1,57 @@
-// lib/aws.ts
+// lib/aws.ts - Updated to use GraphQL instead of direct DynamoDB
 
-import {
-  DynamoDBClient,
-  PutItemCommand,
-  UpdateItemCommand,
-} from "@aws-sdk/client-dynamodb";
-import { marshall } from "@aws-sdk/util-dynamodb";
+import { generateClient } from "aws-amplify/api";
+import "../../lib/amplify-client";
 
-// AWS Amplify can use IAM roles, so credentials might not be needed
-const dynamoClient = new DynamoDBClient({
-  region: process.env.REGION || "us-west-1",
-  // Only use explicit credentials if they're available
-  ...(process.env.ACCESS_KEY_ID && process.env.SECRET_ACCESS_KEY && {
-    credentials: {
-      accessKeyId: process.env.ACCESS_KEY_ID,
-      secretAccessKey: process.env.SECRET_ACCESS_KEY,
-    },
-  }),
-});
-
-console.log("🔧 AWS Configuration for Amplify:");
-console.log("🔧 Region:", process.env.REGION);
-console.log(
-  "🔧 Using explicit credentials:",
-  !!(process.env.ACCESS_KEY_ID && process.env.SECRET_ACCESS_KEY)
-);
+// Initialize GraphQL client
+const client = generateClient({ authMode: 'apiKey' });
 
 export async function decrementCardQuantity(cardid: string) {
   console.log("➡️ Attempting to decrement card:", cardid);
-  const params = {
-    TableName: "cards",
-    Key: marshall({ cardid }),
-    UpdateExpression: "SET quantity = quantity - :one",
-    ConditionExpression: "quantity > :zero",
-    ExpressionAttributeValues: marshall({
-      ":one": 1,
-      ":zero": 0,
-    }),
-    ReturnValues: "UPDATED_NEW" as const,
-  };
-
+  
   try {
-    const command = new UpdateItemCommand(params);
-    const result = await dynamoClient.send(command);
-    console.log("✅ Quantity decremented:", result);
-    return result;
+    // First get the current card to check quantity
+    const getCardResult = await client.graphql({
+      query: `
+        query GetCard($cardid: String!) {
+          getCard(cardid: $cardid) {
+            cardid
+            quantity
+          }
+        }
+      `,
+      variables: { cardid },
+    });
+
+    const card = getCardResult.data.getCard;
+    if (!card) {
+      throw new Error("Card not found");
+    }
+
+    if (card.quantity <= 0) {
+      throw new Error("Card quantity is already 0");
+    }
+
+    // Update the card quantity
+    const updateResult = await client.graphql({
+      query: `
+        mutation UpdateCard($input: UpdateCardInput!) {
+          updateCard(input: $input) {
+            cardid
+            quantity
+          }
+        }
+      `,
+      variables: {
+        input: {
+          cardid,
+          quantity: card.quantity - 1,
+        },
+      },
+    });
+
+    console.log("✅ Quantity decremented:", updateResult.data.updateCard);
+    return updateResult.data.updateCard;
   } catch (err) {
     console.error("❌ Failed to decrement quantity:", err);
     throw err;
@@ -54,13 +61,25 @@ export async function decrementCardQuantity(cardid: string) {
 export async function logClaimedReward(data: Record<string, unknown>) {
   try {
     console.log("📝 Logging claimed reward:", JSON.stringify(data, null, 2));
-    const command = new PutItemCommand({
-      TableName: "claimed_rewards",
-      Item: marshall(data),
+    
+    const createResult = await client.graphql({
+      query: `
+        mutation CreateClaimedReward($input: CreateClaimedRewardInput!) {
+          createClaimedReward(input: $input) {
+            id
+            cardid
+            email
+            claimed_at
+          }
+        }
+      `,
+      variables: {
+        input: data,
+      },
     });
-    const result = await dynamoClient.send(command);
-    console.log("✅ Successfully logged claimed reward:", result);
-    return result;
+
+    console.log("✅ Successfully logged claimed reward:", createResult.data.createClaimedReward);
+    return createResult.data.createClaimedReward;
   } catch (error) {
     console.error("❌ Failed to log claimed reward:", error);
     throw error;

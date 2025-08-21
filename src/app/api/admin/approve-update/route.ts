@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
       // Update the actual business data in the database
       console.log("🔍 Updating business data in database...");
       
-      const client = generateClient();
+      const client = generateClient({ authMode: "apiKey" });
       
       // Get current business data
       const businessResult = await client.graphql({

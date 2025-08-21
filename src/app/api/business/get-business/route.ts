@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const client = generateClient();
+    const client = generateClient({ authMode: "apiKey" });
 
     // Get business information
     const businessResult = await client.graphql({

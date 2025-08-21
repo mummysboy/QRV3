@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const client = generateClient();
+    const client = generateClient({ authMode: "apiKey" });
 
     // Get business users for this business
     const result = await client.graphql({

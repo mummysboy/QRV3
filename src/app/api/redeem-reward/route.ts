@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const client = generateClient();
+    const client = generateClient({ authMode: "apiKey" });
 
     // Update the claimed reward with redemption timestamp
     let updateResult;

@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const client = generateClient();
+    const client = generateClient({ authMode: "apiKey" });
 
     // Check if business already exists
     const existingBusiness = await client.graphql({

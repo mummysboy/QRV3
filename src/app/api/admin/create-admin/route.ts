@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const client = generateClient();
+    const client = generateClient({ authMode: "apiKey" });
 
     // Check if admin user already exists
     const existingAdminResult = await client.graphql({

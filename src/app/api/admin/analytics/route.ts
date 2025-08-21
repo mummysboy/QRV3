@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
     const businessId = searchParams.get('businessId') || 'all';
     const showAll = searchParams.get('showAll') === 'true';
 
-    const client = generateClient();
+    const client = generateClient({ authMode: "apiKey" });
 
     // Calculate date range based on timeRange parameter
     const now = new Date();

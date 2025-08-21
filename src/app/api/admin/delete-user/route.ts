@@ -22,7 +22,7 @@ export async function POST(req: Request) {
 
     console.log("🗑️ Deleting user with email:", email);
 
-    const client = generateClient();
+    const client = generateClient({ authMode: "apiKey" });
 
     // First, find the user
     const userResult = await client.graphql({
@@ -207,7 +207,7 @@ export async function POST(req: Request) {
 
 export async function DELETE() {
   try {
-    const client = generateClient();
+    const client = generateClient({ authMode: "apiKey" });
     // Get all business users whose status is not 'active'
     const userResult = await client.graphql({
       query: `

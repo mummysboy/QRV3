@@ -4,7 +4,7 @@ import "../../../../lib/amplify-client";
 
 export async function GET() {
   try {
-    const client = generateClient();
+    const client = generateClient({ authMode: "apiKey" });
 
     // Get all signups
     const signupsResult = await client.graphql({

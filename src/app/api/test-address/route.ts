@@ -8,7 +8,7 @@ Amplify.configure(outputs);
 
 export async function GET() {
   try {
-    const client = generateClient();
+    const client = generateClient({ authMode: "apiKey" });
 
     // Get all cards to check their address fields
     const result = await client.graphql({

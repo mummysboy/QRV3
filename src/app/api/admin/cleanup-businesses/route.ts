@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     console.log("🧹 Starting business cleanup process...");
     console.log("📧 Preserving emails:", PRESERVED_EMAILS);
 
-    const client = generateClient();
+    const client = generateClient({ authMode: "apiKey" });
     const deletionSummary = {
       businessUsersDeleted: 0,
       businessesDeleted: 0,

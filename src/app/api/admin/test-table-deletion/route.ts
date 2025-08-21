@@ -12,7 +12,7 @@ export async function POST(req: Request) {
 
     console.log("🧪 Testing table deletion for business:", businessId);
 
-    const client = generateClient();
+    const client = generateClient({ authMode: "apiKey" });
 
     // Step 1: Check what BusinessUser records exist before deletion
     console.log("🔍 Step 1: Checking existing BusinessUser records...");

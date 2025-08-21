@@ -20,7 +20,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const client = generateClient();
+    const client = generateClient({ authMode: "apiKey" });
 
     if (type === 'signup') {
       console.log("Updating signup with ID:", id, "to status:", status);

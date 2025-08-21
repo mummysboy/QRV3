@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const client = generateClient();
+    const client = generateClient({ authMode: "apiKey" });
 
     // Update business status to rejected
     const result = await client.graphql({

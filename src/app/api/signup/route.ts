@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const client = generateClient();
+    const client = generateClient({ authMode: "apiKey" });
 
     // Check if signup already exists with this email
     const existingSignup = await client.graphql({

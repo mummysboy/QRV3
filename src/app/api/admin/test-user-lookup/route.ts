@@ -12,7 +12,7 @@ export async function POST(req: Request) {
 
     console.log("🔍 Looking up user with email:", email);
 
-    const client = generateClient();
+    const client = generateClient({ authMode: "apiKey" });
 
     // Check for business users with this email
     const userResult = await client.graphql({

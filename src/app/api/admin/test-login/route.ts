@@ -10,7 +10,7 @@ export async function POST(request: Request) {
 
     console.log("🔍 Testing login with:", { email, password: password ? "***" : "undefined" });
 
-    const client = generateClient();
+    const client = generateClient({ authMode: "apiKey" });
 
     // Find user by email
     const userResult = await client.graphql({

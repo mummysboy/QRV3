@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { generateClient } from "aws-amplify/api";
 import "../../../lib/amplify-client";
 
-const client = generateClient();
+const client = generateClient({ authMode: "apiKey" });
 
 export async function GET() {
   try {

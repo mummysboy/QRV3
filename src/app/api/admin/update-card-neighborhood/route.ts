@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const client = generateClient();
+    const client = generateClient({ authMode: "apiKey" });
 
     // First, get the card details
     const cardResult = await client.graphql({

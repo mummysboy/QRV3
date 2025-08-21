@@ -1,0 +1,1 @@
+{"version":"1","categories":{"data":{"resourceName":"data","service":"AppSync","dependsOn":[]},"storage":{"resourceName":"storage","service":"S3","dependsOn":[]},"function":{"resourceName":"uploadLogo","service":"Lambda","dependsOn":[]}}}

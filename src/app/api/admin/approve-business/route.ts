@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const client = generateClient();
+    const client = generateClient({ authMode: "apiKey" });
 
     // First, get the business details to detect neighborhood
     const businessResult = await client.graphql({

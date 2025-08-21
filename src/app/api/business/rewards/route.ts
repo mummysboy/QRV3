@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const client = generateClient();
+    const client = generateClient({ authMode: 'apiKey' });
 
     // Get all cards for this business
     const cardsResult = await client.graphql({
@@ -181,7 +181,7 @@ export async function POST(request: NextRequest) {
       console.warn('⚠️ Content moderation failed, proceeding with reward creation');
     }
 
-    const client = generateClient();
+    const client = generateClient({ authMode: 'apiKey' });
 
     // Generate unique card ID
     const cardid = `${businessId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -330,7 +330,7 @@ export async function PUT(request: NextRequest) {
       }
     }
 
-    const client = generateClient();
+    const client = generateClient({ authMode: "apiKey" });
 
     // Update card
     const updateResult = await client.graphql({
@@ -390,7 +390,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const client = generateClient();
+    const client = generateClient({ authMode: "apiKey" });
 
     // Delete card
     await client.graphql({

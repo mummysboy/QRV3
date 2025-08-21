@@ -18,7 +18,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const client = generateClient();
+    const client = generateClient({ authMode: "apiKey" });
     let result;
 
     if (type === 'signup') {

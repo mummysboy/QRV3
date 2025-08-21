@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const client = generateClient();
+    const client = generateClient({ authMode: "apiKey" });
 
     // Find admin user by username
     const adminResult = await client.graphql({
