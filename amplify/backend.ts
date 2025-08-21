@@ -1,5 +1,5 @@
 // Amplify Gen 2 Backend Configuration
-// Deployment trigger: 2025-08-20 23:50 UTC - API fixes deployed
+// Deployment trigger: 2025-08-21 03:30 UTC - Fix import path for amplify_outputs.json
 // All endpoints now working with direct DynamoDB calls
 // Deployment trigger: 2025-08-21 00:20 UTC - Force new deployment
 
