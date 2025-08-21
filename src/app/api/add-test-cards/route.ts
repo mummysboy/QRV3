@@ -80,9 +80,11 @@ export async function POST() {
     
     for (const card of testCards) {
       try {
-        const result = await client.models.Card.create(card);
-        createdCards.push(result.data);
-        console.log(`✅ Created card: ${card.header} in zip ${card.addresstext.split(' ').pop()}`);
+        // TODO: Re-enable once schema client issues are resolved
+        // const result = await client.models.Card.create(card);
+        // createdCards.push(result.data);
+        createdCards.push({ id: card.cardid, status: "disabled" });
+        console.log(`✅ Would create card: ${card.header} in zip ${card.addresstext.split(' ').pop()}`);
       } catch (error) {
         console.error(`❌ Failed to create card ${card.cardid}:`, error);
       }

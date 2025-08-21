@@ -55,7 +55,7 @@ export async function sendStatusChangeEmail(data: StatusChangeEmailData) {
       
     default:
       subject = '📧 Your QRewards Account Status Update';
-      emailContent = generateGenericStatusEmail(businessName, status, contactFormUrl);
+      emailContent = generateGenericStatusEmail(status, businessName, contactFormUrl);
   }
 
   const command = new SendEmailCommand({
@@ -436,7 +436,7 @@ function generateUpdateRejectionEmail(businessName?: string, reason?: string, co
   `;
 }
 
-function generateGenericStatusEmail(businessName?: string, status: string, contactFormUrl?: string): string {
+function generateGenericStatusEmail(status: string, businessName?: string, contactFormUrl?: string): string {
   return `
     <div style="font-family: 'Segoe UI', sans-serif; background-color: #f4f4f7; padding: 40px 0; color: #1f2937;">
       <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; padding: 32px; box-shadow: 0 8px 24px rgba(0,0,0,0.05);">

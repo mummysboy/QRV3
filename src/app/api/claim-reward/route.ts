@@ -71,7 +71,7 @@ export async function POST(req: Request) {
         }
 
         const cardData = unmarshall(cardResponse.Item);
-        card = cardData;
+        card = cardData as { quantity: number; businessId?: string | null; expires?: string | null };
         console.log("🔍 Found card:", JSON.stringify(cardData, null, 2));
         
         // Check if card is expired

@@ -30,18 +30,7 @@ export async function GET() {
         tableArn: table?.TableArn,
         keySchema: table?.KeySchema,
         attributeDefinitions: table?.AttributeDefinitions,
-        billingMode: table?.BillingMode,
-        provisionedThroughput: table?.ProvisionedThroughput,
-        globalSecondaryIndexes: table?.GlobalSecondaryIndexes,
-        localSecondaryIndexes: table?.LocalSecondaryIndexes,
-        streamSpecification: table?.StreamSpecification,
-        latestStreamLabel: table?.LatestStreamLabel,
-        latestStreamArn: table?.LatestStreamArn,
-        restoreSummary: table?.RestoreSummary,
-        sseDescription: table?.SSEDescription,
-        archivalSummary: table?.ArchivalSummary,
-        tableClassSummary: table?.TableClassSummary,
-        deletionProtectionEnabled: table?.DeletionProtectionEnabled
+        provisionedThroughput: table?.ProvisionedThroughput
       }
     });
     

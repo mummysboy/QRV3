@@ -7,17 +7,17 @@ import outputs from "../../amplify_outputs.json";
 Amplify.configure(outputs);
 
 console.log('🔧 Amplify configured with:', {
-  apiEndpoint: outputs.API?.GraphQL?.endpoint,
-  region: outputs.API?.GraphQL?.endpoint?.split('.')[2] || 'unknown',
-  authType: outputs.API?.GraphQL?.defaultAuthorization?.authorizationType,
-  hasApiKey: !!outputs.API?.GraphQL?.defaultAuthorization?.apiKey
+  apiEndpoint: outputs.data?.url,
+  region: outputs.data?.aws_region || 'unknown',
+  authType: outputs.data?.default_authorization_type,
+  hasApiKey: !!outputs.data?.api_key
 });
 
 // Export a configured client generator
 export function generateConfiguredClient() {
   console.log('🔧 Generating GraphQL client with authMode: apiKey');
-  console.log('🔧 API Key:', outputs.API?.GraphQL?.defaultAuthorization?.apiKey);
-  console.log('🔧 API URL:', outputs.API?.GraphQL?.endpoint);
+  console.log('🔧 API Key:', outputs.data?.api_key);
+  console.log('🔧 API URL:', outputs.data?.url);
   
   try {
     const client = generateClient();

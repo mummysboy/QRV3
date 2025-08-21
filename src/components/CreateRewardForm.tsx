@@ -84,7 +84,7 @@ export default function CreateRewardForm({
     businessCategory: businessWithLogo.category,
     businessLogo: businessWithLogo.logo,
     subheader: "",
-    quantity: "", // Start blank
+    quantity: 100, // Start with default quantity
     expires: "",
   });
 
@@ -155,7 +155,7 @@ export default function CreateRewardForm({
         businessCategory: businessWithLogo.category,
         businessLogo: businessWithLogo.logo,
         subheader: "",
-        quantity: 100,
+        quantity: 100, // Keep consistent default
         expires: "",
       });
       showSuccess("Reward Created!", "Your reward has been successfully created and is now live.");

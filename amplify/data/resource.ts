@@ -17,7 +17,7 @@ const schema = a.schema({
       updatedAt: a.string(),
     })
     .identifier(["cardid"])
-    .authorization((allow) => [allow.publicApiKey()]),
+    .authorization([a.allow.public("apiKey")]),
 
   ClaimedReward: a
     .model({
@@ -33,7 +33,7 @@ const schema = a.schema({
       claimed_at: a.string(),
     })
     .identifier(["id"])
-    .authorization((allow) => [allow.publicApiKey()]),
+    .authorization([a.allow.public("apiKey")]),
 
   Business: a
     .model({
@@ -61,7 +61,7 @@ const schema = a.schema({
       approvedAt: a.string(),
       approvedBy: a.string(),
     })
-    .authorization((allow) => [allow.publicApiKey()]),
+    .authorization([a.allow.public("apiKey")]),
 
   BusinessUser: a
     .model({
@@ -76,7 +76,7 @@ const schema = a.schema({
       createdAt: a.string(),
       updatedAt: a.string(),
     })
-    .authorization((allow) => [allow.publicApiKey()]),
+    .authorization([a.allow.public("apiKey")]),
 
   BusinessAnalytics: a
     .model({
@@ -87,7 +87,7 @@ const schema = a.schema({
       createdAt: a.string(),
       updatedAt: a.string(),
     })
-    .authorization((allow) => [allow.publicApiKey()]),
+    .authorization([a.allow.public("apiKey")]),
 
   User: a
     .model({
@@ -101,7 +101,7 @@ const schema = a.schema({
       createdAt: a.string(),
       updatedAt: a.string(),
     })
-    .authorization((allow) => [allow.publicApiKey()]),
+    .authorization([a.allow.public("apiKey")]),
 
   Signup: a
     .model({
@@ -115,17 +115,18 @@ const schema = a.schema({
       createdAt: a.string(),
       updatedAt: a.string(),
     })
-    .authorization((allow) => [allow.publicApiKey()]),
+    .authorization([a.allow.public("apiKey")]),
 
-  Contact: a
-    .model({
-      id: a.string().required(),
-      name: a.string().required(),
-      email: a.string().required(),
-      message: a.string().required(),
-      createdAt: a.string(),
-    })
-    .authorization((allow) => [allow.publicApiKey()]),
+  // Contact: a
+  //   .model({
+  //     id: a.string().required(),
+  //     name: a.string().required(),
+  //     email: a.string().required(),
+  //     message: a.string().required(),
+  //     createdAt: a.string(),
+  //     updatedAt: a.string(),
+  //   })
+  //   .authorization([a.allow.public("apiKey")]),
 
   CardView: a
     .model({
@@ -136,7 +137,7 @@ const schema = a.schema({
       timestamp: a.string(),
       createdAt: a.string(),
     })
-    .authorization((allow) => [allow.publicApiKey()]),
+    .authorization([a.allow.public("apiKey")]),
 
   AdminUser: a
     .model({
@@ -150,7 +151,7 @@ const schema = a.schema({
       createdAt: a.string(),
       updatedAt: a.string(),
     })
-    .authorization((allow) => [allow.publicApiKey()]),
+    .authorization([a.allow.public("apiKey")]),
 });
 
 export type Schema = ClientSchema<typeof schema>;

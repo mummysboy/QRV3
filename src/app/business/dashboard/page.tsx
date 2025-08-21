@@ -694,7 +694,12 @@ export default function BusinessDashboard() {
 
     // Ensure we have the business logo
     const businessLogo = rewardData.businessLogo || business?.logo || '';
-    console.log('🔍 CreateReward - Using logo:', businessLogo);
+    console.log('🔍 CreateReward - Business data:', {
+      businessId: rewardData.businessId,
+      businessLogo: businessLogo,
+      business: business,
+      rewardData: rewardData
+    });
 
     const constructedAddress = `${rewardData.businessAddress}, ${rewardData.businessCity}, ${rewardData.businessState} ${rewardData.businessZipCode}`;
     
@@ -736,9 +741,18 @@ export default function BusinessDashboard() {
           // Throw error so CreateRewardForm can handle it
           throw new Error(error.message || 'Content moderation failed');
         } else {
-          showError('Creation Failed', error.error || error.message || 'Failed to create reward');
+          // Log detailed error information
+          console.error('Detailed error:', {
+            error: error.error,
+            message: error.message,
+            details: error.details,
+            status: response.status
+          });
+          
+          const errorMessage = error.error || error.message || error.details || 'Failed to create reward';
+          showError('Creation Failed', errorMessage);
           // Throw error so CreateRewardForm can handle it
-          throw new Error(error.error || error.message || 'Failed to create reward');
+          throw new Error(errorMessage);
         }
       }
     } catch (error) {

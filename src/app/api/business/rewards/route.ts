@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateClient } from "aws-amplify/api";
-import "../../../../lib/amplify-client";
+import { generateConfiguredClient } from "../../../../lib/amplify-client";
 
 interface Card {
   cardid: string;
@@ -43,7 +42,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const client = generateClient();
+    const client = generateConfiguredClient();
 
     // Get all cards for this business
     const cardsResult = await client.graphql({
@@ -138,9 +137,19 @@ export async function POST(request: NextRequest) {
       addresstext,
     } = body;
 
-    console.log('Extracted address fields:', { addressurl, addresstext });
+    console.log('Extracted fields:', { 
+      businessId, 
+      header, 
+      subheader, 
+      quantity, 
+      expires, 
+      logokey, 
+      addressurl, 
+      addresstext 
+    });
 
     if (!businessId || !subheader) {
+      console.error('Validation failed:', { businessId, subheader });
       return NextResponse.json(
         { error: "Business ID and description are required" },
         { status: 400 }
@@ -181,14 +190,18 @@ export async function POST(request: NextRequest) {
       console.warn('⚠️ Content moderation failed, proceeding with reward creation');
     }
 
-    const client = generateClient();
+    console.log('🔧 Generating GraphQL client...');
+    const client = generateConfiguredClient();
+    console.log('🔧 GraphQL client generated successfully');
 
     // Generate unique card ID
     const cardid = `${businessId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    console.log('🔧 Generated card ID:', cardid);
 
     // Fetch business to get neighborhood
     let neighborhood = '';
     try {
+      console.log('🔧 Fetching business with ID:', businessId);
       const businessResult = await client.graphql({
         query: `
           query GetBusiness($id: String!) {
@@ -204,10 +217,13 @@ export async function POST(request: NextRequest) {
         `,
         variables: { id: businessId },
       });
+      console.log('🔧 Business query result:', businessResult);
       const business = (businessResult as { data: { getBusiness?: { id: string; name?: string; address?: string; city?: string; state?: string; neighborhood?: string } } }).data.getBusiness;
       if (business) {
         console.log('Business fetched:', business);
         neighborhood = business.neighborhood || '';
+      } else {
+        console.warn('⚠️ No business found with ID:', businessId);
       }
     } catch (err) {
       console.error('Failed to fetch business:', err);
@@ -226,30 +242,38 @@ export async function POST(request: NextRequest) {
       neighborhood, // Store business neighborhood at card creation
     };
 
-    console.log('Creating card with input:', cardInput);
+    console.log('🔧 Creating card with input:', cardInput);
 
     // Create new card with all business information
-    const createResult = await client.graphql({
-      query: `
-        mutation CreateCard($input: CreateCardInput!) {
-          createCard(input: $input) {
-            cardid
-            quantity
-            logokey
-            header
-            subheader
-            addressurl
-            addresstext
-            neighborhood
-            expires
-            businessId
+    let createResult;
+    try {
+      console.log('🔧 Executing CreateCard mutation...');
+      createResult = await client.graphql({
+        query: `
+          mutation CreateCard($input: CreateCardInput!) {
+            createCard(input: $input) {
+              cardid
+              quantity
+              logokey
+              header
+              subheader
+              addressurl
+              addresstext
+              neighborhood
+              expires
+              businessId
+            }
           }
-        }
-      `,
-      variables: {
-        input: cardInput,
-      },
-    });
+        `,
+        variables: {
+          input: cardInput,
+        },
+      });
+      console.log('🔧 CreateCard mutation result:', createResult);
+    } catch (mutationError) {
+      console.error('❌ CreateCard mutation failed:', mutationError);
+      throw mutationError;
+    }
 
     const newCard = (createResult as { data: { createCard: Card } }).data.createCard;
     
@@ -266,8 +290,22 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error creating reward:", error);
+    
+    // Provide more detailed error information
+    let errorMessage = "Failed to create reward";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    } else if (typeof error === 'string') {
+      errorMessage = error;
+    } else if (error && typeof error === 'object' && 'message' in error) {
+      errorMessage = String(error.message);
+    }
+    
     return NextResponse.json(
-      { error: "Failed to create reward" },
+      { 
+        error: errorMessage,
+        details: error instanceof Error ? error.stack : String(error)
+      },
       { status: 500 }
     );
   }
@@ -330,7 +368,7 @@ export async function PUT(request: NextRequest) {
       }
     }
 
-    const client = generateClient();
+    const client = generateConfiguredClient();
 
     // Update card
     const updateResult = await client.graphql({
@@ -390,7 +428,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const client = generateClient();
+    const client = generateConfiguredClient();
 
     // Delete card
     await client.graphql({

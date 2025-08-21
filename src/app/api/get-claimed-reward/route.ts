@@ -18,12 +18,14 @@ export async function GET(req: Request) {
 
   try {
     // This will read from ClaimedReward-7cdlttoiifewxgyh7sodc6czx4-NONE
-    const result = await client.models.ClaimedReward.get({ id });
-    if (!result.data) {
-      return NextResponse.json({ error: "Reward not found" }, { status: 404 });
-    }
-
-    return NextResponse.json(result.data);
+    // TODO: Re-enable once schema client issues are resolved
+    // const result = await client.models.ClaimedReward.get({ id });
+    // if (!result.data) {
+    //   return NextResponse.json({ error: "Reward not found" }, { status: 404 });
+    // }
+    // return NextResponse.json(result.data);
+    
+    return NextResponse.json({ error: "Claimed reward functionality temporarily disabled" }, { status: 503 });
   } catch (error) {
     console.error("Amplify Data error:", error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
