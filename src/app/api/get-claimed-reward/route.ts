@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { generateClient } from "aws-amplify/api";
 import { Amplify } from "aws-amplify";
 import { Schema } from "../../../../amplify/data/resource";
-import outputs from "../../../../amplify_outputs.json";
+import outputs from "@/amplify_outputs.json";
 
 Amplify.configure(outputs);
 const client = generateClient<Schema>();

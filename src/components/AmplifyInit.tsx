@@ -3,7 +3,7 @@
 
 import { useEffect } from "react";
 import { Amplify, type ResourcesConfig } from "aws-amplify";
-import outputsJson from "../../amplify_outputs.json";
+import outputsJson from "@/amplify_outputs.json";
 
 type AmplifyOutputs = {
   API?: {

@@ -1,7 +1,7 @@
 // src/lib/amplify-client.ts
 import { Amplify } from "aws-amplify";
 import { generateClient } from "aws-amplify/api";
-import outputs from "../../amplify_outputs.json";
+import outputs from "@/amplify_outputs.json";
 
 // Configure Amplify with the restored GraphQL configuration
 Amplify.configure(outputs);

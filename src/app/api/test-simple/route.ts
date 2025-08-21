@@ -42,7 +42,7 @@ export async function GET() {
     console.log('🧪 Simple Test: Testing outputs file...');
     let outputs;
     try {
-      outputs = require("../../../../amplify_outputs.json");
+  outputs = require("@/amplify_outputs.json");
       console.log('🧪 Simple Test: Outputs file read successfully');
       console.log('🧪 Simple Test: API Key exists:', !!outputs.data.api_key);
       console.log('🧪 Simple Test: API URL:', outputs.data.url);

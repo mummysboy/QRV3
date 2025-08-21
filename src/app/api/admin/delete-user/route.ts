@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { generateClient } from "aws-amplify/api";
 import "../../../../lib/amplify-client";
 import { CognitoIdentityProviderClient, AdminDeleteUserCommand } from "@aws-sdk/client-cognito-identity-provider";
-import outputsJson from "../../../../amplify_outputs.json";
+import outputsJson from "@/amplify_outputs.json";
 
 interface AmplifyOutputs {
   auth: {

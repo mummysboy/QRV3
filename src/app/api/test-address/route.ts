@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { generateClient } from "aws-amplify/api";
 import { Amplify } from "aws-amplify";
-import outputs from "../../../../amplify_outputs.json";
+import outputs from "@/amplify_outputs.json";
 
 // Configure Amplify for server-side usage
 Amplify.configure(outputs);
