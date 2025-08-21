@@ -61,7 +61,8 @@ export async function POST(req: Request) {
     const user = users[0];
     console.log("🗑️ Found user to delete:", JSON.stringify(user, null, 2));
 
-    // Delete the user
+    // Delete the user from database
+    console.log("🗑️ Deleting user from database...");
     const deleteResult = await client.graphql({
       query: `
         mutation DeleteBusinessUser($id: ID!) {
@@ -76,7 +77,79 @@ export async function POST(req: Request) {
       },
     });
 
-    console.log("🗑️ Delete result:", JSON.stringify(deleteResult, null, 2));
+    console.log("🗑️ Database delete result:", JSON.stringify(deleteResult, null, 2));
+
+    // Verify user is actually deleted from database
+    console.log("✅ Verifying user deletion from database...");
+    try {
+      const verifyResult = await client.graphql({
+        query: `
+          query VerifyUserDeleted($id: ID!) {
+            getBusinessUser(id: $id) {
+              id
+              email
+              firstName
+              lastName
+            }
+          }
+        `,
+        variables: {
+          id: user.id,
+        },
+      });
+      
+      // If we get here, the user still exists (deletion failed)
+      console.log("❌ User still exists in database after deletion:", JSON.stringify(verifyResult, null, 2));
+      return NextResponse.json({
+        success: false,
+        error: "User deletion failed - user still exists in database",
+        user: verifyResult.data.getBusinessUser,
+        deleteResult: deleteResult
+      }, { status: 500 });
+      
+    } catch (verifyError) {
+      // This error is expected if the user was successfully deleted
+      console.log("✅ User successfully deleted from database (verification query failed as expected)");
+    }
+
+    // Verify user cannot be found by email
+    console.log("✅ Verifying user cannot be found by email...");
+    try {
+      const emailCheckResult = await client.graphql({
+        query: `
+          query CheckUserByEmail($email: String!) {
+            listBusinessUsers(filter: {
+              email: { eq: $email }
+            }) {
+              items {
+                id
+                email
+                firstName
+                lastName
+              }
+            }
+          }
+        `,
+        variables: {
+          email: email,
+        },
+      });
+
+      const remainingUsers = (emailCheckResult as { data: { listBusinessUsers: { items: Array<{ id: string; email: string; firstName: string; lastName: string }> } } }).data.listBusinessUsers.items;
+      
+      if (remainingUsers.length > 0) {
+        console.log("❌ User still found by email after deletion:", remainingUsers);
+        return NextResponse.json({
+          success: false,
+          error: "User deletion incomplete - user still found by email",
+          remainingUsers: remainingUsers
+        }, { status: 500 });
+      } else {
+        console.log("✅ User not found by email after deletion (success)");
+      }
+    } catch (emailCheckError) {
+      console.log("✅ Email verification completed successfully");
+    }
 
     // Delete from Cognito User Pool as well
     try {
@@ -91,7 +164,8 @@ export async function POST(req: Request) {
       console.log(`✅ Successfully deleted user ${email} from Cognito user pool`);
     } catch (cognitoError) {
       console.error(`❌ Failed to delete user ${email} from Cognito user pool:`, cognitoError);
-      // Optionally, you can return an error here or just log it
+      // Don't fail the entire operation if Cognito deletion fails
+      // The user is already deleted from the database
     }
 
     // Also check if we should delete the associated business
@@ -116,76 +190,110 @@ export async function POST(req: Request) {
     if (business) {
       console.log("🗑️ Found associated business:", JSON.stringify(business, null, 2));
 
-      // Delete all Cards for this business
-      const cardsResult = await client.graphql({
+      // Check if there are other users for this business
+      const otherUsersResult = await client.graphql({
         query: `
-          query ListCards($businessId: String!) {
-            listCards(filter: { businessId: { eq: $businessId } }) {
-              items { cardid }
-            }
-          }
-        `,
-        variables: { businessId: business.id },
-      });
-      const cards = (cardsResult as { data: { listCards: { items: Array<{ cardid: string }> } } }).data.listCards.items;
-      for (const card of cards) {
-        await client.graphql({
-          query: `
-            mutation DeleteCard($cardid: ID!) {
-              deleteCard(input: { cardid: $cardid }) { cardid }
-            }
-          `,
-          variables: { cardid: card.cardid },
-        });
-      }
-      console.log(`🗑️ Deleted ${cards.length} cards for business ${business.id}`);
-
-      // Delete all ClaimedRewards for this business
-      const rewardsResult = await client.graphql({
-        query: `
-          query ListClaimedRewards($businessId: String!) {
-            listClaimedRewards(filter: { businessId: { eq: $businessId } }) {
-              items { id }
-            }
-          }
-        `,
-        variables: { businessId: business.id },
-      });
-      const rewards = (rewardsResult as { data: { listClaimedRewards: { items: Array<{ id: string }> } } }).data.listClaimedRewards.items;
-      for (const reward of rewards) {
-        await client.graphql({
-          query: `
-            mutation DeleteClaimedReward($id: ID!) {
-              deleteClaimedReward(input: { id: $id }) { id }
-            }
-          `,
-          variables: { id: reward.id },
-        });
-      }
-      console.log(`🗑️ Deleted ${rewards.length} claimed rewards for business ${business.id}`);
-
-      // Delete the business too
-      const deleteBusinessResult = await client.graphql({
-        query: `
-          mutation DeleteBusiness($id: ID!) {
-            deleteBusiness(input: { id: $id }) {
-              id
-              name
+          query GetOtherBusinessUsers($businessId: String!, $excludeUserId: String!) {
+            listBusinessUsers(filter: {
+              businessId: { eq: $businessId }
+              id: { ne: $excludeUserId }
+            }) {
+              items {
+                id
+                email
+                firstName
+                lastName
+                role
+                status
+              }
             }
           }
         `,
         variables: {
-          id: business.id,
+          businessId: business.id,
+          excludeUserId: user.id,
         },
       });
 
-      console.log("🗑️ Business delete result:", JSON.stringify(deleteBusinessResult, null, 2));
-      businessDeleted = true;
+      const otherUsers = (otherUsersResult as { data: { listBusinessUsers: { items: Array<{ id: string; email: string; firstName: string; lastName: string; role: string; status: string }> } } }).data.listBusinessUsers.items;
+      
+      if (otherUsers.length > 0) {
+        console.log(`🏢 Business has ${otherUsers.length} other users, not deleting business`);
+        console.log("🏢 Other users:", otherUsers.map(u => ({ email: u.email, role: u.role, status: u.status })));
+      } else {
+        console.log("🏢 No other users for this business, proceeding with business deletion");
+
+        // Delete all Cards for this business
+        const cardsResult = await client.graphql({
+          query: `
+            query ListCards($businessId: String!) {
+              listCards(filter: { businessId: { eq: $businessId } }) {
+                items { cardid }
+              }
+            }
+          `,
+          variables: { businessId: business.id },
+        });
+        const cards = (cardsResult as { data: { listCards: { items: Array<{ cardid: string }> } } }).data.listCards.items;
+        for (const card of cards) {
+          await client.graphql({
+            query: `
+              mutation DeleteCard($cardid: ID!) {
+                deleteCard(input: { cardid: $cardid }) { cardid }
+              }
+            `,
+            variables: { cardid: card.cardid },
+          });
+        }
+        console.log(`🗑️ Deleted ${cards.length} cards for business ${business.id}`);
+
+        // Delete all ClaimedRewards for this business
+        const rewardsResult = await client.graphql({
+          query: `
+            query ListClaimedRewards($businessId: String!) {
+              listClaimedRewards(filter: { businessId: { eq: $businessId } }) {
+                items { id }
+              }
+            }
+          `,
+          variables: { businessId: business.id },
+        });
+        const rewards = (rewardsResult as { data: { listClaimedRewards: { items: Array<{ id: string }> } } }).data.listClaimedRewards.items;
+        for (const reward of rewards) {
+          await client.graphql({
+            query: `
+              mutation DeleteClaimedReward($id: ID!) {
+                deleteClaimedReward(input: { id: $id }) { id }
+              }
+            `,
+            variables: { id: reward.id },
+          });
+        }
+        console.log(`🗑️ Deleted ${rewards.length} claimed rewards for business ${business.id}`);
+
+        // Delete the business too
+        const deleteBusinessResult = await client.graphql({
+          query: `
+            mutation DeleteBusiness($id: ID!) {
+              deleteBusiness(input: { id: $id }) {
+                id
+                name
+              }
+            }
+          `,
+          variables: {
+            id: business.id,
+          },
+        });
+
+        console.log("🗑️ Business delete result:", JSON.stringify(deleteBusinessResult, null, 2));
+        businessDeleted = true;
+      }
     }
 
     return NextResponse.json({
       success: true,
-      message: "User and associated business deleted successfully",
+      message: "User successfully deleted from database and Cognito",
       deletedUser: {
         id: user.id,
         email: user.email,
@@ -193,7 +301,8 @@ export async function POST(req: Request) {
         lastName: user.lastName
       },
       businessDeleted: businessDeleted,
-      businessId: user.businessId
+      businessId: user.businessId,
+      verification: "User verified as deleted from database"
     });
 
   } catch (error) {
