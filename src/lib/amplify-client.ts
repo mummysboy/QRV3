@@ -6,10 +6,10 @@ import outputs from "../amplify_outputs.json";
 const config = {
   API: {
     GraphQL: {
-      endpoint: outputs.API.GraphQL.endpoint,
-      region: outputs.API.GraphQL.region,
+      endpoint: outputs.data.url,
+      region: outputs.data.aws_region,
       defaultAuthorizationMode: 'apiKey',
-      apiKey: outputs.API.GraphQL.defaultAuthorization.apiKey
+      apiKey: outputs.data.api_key
     }
   }
 };
