@@ -3,7 +3,7 @@
 import { NextResponse } from "next/server";
 import { generateClient } from "aws-amplify/api";
 import "../../../lib/amplify-client";
-import { filterExpiredCards } from "@/lib/utils";
+import { filterAvailableCards } from "@/lib/utils";
 
 export async function GET() {
   try {
@@ -42,8 +42,7 @@ export async function GET() {
     }
 
     // Filter out expired cards and cards with 0 quantity
-    const nonExpiredCards = filterExpiredCards(cards);
-    const validCards = nonExpiredCards.filter(card => card.quantity > 0);
+    const validCards = filterAvailableCards(cards);
     
     console.log("🔍 API Route - Valid cards after filtering:", validCards.length);
     
@@ -52,7 +51,7 @@ export async function GET() {
       return NextResponse.json({ error: "No available cards (all cards are expired or have 0 quantity)" }, { status: 404 });
     }
 
-    console.log(`📊 Total cards: ${cards.length}, Non-expired cards: ${nonExpiredCards.length}, Available cards (quantity > 0): ${validCards.length}`);
+    console.log(`📊 Total cards: ${cards.length}, Available cards (non-expired and quantity > 0): ${validCards.length}`);
 
     // Pick a random card from non-expired cards
     const card = validCards[Math.floor(Math.random() * validCards.length)];

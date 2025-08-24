@@ -3,7 +3,7 @@ import { generateClient } from "aws-amplify/api";
 import { Amplify } from "aws-amplify";
 import { Schema } from "../../../../amplify/data/resource";
 import outputs from "../../../../amplify_outputs.json";
-import { filterExpiredCards } from "@/lib/utils";
+import { filterAvailableCards } from "@/lib/utils";
 
 console.log("🔧 Get-Card-By-Zip - Amplify outputs:", JSON.stringify(outputs, null, 2));
 console.log("🔧 Get-Card-By-Zip - Environment variables:");
@@ -479,14 +479,13 @@ export async function GET(request: Request) {
     }
 
     // Filter out expired cards and cards with 0 quantity
-    const nonExpiredCards = filterExpiredCards(cards);
-    const availableCards = nonExpiredCards.filter(card => card.quantity > 0);
+    const availableCards = filterAvailableCards(cards);
     
     if (availableCards.length === 0) {
       return NextResponse.json({ error: "No available cards (all cards are expired or have 0 quantity)" }, { status: 404 });
     }
 
-    console.log(`📊 Total cards found: ${cards.length}, Non-expired cards: ${nonExpiredCards.length}, Available cards (quantity > 0): ${availableCards.length}`);
+    console.log(`📊 Total cards found: ${cards.length}, Available cards (non-expired and quantity > 0): ${availableCards.length}`);
 
     // Extract zip codes from address text for cards without business associations
     const cardsWithZipCodes = availableCards.map(card => {

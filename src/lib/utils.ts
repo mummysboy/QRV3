@@ -80,3 +80,12 @@ export function isCardExpired(expires: string | null | undefined): boolean {
 export function filterExpiredCards<T extends { expires?: string | null }>(cards: T[]): T[] {
   return cards.filter(card => !isCardExpired(card.expires));
 }
+
+/**
+ * Filter out expired cards and cards with 0 quantity from an array
+ * @param cards - Array of cards with expiration dates and quantity
+ * @returns Array of available cards (non-expired and quantity > 0)
+ */
+export function filterAvailableCards<T extends { expires?: string | null; quantity?: number }>(cards: T[]): T[] {
+  return cards.filter(card => !isCardExpired(card.expires) && (card.quantity === undefined || card.quantity > 0));
+}
