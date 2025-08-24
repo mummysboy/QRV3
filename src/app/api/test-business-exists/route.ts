@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateClient } from "aws-amplify/api";
-import "../../lib/amplify-client"; // Import the configured Amplify client
+import "../../../lib/amplify-client"; // Import the configured Amplify client
 
 export async function GET(request: NextRequest) {
   try {
