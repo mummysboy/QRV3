@@ -42,6 +42,72 @@ export async function POST(req: Request) {
         id: string; 
       } } }).data.deleteSignup;
 
+      // Also check if there are any BusinessUser accounts with the same email
+      // First, get the signup details to find the email
+      try {
+        const signupDetails = await client.graphql({
+          query: `
+            query GetSignupDetails($id: ID!) {
+              getSignup(id: $id) {
+                email
+              }
+            }
+          `,
+          variables: { id },
+        });
+
+        const signupEmail = (signupDetails as { data: { getSignup: { email: string } } }).data.getSignup?.email;
+        
+        if (signupEmail) {
+          console.log(`🔍 Checking for BusinessUser accounts with email: ${signupEmail}`);
+          
+          // Find any BusinessUser accounts with the same email
+          const businessUsersResult = await client.graphql({
+            query: `
+              query GetBusinessUsersByEmail($email: String!) {
+                listBusinessUsers(filter: { email: { eq: $email } }) {
+                  items {
+                    id
+                    email
+                    businessId
+                  }
+                }
+              }
+            `,
+            variables: { email: signupEmail },
+          });
+
+          const businessUsers = (businessUsersResult as { data: { listBusinessUsers: { items: Array<{ id: string; email: string; businessId: string }> } } }).data.listBusinessUsers.items;
+          
+          if (businessUsers.length > 0) {
+            console.log(`🗑️ Found ${businessUsers.length} BusinessUser accounts with email ${signupEmail}, deleting them...`);
+            
+            for (const businessUser of businessUsers) {
+              try {
+                await client.graphql({
+                  query: `
+                    mutation DeleteBusinessUser($id: ID!) {
+                      deleteBusinessUser(input: { id: $id }) {
+                        id
+                        email
+                      }
+                    }
+                  `,
+                  variables: { id: businessUser.id },
+                });
+                console.log(`✅ Successfully deleted BusinessUser: ${businessUser.email} (${businessUser.id})`);
+              } catch (userError) {
+                console.error(`❌ Failed to delete BusinessUser ${businessUser.email}:`, userError);
+              }
+            }
+          } else {
+            console.log(`✅ No BusinessUser accounts found with email ${signupEmail}`);
+          }
+        }
+      } catch (emailCheckError) {
+        console.log(`⚠️ Could not check for BusinessUser accounts (signup may already be deleted):`, emailCheckError instanceof Error ? emailCheckError.message : 'Unknown error');
+      }
+
     } else if (type === 'business') {
       console.log(`🗑️ Starting deletion process for business: ${id}`);
       

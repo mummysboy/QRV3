@@ -2,14 +2,21 @@
 import { Amplify } from "aws-amplify";
 import outputs from "../amplify_outputs.json";
 
-// Transform the outputs to match the expected format
+// Configure Amplify with the new schema
 const config = {
   API: {
     GraphQL: {
-      endpoint: outputs.data.url,
-      region: outputs.data.aws_region,
+      endpoint: outputs.API.GraphQL.endpoint,
+      region: outputs.API.GraphQL.region,
       defaultAuthorizationMode: 'apiKey',
-      apiKey: outputs.data.api_key
+      apiKey: outputs.API.GraphQL.defaultAuthorization.apiKey,
+      // Add IAM as fallback authorization
+      additionalAuthorizationModes: [
+        {
+          mode: 'AWS_IAM',
+          region: outputs.API.GraphQL.region
+        }
+      ]
     }
   }
 };

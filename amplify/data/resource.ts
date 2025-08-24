@@ -82,7 +82,7 @@ const schema = a.schema({
 
   Business: a
     .model({
-      id: a.string().required(),
+      id: a.id().required(),
       name: a.string().required(),
       phone: a.string().required(),
       email: a.string().required(),
@@ -111,7 +111,7 @@ const schema = a.schema({
 
   BusinessUser: a
     .model({
-      id: a.string().required(),
+      id: a.id().required(),
       email: a.string().required(),
       password: a.string().required(), // <--- Restored field
       firstName: a.string().required(),

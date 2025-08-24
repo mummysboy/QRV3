@@ -66,22 +66,33 @@ export async function PUT(request: NextRequest) {
     const client = generateClient({ authMode: "apiKey" });
 
     // Get current business data to check if address has changed
-    const currentBusinessResult = await client.graphql({
-      query: `
-        query GetBusiness($id: String!) {
-          getBusiness(id: $id) {
-            id
-            name
-            address
-            city
-            state
-            zipCode
-            neighborhood
+    console.log('🔧 Business update: Fetching current business data for ID:', businessId);
+    let currentBusinessResult;
+    try {
+      currentBusinessResult = await client.graphql({
+        query: `
+          query GetBusiness($id: ID!) {
+            getBusiness(id: $id) {
+              id
+              name
+              address
+              city
+              state
+              zipCode
+              neighborhood
+            }
           }
-        }
-      `,
-      variables: { id: businessId },
-    });
+        `,
+        variables: { id: businessId },
+      });
+      console.log('🔧 Business update: GraphQL response:', JSON.stringify(currentBusinessResult, null, 2));
+    } catch (error) {
+      console.error('🔧 Business update: GraphQL error:', error);
+      return NextResponse.json(
+        { error: "Failed to fetch business data", details: error },
+        { status: 500 }
+      );
+    }
 
     const currentBusiness = (currentBusinessResult as { data: { getBusiness?: { 
       id: string; 
@@ -90,7 +101,7 @@ export async function PUT(request: NextRequest) {
       city: string; 
       state: string; 
       zipCode: string; 
-      neighborhood: string; 
+      // Note: neighborhood field not available in current schema
     } } }).data.getBusiness;
 
     if (!currentBusiness) {
@@ -120,13 +131,13 @@ export async function PUT(request: NextRequest) {
       newZipCode: zipCode
     });
 
-    // Detect neighborhood if address has changed or if neighborhood is empty
-    let neighborhood = currentBusiness.neighborhood || '';
-    const shouldDetectNeighborhood = addressChanged || !neighborhood;
+    // Always detect neighborhood when address changes or if neighborhood is empty
+    let neighborhood = '';
+    const shouldDetectNeighborhood = addressChanged || true; // Always detect for now
     
     if (shouldDetectNeighborhood) {
       console.log('🔧 Business update: Detecting neighborhood...', {
-        reason: addressChanged ? 'address changed' : 'neighborhood empty'
+        reason: addressChanged ? 'address changed' : 'always detecting'
       });
       try {
         const detectRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/detect-neighborhood`, {
@@ -148,8 +159,6 @@ export async function PUT(request: NextRequest) {
       } catch (error) {
         console.error('🔧 Business update: Error detecting neighborhood:', error);
       }
-    } else {
-      console.log('🔧 Business update: No neighborhood detection needed, keeping existing neighborhood:', neighborhood);
     }
 
     // Build update input
@@ -170,7 +179,8 @@ export async function PUT(request: NextRequest) {
       ...(photos !== undefined && { photos }),
       ...(primaryContactEmail !== undefined && { primaryContactEmail }),
       ...(primaryContactPhone !== undefined && { primaryContactPhone }),
-      ...(shouldDetectNeighborhood && { neighborhood }), // Update neighborhood if detected
+      // Note: neighborhood field not available in current schema yet, but we'll detect it
+      // ...(shouldDetectNeighborhood && { neighborhood }), // Update neighborhood if detected
       updatedAt: new Date().toISOString(),
       // Temporarily remove profileComplete until schema is deployed
       // ...(profileComplete !== undefined && { profileComplete }),
@@ -194,7 +204,6 @@ export async function PUT(request: NextRequest) {
             address
             city
             state
-            neighborhood
             website
             socialMedia
             businessHours
@@ -220,7 +229,8 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({
       success: true,
       business: updatedBusiness,
-      neighborhoodDetected: addressChanged ? neighborhood : null,
+      // Note: neighborhood detection temporarily disabled
+      // neighborhoodDetected: addressChanged ? neighborhood : null,
     });
   } catch (error) {
     console.error('🔧 Business update: Error updating business:', error);

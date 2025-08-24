@@ -1,8 +1,19 @@
 {
+  "API": {
+    "GraphQL": {
+      "endpoint": "https://3kyverokszaqtceujkigy2uina.appsync-api.us-west-1.amazonaws.com/graphql",
+      "region": "us-west-1",
+      "defaultAuthorization": {
+        "authorizationType": "API_KEY",
+        "apiKey": "da2-wz6ypuaypbco7nzjnznxrmlmki"
+      },
+      "defaultAuthMode": "API_KEY"
+    }
+  },
   "data": {
-    "url": "https://jpfsndqfq5belghdwj6et53ad4.appsync-api.us-west-1.amazonaws.com/graphql",
+    "url": "https://3kyverokszaqtceujkigy2uina.appsync-api.us-west-1.amazonaws.com/graphql",
     "aws_region": "us-west-1",
-    "api_key": "da2-mivp2ggufneupbqzx6gtraxz6m",
+    "api_key": "da2-wz6ypuaypbco7nzjnznxrmlmki",
     "default_authorization_type": "API_KEY",
     "authorization_types": [
       "AWS_IAM"
@@ -381,10 +392,10 @@
                     "allow": "public",
                     "provider": "apiKey",
                     "operations": [
+                      "read",
                       "create",
                       "update",
-                      "delete",
-                      "read"
+                      "delete"
                     ]
                   }
                 ]
@@ -638,7 +649,7 @@
             "id": {
               "name": "id",
               "isArray": false,
-              "type": "String",
+              "type": "ID",
               "isRequired": true,
               "attributes": []
             },
@@ -842,7 +853,7 @@
             "id": {
               "name": "id",
               "isArray": false,
-              "type": "String",
+              "type": "ID",
               "isRequired": true,
               "attributes": []
             },
@@ -919,6 +930,133 @@
           },
           "syncable": true,
           "pluralName": "BusinessUsers",
+          "attributes": [
+            {
+              "type": "model",
+              "properties": {}
+            },
+            {
+              "type": "key",
+              "properties": {
+                "fields": [
+                  "id"
+                ]
+              }
+            },
+            {
+              "type": "auth",
+              "properties": {
+                "rules": [
+                  {
+                    "allow": "public",
+                    "provider": "apiKey",
+                    "operations": [
+                      "create",
+                      "update",
+                      "delete",
+                      "read"
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "primaryKeyInfo": {
+            "isCustomPrimaryKey": false,
+            "primaryKeyFieldName": "id",
+            "sortKeyFieldNames": []
+          }
+        },
+        "AdminUser": {
+          "name": "AdminUser",
+          "fields": {
+            "id": {
+              "name": "id",
+              "isArray": false,
+              "type": "String",
+              "isRequired": true,
+              "attributes": []
+            },
+            "username": {
+              "name": "username",
+              "isArray": false,
+              "type": "String",
+              "isRequired": true,
+              "attributes": []
+            },
+            "email": {
+              "name": "email",
+              "isArray": false,
+              "type": "String",
+              "isRequired": true,
+              "attributes": []
+            },
+            "password": {
+              "name": "password",
+              "isArray": false,
+              "type": "String",
+              "isRequired": true,
+              "attributes": []
+            },
+            "phoneNumber": {
+              "name": "phoneNumber",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
+              "attributes": []
+            },
+            "firstName": {
+              "name": "firstName",
+              "isArray": false,
+              "type": "String",
+              "isRequired": true,
+              "attributes": []
+            },
+            "lastName": {
+              "name": "lastName",
+              "isArray": false,
+              "type": "String",
+              "isRequired": true,
+              "attributes": []
+            },
+            "role": {
+              "name": "role",
+              "isArray": false,
+              "type": "String",
+              "isRequired": true,
+              "attributes": []
+            },
+            "status": {
+              "name": "status",
+              "isArray": false,
+              "type": "String",
+              "isRequired": true,
+              "attributes": []
+            },
+            "lastLoginAt": {
+              "name": "lastLoginAt",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
+              "attributes": []
+            },
+            "createdAt": {
+              "name": "createdAt",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
+              "attributes": []
+            },
+            "updatedAt": {
+              "name": "updatedAt",
+              "isArray": false,
+              "type": "String",
+              "isRequired": false,
+              "attributes": []
+            }
+          },
+          "syncable": true,
+          "pluralName": "AdminUsers",
           "attributes": [
             {
               "type": "model",
@@ -1063,11 +1201,11 @@
   },
   "storage": {
     "aws_region": "us-west-1",
-    "bucket_name": "amplify-qrewardsnew-isaac-qrewardsstoragebucketb6d-ioazr82zsrke",
+    "bucket_name": "amplify-qrewardsnew-isaac-qrewardsstoragebucketb6d-lgupebttujw3",
     "buckets": [
       {
         "name": "qrewards-storage",
-        "bucket_name": "amplify-qrewardsnew-isaac-qrewardsstoragebucketb6d-ioazr82zsrke",
+        "bucket_name": "amplify-qrewardsnew-isaac-qrewardsstoragebucketb6d-lgupebttujw3",
         "aws_region": "us-west-1"
       }
     ]

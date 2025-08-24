@@ -70,14 +70,19 @@ export async function POST(request: NextRequest) {
       // Update card quantity
       const updateResponse = await client.graphql({
         query: `
-          mutation UpdateCard($cardid: String!, $quantity: Int!) {
-            updateCard(cardid: $cardid, quantity: $quantity) {
+          mutation UpdateCard($input: UpdateCardInput!) {
+            updateCard(input: $input) {
               cardid
               quantity
             }
           }
         `,
-        variables: { cardid, quantity: card.quantity - 1 }
+        variables: { 
+          input: { 
+            cardid, 
+            quantity: card.quantity - 1 
+          } 
+        }
       });
       console.log("✅ Card quantity update response:", JSON.stringify(updateResponse, null, 2));
     } catch (updateError) {

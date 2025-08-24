@@ -1,11 +1,11 @@
 {
   "API": {
     "GraphQL": {
-      "endpoint": "https://jpfsndqfq5belghdwj6et53ad4.appsync-api.us-west-1.amazonaws.com/graphql",
+      "endpoint": "https://3kyverokszaqtceujkigy2uina.appsync-api.us-west-1.amazonaws.com/graphql",
       "region": "us-west-1",
       "defaultAuthorization": {
         "authorizationType": "API_KEY",
-        "apiKey": "da2-qb4jojblkvgu3p3hlfcuw4ppum"
+        "apiKey": "da2-wz6ypuaypbco7nzjnznxrmlmki"
       },
       "defaultAuthMode": "API_KEY"
     }

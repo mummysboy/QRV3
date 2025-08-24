@@ -364,10 +364,10 @@ export default function BusinessDashboard() {
 
   // Refresh business data if logo is missing
   useEffect(() => {
-    if (business?.id && (!business.logo || business.logo.trim() === '')) {
+    if (business?.id && business?.name && (!business.logo || business.logo.trim() === '') && !isLoading) {
       refreshBusinessData();
     }
-  }, [business?.id, business?.logo]);
+  }, [business?.id, business?.logo, business?.name, isLoading]);
 
   useEffect(() => {
     if (user?.email) {
@@ -512,10 +512,15 @@ export default function BusinessDashboard() {
 
   // Add function to refresh business data from database
   const refreshBusinessData = async () => {
-    if (!business?.id) return;
+    if (!business?.id || !business?.name || isLoading) {
+      console.log('Skipping refreshBusinessData - business not fully loaded or still loading');
+      return;
+    }
     
     try {
-      const response = await fetch(`/api/business/get-business?businessId=${business.id}`);
+      const response = await fetch(`/api/business/get-business?businessId=${business.id}`, {
+        credentials: 'include'
+      });
       
       if (response.ok) {
         const data = await response.json();
@@ -524,13 +529,16 @@ export default function BusinessDashboard() {
           // Update session storage with fresh data
           sessionStorage.setItem('businessData', JSON.stringify(data.business));
           setBusiness(data.business);
+        } else {
+          console.error('Failed to refresh business data:', response.status, data);
         }
-              } else {
-          console.error('Failed to refresh business data:', response.status);
-        }
-      } catch (error) {
-        console.error('Error refreshing business data:', error);
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Failed to refresh business data:', response.status, errorData);
       }
+    } catch (error) {
+      console.error('Error refreshing business data:', error);
+    }
   };
 
   const fetchDashboardData = async () => {

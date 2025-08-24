@@ -45,19 +45,19 @@ export async function POST(request: NextRequest) {
 
     // Get current business data to check if address has changed
     const currentBusinessResult = await client.graphql({
-      query: `
-        query GetBusiness($id: String!) {
-          getBusiness(id: $id) {
-            id
-            name
-            address
-            city
-            state
-            zipCode
-            neighborhood
+              query: `
+          query GetBusiness($id: ID!) {
+            getBusiness(id: $id) {
+              id
+              name
+              address
+              city
+              state
+              zipCode
+              neighborhood
+            }
           }
-        }
-      `,
+        `,
       variables: { id: businessId },
     });
 

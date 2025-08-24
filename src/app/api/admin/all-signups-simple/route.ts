@@ -10,23 +10,29 @@ export async function GET() {
 
     // Test 1: Get signups
     console.log("📋 Fetching signups...");
-    const signupsResult = await client.graphql({
-      query: `
-        query ListAllSignups {
-          listSignups {
-            items {
-              id
-              firstName
-              lastName
-              email
-              status
+    let signupsResult;
+    try {
+      signupsResult = await client.graphql({
+        query: `
+          query ListAllSignups {
+            listSignups {
+              items {
+                id
+                firstName
+                lastName
+                email
+                status
+              }
             }
           }
-        }
-      `,
-    });
+        `,
+      });
+      console.log("✅ Signups fetched successfully with API key");
+    } catch (error) {
+      console.error("❌ API key failed for signups:", error);
+      throw error;
+    }
 
-    console.log("✅ Signups fetched successfully");
     const signups = (signupsResult as { data: { listSignups: { items: Array<{
       id: string;
       firstName: string;
@@ -37,31 +43,38 @@ export async function GET() {
 
     // Test 2: Get businesses with more details
     console.log("🏢 Fetching businesses...");
-    const businessesResult = await client.graphql({
-      query: `
-        query ListAllBusinesses {
-          listBusinesses {
-            items {
-              id
-              name
-              phone
-              email
-              zipCode
-              category
-              status
-              address
-              city
-              state
-              createdAt
-              updatedAt
-              approvedAt
+    let businessesResult;
+    try {
+      businessesResult = await client.graphql({
+        query: `
+          query ListAllBusinesses {
+            listBusinesses {
+              items {
+                id
+                name
+                phone
+                email
+                zipCode
+                category
+                status
+                logo
+                address
+                city
+                state
+                createdAt
+                updatedAt
+                approvedAt
+              }
             }
           }
-        }
-      `,
-    });
+        `,
+      });
+      console.log("✅ Businesses fetched successfully with API key");
+    } catch (error) {
+      console.error("❌ API key failed for businesses:", error);
+      throw error;
+    }
 
-    console.log("✅ Businesses fetched successfully");
     const businesses = (businessesResult as { data: { listBusinesses: { items: Array<{
       id: string;
       name: string;
@@ -70,6 +83,7 @@ export async function GET() {
       zipCode: string;
       category: string;
       status: string;
+      logo: string;
       address: string;
       city: string;
       state: string;
@@ -80,26 +94,52 @@ export async function GET() {
 
     // Test 3: Get business users for each business
     console.log("👥 Fetching business users...");
-    const businessUsersResult = await client.graphql({
-      query: `
-        query ListAllBusinessUsers {
-          listBusinessUsers {
-            items {
-              id
-              email
-              firstName
-              lastName
-              role
-              status
-              businessId
-              createdAt
+    let businessUsersResult;
+    try {
+      businessUsersResult = await client.graphql({
+        query: `
+          query ListAllBusinessUsers {
+            listBusinessUsers {
+              items {
+                id
+                email
+                firstName
+                lastName
+                role
+                status
+                businessId
+                createdAt
+              }
             }
           }
-        }
-      `,
-    });
+        `,
+      });
+      console.log("✅ Business users fetched successfully with API key");
+    } catch {
+      console.log("⚠️ API key failed for business users, trying IAM authentication...");
+      // Fallback to IAM authentication
+      const iamClient = generateClient({ authMode: "iam" });
+      businessUsersResult = await iamClient.graphql({
+        query: `
+          query ListAllBusinessUsers {
+            listBusinessUsers {
+              items {
+                id
+                email
+                firstName
+                lastName
+                role
+                status
+                businessId
+                createdAt
+              }
+            }
+          }
+        `,
+      });
+      console.log("✅ Business users fetched successfully with IAM");
+    }
 
-    console.log("✅ Business users fetched successfully");
     const businessUsers = (businessUsersResult as { data: { listBusinessUsers: { items: Array<{
       id: string;
       email: string;

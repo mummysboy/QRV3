@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
       // Fetch user data to get firstName and lastName
       const userResult = await client.graphql({
         query: `
-          query GetBusinessUser($id: String!) {
+          query GetBusinessUser($id: ID!) {
             getBusinessUser(id: $id) {
               id
               email
@@ -140,7 +140,7 @@ export async function GET(request: NextRequest) {
       // Fetch business data using the determined business ID
       const businessResult = await client.graphql({
         query: `
-          query GetBusiness($id: String!) {
+          query GetBusiness($id: ID!) {
             getBusiness(id: $id) {
               id
               name
@@ -153,6 +153,7 @@ export async function GET(request: NextRequest) {
               address
               city
               state
+              neighborhood
               website
               socialMedia
               businessHours

@@ -22,20 +22,20 @@ export async function POST(request: NextRequest) {
 
     // First, get the business details to detect neighborhood
     const businessResult = await client.graphql({
-      query: `
-        query GetBusiness($id: String!) {
-          getBusiness(id: $id) {
-            id
-            name
-            address
-            city
-            state
-            zipCode
-            status
-            neighborhood
+              query: `
+          query GetBusiness($id: ID!) {
+            getBusiness(id: $id) {
+              id
+              name
+              address
+              city
+              state
+              zipCode
+              status
+              neighborhood
+            }
           }
-        }
-      `,
+        `,
       variables: { id: businessId },
     });
 

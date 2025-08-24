@@ -1,34 +1,56 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateClient } from "aws-amplify/api";
 import "../../../../lib/amplify-client";
+import jwt from "jsonwebtoken";
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+
+interface JWTPayload {
+  sub: string;
+  email: string;
+  businessId: string;
+  role: string;
+  iat: number;
+  exp: number;
+}
 
 interface Business {
   id: string;
   name: string;
-  phone: string;
-  email: string;
-  zipCode: string;
-  category: string;
-  status: string;
-  logo: string;
-  address: string;
-  city: string;
-  state: string;
-  neighborhood: string;
-  website: string;
-  socialMedia: string;
-  businessHours: string;
-  description: string;
-  photos: string;
-  primaryContactEmail: string;
-  primaryContactPhone: string;
-  createdAt: string;
-  updatedAt: string;
-  approvedAt: string;
+  phone?: string;
+  email?: string;
+  zipCode?: string;
+  category?: string;
+  status?: string;
+  logo?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  neighborhood?: string;
+  website?: string;
+  socialMedia?: string;
+  businessHours?: string;
+  description?: string;
+  photos?: string;
+  primaryContactEmail?: string;
+  primaryContactPhone?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  approvedAt?: string;
 }
 
 export async function GET(request: NextRequest) {
   try {
+    // Check for session authentication
+    const sessionToken = request.cookies.get('qrewards_session')?.value;
+    
+    if (!sessionToken) {
+      return NextResponse.json(
+        { error: "No session cookie found" },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const businessId = searchParams.get('businessId');
 
@@ -36,6 +58,26 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         { error: "Business ID is required" },
         { status: 400 }
+      );
+    }
+
+    // Verify the JWT
+    try {
+      const decoded = jwt.verify(sessionToken, JWT_SECRET) as JWTPayload;
+      
+      // Check if the user has access to the requested business
+      if (decoded.businessId !== businessId) {
+        return NextResponse.json(
+          { error: "Access denied to this business" },
+          { status: 403 }
+        );
+      }
+      
+      console.log(`🔍 User ${decoded.email} authenticated for business ${businessId}`);
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid session token" },
+        { status: 401 }
       );
     }
 
@@ -62,7 +104,7 @@ export async function GET(request: NextRequest) {
       console.log("🧪 Testing minimal GraphQL query...");
       const testResult = await client.graphql({
         query: `
-          query TestBusiness($id: String!) {
+          query TestBusiness($id: ID!) {
             getBusiness(id: $id) {
               id
               name
@@ -84,7 +126,7 @@ export async function GET(request: NextRequest) {
       console.log("🧪 Testing query with logo field...");
       const logoTestResult = await client.graphql({
         query: `
-          query TestBusinessLogo($id: String!) {
+          query TestBusinessLogo($id: ID!) {
             getBusiness(id: $id) {
               id
               name
@@ -103,39 +145,46 @@ export async function GET(request: NextRequest) {
     }
 
     // Get business information
-    const businessResult = await client.graphql({
-      query: `
-        query GetBusiness($id: String!) {
-          getBusiness(id: $id) {
-            id
-            name
-            phone
-            email
-            zipCode
-            category
-            status
-            logo
-            address
-            city
-            state
-            neighborhood
-            website
-            socialMedia
-            businessHours
-            description
-            photos
-            primaryContactEmail
-            primaryContactPhone
-            createdAt
-            updatedAt
-            approvedAt
+    let businessResult;
+    try {
+      businessResult = await client.graphql({
+        query: `
+          query GetBusiness($id: ID!) {
+            getBusiness(id: $id) {
+              id
+              name
+              logo
+              phone
+              email
+              zipCode
+              category
+              status
+              address
+              city
+              state
+              neighborhood
+              website
+              socialMedia
+              businessHours
+              description
+              photos
+              primaryContactEmail
+              primaryContactPhone
+              createdAt
+              updatedAt
+              approvedAt
+            }
           }
-        }
-      `,
-      variables: {
-        id: businessId,
-      },
-    });
+        `,
+        variables: {
+          id: businessId,
+        },
+      });
+      console.log("✅ Business data retrieved successfully with API key");
+    } catch (error) {
+      console.error("❌ API key query failed:", error);
+      throw error;
+    }
 
     console.log(`✅ GraphQL response received:`, JSON.stringify(businessResult, null, 2));
 

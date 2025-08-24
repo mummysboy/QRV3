@@ -1,31 +1,62 @@
 // /src/app/api/get-claimed-reward/route.ts
 import { NextResponse } from "next/server";
 import { generateClient } from "aws-amplify/api";
-import { Amplify } from "aws-amplify";
-import { Schema } from "../../../../amplify/data/resource";
-import outputs from "../../../../amplify_outputs.json";
-
-Amplify.configure(outputs);
-const client = generateClient<Schema>();
+import "../../../lib/amplify-client";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const id = searchParams.get("id");
+  const cardId = searchParams.get("id");
 
-  if (!id) {
+  if (!cardId) {
     return NextResponse.json({ error: "Missing id" }, { status: 400 });
   }
 
   try {
-    // This will read from ClaimedReward-7cdlttoiifewxgyh7sodc6czx4-NONE
-    const result = await client.models.ClaimedReward.get({ id });
-    if (!result.data) {
-      return NextResponse.json({ error: "Reward not found" }, { status: 404 });
+    const client = generateClient({ authMode: "apiKey" });
+    
+    console.log('🔍 Looking for claimed reward with cardId:', cardId);
+    
+    // Find the claimed reward for this card
+    const result = await client.graphql({
+      query: `
+        query GetClaimedRewardByCard($cardid: String!) {
+          listClaimedRewards(filter: { cardid: { eq: $cardid } }) {
+            items {
+              id
+              cardid
+              email
+              phone
+              delivery_method
+              logokey
+              header
+              subheader
+              addressurl
+              addresstext
+              expires
+              claimed_at
+              businessId
+            }
+          }
+        }
+      `,
+      variables: { cardid: cardId }
+    });
+    
+    const claimedRewards = result.data.listClaimedRewards.items;
+    
+    if (claimedRewards.length === 0) {
+      console.log('❌ No claimed rewards found for cardId:', cardId);
+      return NextResponse.json({ error: "Claimed reward not found" }, { status: 404 });
     }
-
-    return NextResponse.json(result.data);
+    
+    // Return the most recent claimed reward
+    const claimedReward = claimedRewards[claimedRewards.length - 1];
+    console.log('✅ Found claimed reward:', claimedReward.id);
+    
+    return NextResponse.json(claimedReward);
+    
   } catch (error) {
-    console.error("Amplify Data error:", error);
+    console.error("❌ Get claimed reward error:", error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

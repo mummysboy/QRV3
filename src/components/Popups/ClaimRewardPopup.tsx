@@ -153,14 +153,14 @@ export default function ClaimRewardPopup({
       const result = await res.json();
       console.log("🔵 API result:", result);
       
-      if (!res.ok || !result.rewardId) {
-        console.error("Claim error:", result.error);
+      if (!res.ok || !result.success) {
+        console.error("Claim error:", result.error || "Unknown error");
         setError("Failed to log reward. Please try again.");
         return;
       }
 
-      const rewardId = result.rewardId;
-      const rewardUrl = `https://www.qrewards.net/reward/${rewardId}`;
+      // Generate a reward URL using the card ID since we don't have a separate reward ID
+      const rewardUrl = `https://www.qrewards.net/reward/${card.cardid}`;
 
       // Send reward via email or SMS
       if (deliveryMethod === "email") {

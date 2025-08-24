@@ -47,7 +47,7 @@ export async function POST(req: Request) {
     } else if (type === 'business') {
       console.log("Updating business with ID:", id, "to status:", status);
       
-      // Get business details first - fetch all required fields
+      // Get business details first - fetch only fields we need
       const businessResult = await client.graphql({
         query: `
           query GetBusiness($id: String!) {
@@ -62,7 +62,8 @@ export async function POST(req: Request) {
               address
               city
               state
-              neighborhood
+              createdAt
+              approvedAt
             }
           }
         `,
@@ -82,10 +83,11 @@ export async function POST(req: Request) {
         address: string;
         city: string;
         state: string;
-        neighborhood: string;
+        createdAt: string;
+        approvedAt: string;
       } | null } }).data.getBusiness;
       
-      console.log("Business data:", business);
+      console.log("🔍 Business data:", JSON.stringify(business, null, 2));
       
       if (!business) {
         return NextResponse.json(
@@ -94,33 +96,10 @@ export async function POST(req: Request) {
         );
       }
 
-      // Detect neighborhood if approving the business
-      let neighborhood = business.neighborhood || '';
-      if (status === 'approved') {
-        try {
-          console.log('🔧 Admin status update: Detecting neighborhood for approval...');
-          const detectRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/detect-neighborhood`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              businessName: business.name,
-              address: `${business.address}, ${business.city}, ${business.state} ${business.zipCode}`
-            })
-          });
-          
-          if (detectRes.ok) {
-            const detectData = await detectRes.json();
-            neighborhood = detectData.neighborhood || '';
-            console.log('🔧 Admin status update: Detected neighborhood:', neighborhood);
-          } else {
-            console.error('🔧 Admin status update: Failed to detect neighborhood');
-          }
-        } catch (error) {
-          console.error('🔧 Admin status update: Error detecting neighborhood:', error);
-        }
-      }
+      // Note: neighborhood field not available in current schema
+      // Will be added when sandbox deployment completes
 
-      // Update Business model - include all required fields from the existing business
+      // Update Business model - include ALL required fields from current schema
       const updateData: {
         id: string;
         name: string;
@@ -132,10 +111,9 @@ export async function POST(req: Request) {
         address: string;
         city: string;
         state: string;
-        neighborhood: string;
         updatedAt: string;
-        approvedAt?: string;
-        approvedBy?: string;
+        createdAt: string;
+        approvedAt: string;
       } = {
         id: id,
         name: business.name,
@@ -147,47 +125,54 @@ export async function POST(req: Request) {
         address: business.address,
         city: business.city,
         state: business.state,
-        neighborhood: neighborhood, // Include detected neighborhood
         updatedAt: new Date().toISOString(),
+        createdAt: business.createdAt || new Date().toISOString(),
+        approvedAt: business.approvedAt || new Date().toISOString(),
       };
 
-      // If approving, add approval timestamp and admin info
+      // If approving, update approval timestamp
       if (status === 'approved') {
         updateData.approvedAt = new Date().toISOString();
-        updateData.approvedBy = 'admin'; // You can pass actual admin ID here
+        // Note: approvedBy field not available in current schema
+        // Will be added when sandbox deployment completes
       }
 
       console.log("Business update data:", updateData);
 
       try {
-        await client.graphql({
-          query: `
-            mutation UpdateBusinessStatus($input: UpdateBusinessInput!) {
-              updateBusiness(input: $input) {
-                id
-                status
-                neighborhood
-                updatedAt
-                approvedAt
-                approvedBy
+        console.log("🔍 Attempting GraphQL mutation with data:", JSON.stringify(updateData, null, 2));
+          
+          const result = await client.graphql({
+            query: `
+              mutation UpdateBusinessStatus($input: UpdateBusinessInput!) {
+                updateBusiness(input: $input) {
+                  id
+                  status
+                  updatedAt
+                }
               }
-            }
-          `,
-          variables: {
-            input: updateData,
-          },
-        });
+            `,
+            variables: {
+              input: updateData,
+            },
+          });
 
-        console.log("Business update successful");
-      } catch (graphqlError) {
-        console.error("GraphQL mutation error:", graphqlError);
-        console.error("GraphQL error details:", {
-          message: graphqlError instanceof Error ? graphqlError.message : "Unknown error",
-          stack: graphqlError instanceof Error ? graphqlError.stack : undefined,
-          error: graphqlError
-        });
-        throw graphqlError;
-      }
+          console.log("✅ Business update successful:", JSON.stringify(result, null, 2));
+        } catch (graphqlError) {
+          console.error("❌ GraphQL mutation error:", graphqlError);
+          console.error("❌ GraphQL error details:", {
+            message: graphqlError instanceof Error ? graphqlError.message : "Unknown error",
+            stack: graphqlError instanceof Error ? graphqlError.stack : undefined,
+            error: graphqlError
+          });
+          
+          // Log the exact error response if available
+          if (graphqlError && typeof graphqlError === 'object' && 'errors' in graphqlError) {
+            console.error("❌ GraphQL errors array:", JSON.stringify(graphqlError.errors, null, 2));
+          }
+          
+          throw graphqlError;
+        }
 
       // Send approval email if business is approved
       if (status === 'approved') {
@@ -256,6 +241,29 @@ async function sendApprovalEmail({
   userEmail: string;
   loginUrl: string;
 }) {
-  // Email sending logic here
-  console.log(`Sending approval email to ${userEmail} for business ${businessName} with login URL: ${loginUrl}`);
+  try {
+    console.log(`📧 Sending approval email to ${userEmail} for business ${businessName}`);
+    
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/send-email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+              body: JSON.stringify({
+          to: userEmail,
+          url: loginUrl,
+          header: `Your business "${businessName}" has been approved!`,
+          type: 'business-approval',
+        }),
+    });
+
+    if (response.ok) {
+      console.log(`✅ Approval email sent successfully to ${userEmail}`);
+    } else {
+      const errorData = await response.json();
+      console.error(`❌ Failed to send approval email:`, errorData);
+    }
+  } catch (error) {
+    console.error(`❌ Error sending approval email:`, error);
+  }
 } 

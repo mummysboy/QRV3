@@ -184,8 +184,8 @@ export async function POST(request: NextRequest) {
             address
             city
             state
-            neighborhood
             createdAt
+            updatedAt
           }
         }
       `,
@@ -200,14 +200,14 @@ export async function POST(request: NextRequest) {
           address: businessAddress,
           city: businessCity,
           state: businessState,
-          neighborhood: neighborhood, // Include detected neighborhood
+          // Note: neighborhood field not available in current schema yet, but we'll detect it
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         },
       },
     });
 
-    const business = (businessResult as { data: { createBusiness: { id: string; name: string; phone: string; email: string; zipCode: string; category: string; status: string; address: string; city: string; state: string; neighborhood: string; createdAt: string } } }).data.createBusiness;
+    const business = (businessResult as { data: { createBusiness: { id: string; name: string; phone: string; email: string; zipCode: string; category: string; status: string; address: string; city: string; state: string; createdAt: string; updatedAt: string } } }).data.createBusiness;
 
     // Create business user
     const userResult = await client.graphql({
@@ -222,6 +222,7 @@ export async function POST(request: NextRequest) {
             role
             status
             createdAt
+            updatedAt
           }
         }
       `,
@@ -235,16 +236,17 @@ export async function POST(request: NextRequest) {
           role: "owner",
           status: "active",
           createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         },
       },
     });
 
-    const user = (userResult as { data: { createBusinessUser: { id: string; businessId: string; email: string; firstName: string; lastName: string; role: string; status: string; createdAt: string } } }).data.createBusinessUser;
+    const user = (userResult as { data: { createBusinessUser: { id: string; businessId: string; email: string; firstName: string; lastName: string; role: string; status: string; createdAt: string; updatedAt: string } } }).data.createBusinessUser;
 
     console.log('🔧 Business signup: Successfully created business and user:', {
       businessId: business.id,
       businessName: business.name,
-      neighborhood: business.neighborhood,
+      // Note: neighborhood not available in current schema
       userId: user.id,
       userEmail: user.email
     });
@@ -255,7 +257,7 @@ export async function POST(request: NextRequest) {
         id: business.id,
         name: business.name,
         status: business.status,
-        neighborhood: business.neighborhood,
+        // Note: neighborhood not available in current schema
       },
       user: {
         id: user.id,

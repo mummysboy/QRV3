@@ -26,6 +26,7 @@ interface ClaimedReward {
   subheader?: string;
   addressurl?: string;
   addresstext?: string;
+  neighborhood?: string;
   expires?: string;
   claimed_at?: string;
   businessId?: string;
@@ -186,12 +187,12 @@ export async function POST(request: NextRequest) {
     // Generate unique card ID
     const cardid = `${businessId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-    // Fetch business to get neighborhood
+    // Fetch business to get address information and detect neighborhood
     let neighborhood = '';
     try {
       const businessResult = await client.graphql({
         query: `
-          query GetBusiness($id: String!) {
+          query GetBusiness($id: ID!) {
             getBusiness(id: $id) {
               id
               name
@@ -204,10 +205,32 @@ export async function POST(request: NextRequest) {
         `,
         variables: { id: businessId },
       });
-      const business = (businessResult as { data: { getBusiness?: { id: string; name?: string; address?: string; city?: string; state?: string; neighborhood?: string } } }).data.getBusiness;
+      const business = (businessResult as { data: { getBusiness?: { id: string; name?: string; address?: string; city?: string; state?: string } } }).data.getBusiness;
       if (business) {
         console.log('Business fetched:', business);
-        neighborhood = business.neighborhood || '';
+        
+        // Detect neighborhood for this business
+        try {
+          console.log('🔧 Detecting neighborhood for reward creation...');
+          const detectRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/detect-neighborhood`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              businessName: business.name || 'Business',
+              address: `${business.address || ''}, ${business.city || ''}, ${business.state || ''}`
+            })
+          });
+          
+          if (detectRes.ok) {
+            const detectData = await detectRes.json();
+            neighborhood = detectData.neighborhood || '';
+            console.log('🔧 Detected neighborhood for reward:', neighborhood);
+          } else {
+            console.error('🔧 Failed to detect neighborhood for reward');
+          }
+        } catch (detectErr) {
+          console.error('🔧 Error detecting neighborhood for reward:', detectErr);
+        }
       }
     } catch (err) {
       console.error('Failed to fetch business:', err);
@@ -223,7 +246,7 @@ export async function POST(request: NextRequest) {
       logokey: logokey || "",
       addressurl: addressurl || "",
       addresstext: addresstext || "",
-      neighborhood, // Store business neighborhood at card creation
+      neighborhood: neighborhood || "",
     };
 
     console.log('Creating card with input:', cardInput);

@@ -120,20 +120,21 @@ export async function GET(request: NextRequest) {
 
     // Get all cards for this business
     const cardsResult = await client.graphql({
-      query: `
-        query GetBusinessCards($businessId: String!) {
-          listCards(filter: {
-            businessId: { eq: $businessId }
-          }) {
-            items {
-              cardid
-              quantity
-              header
-              subheader
+              query: `
+          query GetBusinessCards($businessId: String!) {
+            listCards(filter: {
+              businessId: { eq: $businessId }
+            }) {
+              items {
+                cardid
+                quantity
+                header
+                subheader
+                neighborhood
+              }
             }
           }
-        }
-      `,
+        `,
       variables: {
         businessId: businessId,
       },
