@@ -41,17 +41,18 @@ export async function GET() {
       return NextResponse.json({ error: "No cards available" }, { status: 404 });
     }
 
-    // Filter out expired cards
-    const validCards = filterExpiredCards(cards);
+    // Filter out expired cards and cards with 0 quantity
+    const nonExpiredCards = filterExpiredCards(cards);
+    const validCards = nonExpiredCards.filter(card => card.quantity > 0);
     
     console.log("🔍 API Route - Valid cards after filtering:", validCards.length);
     
     if (validCards.length === 0) {
-      console.log("❌ API Route - No non-expired cards available");
-      return NextResponse.json({ error: "No non-expired cards available" }, { status: 404 });
+      console.log("❌ API Route - No available cards (all cards are expired or have 0 quantity)");
+      return NextResponse.json({ error: "No available cards (all cards are expired or have 0 quantity)" }, { status: 404 });
     }
 
-    console.log(`📊 Total cards: ${cards.length}, Non-expired cards: ${validCards.length}`);
+    console.log(`📊 Total cards: ${cards.length}, Non-expired cards: ${nonExpiredCards.length}, Available cards (quantity > 0): ${validCards.length}`);
 
     // Pick a random card from non-expired cards
     const card = validCards[Math.floor(Math.random() * validCards.length)];

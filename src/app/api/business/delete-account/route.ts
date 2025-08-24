@@ -48,7 +48,7 @@ export async function DELETE(request: NextRequest) {
       // Get business details for S3 cleanup
       const businessResult = await client.graphql({
         query: `
-          query GetBusiness($id: String!) {
+          query GetBusiness($id: ID!) {
             getBusiness(id: $id) {
               id
               name
@@ -108,13 +108,13 @@ export async function DELETE(request: NextRequest) {
         for (const card of cards) {
           await client.graphql({
             query: `
-              mutation DeleteCard($cardid: String!) {
-                deleteCard(cardid: $cardid) {
+              mutation DeleteCard($input: DeleteCardInput!) {
+                deleteCard(input: $input) {
                   cardid
                 }
               }
             `,
-            variables: { cardid: card.cardid },
+            variables: { input: { cardid: card.cardid } },
           });
         }
 
@@ -140,13 +140,13 @@ export async function DELETE(request: NextRequest) {
         for (const claimedReward of claimedRewards) {
           await client.graphql({
             query: `
-              mutation DeleteClaimedReward($id: String!) {
-                deleteClaimedReward(id: $id) {
+              mutation DeleteClaimedReward($input: DeleteClaimedRewardInput!) {
+                deleteClaimedReward(input: $input) {
                   id
                 }
               }
             `,
-            variables: { id: claimedReward.id },
+            variables: { input: { id: claimedReward.id } },
           });
         }
 
@@ -172,13 +172,13 @@ export async function DELETE(request: NextRequest) {
         for (const cardView of cardViews) {
           await client.graphql({
             query: `
-              mutation DeleteCardView($id: ID!) {
-                deleteCardView(id: $id) {
+              mutation DeleteCardView($input: DeleteCardViewInput!) {
+                deleteCardView(input: $input) {
                   id
                 }
               }
             `,
-            variables: { id: cardView.id },
+            variables: { input: { id: cardView.id } },
           });
         }
 
@@ -204,27 +204,27 @@ export async function DELETE(request: NextRequest) {
         for (const analytic of analytics) {
           await client.graphql({
             query: `
-              mutation DeleteBusinessAnalytics($id: ID!) {
-                deleteBusinessAnalytics(id: $id) {
+              mutation DeleteBusinessAnalytics($input: DeleteBusinessAnalyticsInput!) {
+                deleteBusinessAnalytics(input: $input) {
                   id
                 }
               }
             `,
-            variables: { id: analytic.id },
+            variables: { input: { id: analytic.id } },
           });
         }
 
         // Delete the business
         await client.graphql({
           query: `
-            mutation DeleteBusiness($id: String!) {
-              deleteBusiness(id: $id) {
+            mutation DeleteBusiness($input: DeleteBusinessInput!) {
+              deleteBusiness(input: $input) {
                 id
                 name
               }
             }
           `,
-          variables: { id: businessId },
+          variables: { input: { id: businessId } },
         });
       }
     }
@@ -233,14 +233,14 @@ export async function DELETE(request: NextRequest) {
     for (const businessUser of businessUsers) {
       await client.graphql({
         query: `
-          mutation DeleteBusinessUser($id: String!) {
-            deleteBusinessUser(id: $id) {
+          mutation DeleteBusinessUser($input: DeleteBusinessUserInput!) {
+            deleteBusinessUser(input: $input) {
               id
               email
             }
           }
         `,
-        variables: { id: businessUser.id },
+        variables: { input: { id: businessUser.id } },
       });
     }
 

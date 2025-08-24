@@ -478,17 +478,18 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "No cards available" }, { status: 404 });
     }
 
-    // Filter out expired cards
+    // Filter out expired cards and cards with 0 quantity
     const nonExpiredCards = filterExpiredCards(cards);
+    const availableCards = nonExpiredCards.filter(card => card.quantity > 0);
     
-    if (nonExpiredCards.length === 0) {
-      return NextResponse.json({ error: "No non-expired cards available" }, { status: 404 });
+    if (availableCards.length === 0) {
+      return NextResponse.json({ error: "No available cards (all cards are expired or have 0 quantity)" }, { status: 404 });
     }
 
-    console.log(`📊 Total cards found: ${cards.length}, Non-expired cards: ${nonExpiredCards.length}`);
+    console.log(`📊 Total cards found: ${cards.length}, Non-expired cards: ${nonExpiredCards.length}, Available cards (quantity > 0): ${availableCards.length}`);
 
     // Extract zip codes from address text for cards without business associations
-    const cardsWithZipCodes = nonExpiredCards.map(card => {
+    const cardsWithZipCodes = availableCards.map(card => {
       // Try to extract zip code from addresstext
       const zipCodeMatch = card.addresstext?.match(/\b\d{5}\b/);
       const extractedZipCode = zipCodeMatch ? zipCodeMatch[0] : null;

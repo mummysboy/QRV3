@@ -210,9 +210,15 @@ export default function ClaimRewardPage() {
 
         console.log("📋 Setting card data:", data);
         
-        // Additional safety check: verify the card is not expired
+        // Additional safety checks: verify the card is not expired and has quantity
         if (data && isCardExpired(data.expires)) {
           console.log("⚠️ Card is expired, not displaying:", data.cardid);
+          setCard(null);
+          return;
+        }
+        
+        if (data && data.quantity <= 0) {
+          console.log("⚠️ Card has no quantity left, not displaying:", data.cardid);
           setCard(null);
           return;
         }

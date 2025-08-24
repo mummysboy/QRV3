@@ -233,7 +233,7 @@ export default function CardAnimation({ card, isPreview = false, isRedeem = fals
     }
   }, [showOverlay, hasTriggered, isRedeem, disableAutoplay]);
 
-  // Check if card is expired and don't render if it is (unless it's a preview)
+  // Check if card is expired or has no quantity and don't render if it is (unless it's a preview)
   if (card && !isPreview && card.expires) {
     const now = new Date();
     const expiration = new Date(card.expires);
@@ -241,6 +241,11 @@ export default function CardAnimation({ card, isPreview = false, isRedeem = fals
       console.log("⚠️ Card is expired, not rendering:", card.cardid);
       return null;
     }
+  }
+  
+  if (card && !isPreview && card.quantity !== undefined && card.quantity <= 0) {
+    console.log("⚠️ Card has no quantity left, not rendering:", card.cardid);
+    return null;
   }
 
   return (
