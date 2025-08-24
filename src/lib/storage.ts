@@ -11,11 +11,14 @@ export async function getStorageUrl(key: string): Promise<string> {
   }
 }
 
-// Replace with your actual CloudFront domain
-const cloudfrontBase = "https://d2rfrexwuran49.cloudfront.net";
+// Use the actual S3 bucket from Amplify outputs instead of hardcoded CloudFront
+// The CloudFront distribution d2rfrexwuran49.cloudfront.net is not accessible
+const s3Bucket = "amplify-qrewardsnew-isaac-qrewardsstoragebucketb6d-lgupebttujw3";
+const s3Region = "us-west-1";
 
 export function getStorageUrlSync(key: string) {
-  return `${cloudfrontBase}/${key}`;
+  // Use direct S3 URL instead of CloudFront for now
+  return `https://${s3Bucket}.s3.${s3Region}.amazonaws.com/${key}`;
 }
 
 export async function getSignedLogoUrl(key: string): Promise<string> {

@@ -134,7 +134,10 @@ export default function LogoUpload({ businessName, onUpload, currentLogo }: Logo
     }
   };
 
-  const cloudfrontBase = "https://d2rfrexwuran49.cloudfront.net"; // Updated to real CloudFront domain
+  // Use direct S3 URL instead of CloudFront for now
+  // The CloudFront distribution d2rfrexwuran49.cloudfront.net is not accessible
+  const s3Bucket = "amplify-qrewardsnew-isaac-qrewardsstoragebucketb6d-lgupebttujw3";
+  const s3Region = "us-west-1";
 
   return (
     <div className="w-full">
@@ -200,7 +203,7 @@ export default function LogoUpload({ businessName, onUpload, currentLogo }: Logo
                 return currentLogo;
               }
               // If it's an S3 key, construct the full URL
-              return `${cloudfrontBase}/${currentLogo}`;
+              return `https://${s3Bucket}.s3.${s3Region}.amazonaws.com/${currentLogo}`;
             })()}
             alt="Current logo"
             className="w-16 h-16 rounded-lg object-contain border border-gray-200 shadow-sm"

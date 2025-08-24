@@ -3,23 +3,30 @@
 import { NextResponse } from "next/server";
 import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
 
+// Build SES client with proper configuration for hosted environment
 const sesClient = new SESClient({
-  region: "us-west-1", // or hardcode the verified SES region
-  // Use default credential provider chain
+  region: "us-west-1",
+  // In hosted environment, use environment-based credentials
+  // This will work with Amplify's built-in IAM roles
 });
+
+console.log("[send-email] SES client configured for region: us-west-1");
+console.log("[send-email] SES_FROM_EMAIL env var:", process.env.SES_FROM_EMAIL || "not set");
 
 
 export async function POST(req: Request) {
-  const { to, url, header, type } = await req.json();
-
-  if (!to || !url) {
-    return NextResponse.json({ error: "Missing parameters" }, { status: 400 });
-  }
-
-  // Determine email type and customize accordingly
-  const isBusinessApproval = type === 'business-approval';
-
   try {
+    const { to, url, header, type } = await req.json();
+
+    console.log("[send-email] Request received:", { to, url, header, type });
+
+    if (!to || !url) {
+      console.log("[send-email] Missing parameters");
+      return NextResponse.json({ error: "Missing parameters" }, { status: 400 });
+    }
+
+    // Determine email type and customize accordingly
+    const isBusinessApproval = type === 'business-approval';
     const command = new SendEmailCommand({
       Source: process.env.SES_FROM_EMAIL || "QRewards@qrewards.net",
       Destination: {
@@ -105,9 +112,39 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("SES error:", error);
+    console.error("❌ SES error:", error);
+    
+    // Log detailed error information
+    if (error && typeof error === 'object') {
+      const errorObj = error as Record<string, unknown>;
+      console.error("❌ Error details:", {
+        name: errorObj.name,
+        message: errorObj.message,
+        code: (errorObj as any).$metadata?.httpStatusCode,
+        requestId: (errorObj as any).$metadata?.requestId,
+        cfId: (errorObj as any).$metadata?.cfId,
+      });
+    }
+    
+    // Provide more specific error messages
+    let errorMessage = "Failed to send email";
+    if (error && typeof error === 'object' && 'name' in (error as Record<string, unknown>)) {
+      const errorName = (error as { name?: string }).name;
+      if (errorName === 'AccessDenied') {
+        errorMessage = 'Access denied to SES. Check IAM permissions.';
+      } else if (errorName === 'MessageRejected') {
+        errorMessage = 'Email rejected by SES. Check sender verification.';
+      } else if (errorName === 'ConfigurationSetDoesNotExist') {
+        errorMessage = 'SES configuration set not found.';
+      }
+    }
+    
     return NextResponse.json(
-      { error: "Failed to send email", details: error instanceof Error ? error.message : "Unknown error" },
+      { 
+        error: errorMessage, 
+        details: error instanceof Error ? error.message : "Unknown error",
+        timestamp: new Date().toISOString()
+      },
       { status: 500 }
     );
   }
