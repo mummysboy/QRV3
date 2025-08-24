@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { fromNodeProviderChain } from "@aws-sdk/credential-providers";
 import { v4 as uuidv4 } from "uuid";
+import outputs from "../../../../amplify_outputs.json";
 
-const BUCKET_NAME = "qrewards-media6367c-dev";
-const REGION = "us-west-1";
+// Get bucket name from Amplify outputs
+const BUCKET_NAME = (outputs as any).storage?.bucket_name || "amplify-qrewardsnew-isaac-qrewardsstoragebucketb6d-lgupebttujw3";
+const REGION = (outputs as any).storage?.aws_region || "us-west-1";
 
 // CORS headers
 function addCorsHeaders(response: NextResponse) {
@@ -30,8 +31,12 @@ export async function OPTIONS() {
 export async function POST(request: NextRequest) {
   try {
     console.log("[presigned-upload] Starting presigned URL generation...");
+    console.log("[presigned-upload] Environment - BUCKET_NAME:", BUCKET_NAME);
+    console.log("[presigned-upload] Environment - REGION:", REGION);
 
     const { businessName, fileName, contentType } = await request.json();
+    
+    console.log("[presigned-upload] Request data:", { businessName, fileName, contentType });
 
     if (!businessName || !fileName || !contentType) {
       return addCorsHeaders(
@@ -63,11 +68,11 @@ export async function POST(request: NextRequest) {
 
     console.log("[presigned-upload] Generated S3 key:", key);
 
-    // Build S3 client
-    const creds = await fromNodeProviderChain()();
+    // Build S3 client with proper credentials for hosted environment
     const s3Client = new S3Client({
       region: REGION,
-      credentials: creds,
+      // In hosted environment, use environment-based credentials
+      // This will work with Amplify's built-in IAM roles
     });
 
     // Create presigned URL
