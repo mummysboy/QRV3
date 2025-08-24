@@ -33,7 +33,7 @@ export async function GET() {
       `
     });
 
-    const cards = result.data.listCards.items;
+    const cards = (result as any).data.listCards.items;
     console.log("🔍 API Route - Cards fetched:", cards?.length || 0);
 
     if (!cards || cards.length === 0) {
@@ -56,7 +56,7 @@ export async function GET() {
     // Pick a random card from non-expired cards
     const card = validCards[Math.floor(Math.random() * validCards.length)];
 
-    console.log("✅ API Route - Selected card:", card.cardid);
+    console.log("✅ API Route - Selected card:", (card as any).cardid);
 
     return NextResponse.json(card);
   } catch (err) {

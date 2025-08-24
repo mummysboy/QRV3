@@ -38,7 +38,7 @@ export async function DELETE(request: NextRequest) {
       variables: { email: userEmail },
     });
 
-    const businessUsers = businessUsersResult.data.listBusinessUsers.items;
+    const businessUsers = (businessUsersResult as any).data.listBusinessUsers.items;
     console.log(`📋 Found ${businessUsers.length} business users to delete`);
 
     // Step 2: Delete all businesses and associated data for each business user
@@ -59,7 +59,7 @@ export async function DELETE(request: NextRequest) {
         variables: { id: businessId },
       });
 
-      const business = businessResult.data.getBusiness;
+      const business = (businessResult as any).data.getBusiness;
       if (business) {
         // Delete business logos from S3
         if (business.logo && business.logo.trim() !== '') {
@@ -102,7 +102,7 @@ export async function DELETE(request: NextRequest) {
           variables: { businessId },
         });
 
-        const cards = cardsResult.data.listCards.items;
+        const cards = (cardsResult as any).data.listCards.items;
         console.log(`🎁 Deleting ${cards.length} cards for business ${businessId}`);
 
         for (const card of cards) {
@@ -134,7 +134,7 @@ export async function DELETE(request: NextRequest) {
           variables: { businessId },
         });
 
-        const claimedRewards = claimedRewardsResult.data.listClaimedRewards.items;
+        const claimedRewards = (claimedRewardsResult as any).data.listClaimedRewards.items;
         console.log(`📝 Deleting ${claimedRewards.length} claimed rewards for business ${businessId}`);
 
         for (const claimedReward of claimedRewards) {
@@ -166,7 +166,7 @@ export async function DELETE(request: NextRequest) {
           variables: { businessId },
         });
 
-        const cardViews = cardViewsResult.data.listCardViews.items;
+        const cardViews = (cardViewsResult as any).data.listCardViews.items;
         console.log(`👁️ Deleting ${cardViews.length} card views for business ${businessId}`);
 
         for (const cardView of cardViews) {
@@ -198,7 +198,7 @@ export async function DELETE(request: NextRequest) {
           variables: { businessId },
         });
 
-        const analytics = analyticsResult.data.listBusinessAnalytics.items;
+        const analytics = (analyticsResult as any).data.listBusinessAnalytics.items;
         console.log(`📊 Deleting ${analytics.length} analytics records for business ${businessId}`);
 
         for (const analytic of analytics) {

@@ -48,8 +48,8 @@ export async function GET() {
       
       return NextResponse.json({ 
         success: true,
-        businesses: businessesResult.data.listBusinesses.items,
-        businessUsers: usersResult.data.listBusinessUsers.items,
+        businesses: (businessesResult as any).data.listBusinesses.items,
+        businessUsers: (usersResult as any).data.listBusinessUsers.items,
         message: "Schema test completed"
       });
       

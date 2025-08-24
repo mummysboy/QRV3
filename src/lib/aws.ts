@@ -23,7 +23,7 @@ export async function decrementCardQuantity(cardid: string) {
       variables: { cardid },
     });
 
-    const card = getCardResult.data.getCard;
+    const card = (getCardResult as any).data.getCard;
     if (!card) {
       throw new Error("Card not found");
     }
@@ -50,8 +50,8 @@ export async function decrementCardQuantity(cardid: string) {
       },
     });
 
-    console.log("✅ Quantity decremented:", updateResult.data.updateCard);
-    return updateResult.data.updateCard;
+    console.log("✅ Quantity decremented:", (updateResult as any).data.updateCard);
+    return (updateResult as any).data.updateCard;
   } catch (err) {
     console.error("❌ Failed to decrement quantity:", err);
     throw err;
@@ -78,8 +78,8 @@ export async function logClaimedReward(data: Record<string, unknown>) {
       },
     });
 
-    console.log("✅ Successfully logged claimed reward:", createResult.data.createClaimedReward);
-    return createResult.data.createClaimedReward;
+    console.log("✅ Successfully logged claimed reward:", (createResult as any).data.createClaimedReward);
+    return (createResult as any).data.createClaimedReward;
   } catch (error) {
     console.error("❌ Failed to log claimed reward:", error);
     throw error;

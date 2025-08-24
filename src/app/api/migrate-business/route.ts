@@ -137,8 +137,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: "Business migration completed successfully!",
-      business: businessResult.data.createBusiness,
-      user: userResult.data.createBusinessUser,
+      business: (businessResult as any).data.createBusiness,
+      user: (userResult as any).data.createBusinessUser,
     });
     
   } catch (error) {

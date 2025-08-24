@@ -42,7 +42,7 @@ export async function GET(req: Request) {
       variables: { cardid: cardId }
     });
     
-    const claimedRewards = result.data.listClaimedRewards.items;
+    const claimedRewards = (result as any).data.listClaimedRewards.items;
     
     if (claimedRewards.length === 0) {
       console.log('❌ No claimed rewards found for cardId:', cardId);

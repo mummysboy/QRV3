@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: "Business user created successfully!",
-      user: userResult.data.createBusinessUser,
+      user: (userResult as any).data.createBusinessUser,
     });
     
   } catch (error) {

@@ -53,8 +53,8 @@ export async function GET() {
       
       return NextResponse.json({ 
         success: true,
-        cards: cardsResult.data.listCards.items,
-        claimedRewards: claimedResult.data.listClaimedRewards.items,
+        cards: (cardsResult as any).data.listCards.items,
+        claimedRewards: (claimedResult as any).data.listClaimedRewards.items,
         message: "Cards test completed"
       });
       

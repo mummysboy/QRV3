@@ -8,7 +8,7 @@ const config = {
     GraphQL: {
       endpoint: outputs.API.GraphQL.endpoint,
       region: outputs.API.GraphQL.region,
-      defaultAuthorizationMode: 'apiKey',
+      defaultAuthMode: 'API_KEY',
       apiKey: outputs.API.GraphQL.defaultAuthorization.apiKey,
       // Add IAM as fallback authorization
       additionalAuthorizationModes: [
@@ -21,4 +21,4 @@ const config = {
   }
 };
 
-Amplify.configure(config);
+Amplify.configure(config as any);

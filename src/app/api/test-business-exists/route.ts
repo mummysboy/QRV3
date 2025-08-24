@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
       console.log('✅ Business found:', businessResult);
       return NextResponse.json({ 
         exists: true, 
-        business: businessResult.data.getBusiness 
+        business: (businessResult as any).data.getBusiness 
       });
     } catch (error) {
       console.log('❌ Business not found:', error);
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ 
           exists: false, 
           error: "Business not found",
-          allBusinesses: listResult.data.listBusinesses.items,
+          allBusinesses: (listResult as any).data.listBusinesses.items,
           searchedFor: businessId
         });
       } catch (listError) {
