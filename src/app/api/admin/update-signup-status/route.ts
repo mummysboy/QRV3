@@ -50,7 +50,7 @@ export async function POST(req: Request) {
       // Get business details first - fetch only fields we need
       const businessResult = await client.graphql({
         query: `
-          query GetBusiness($id: String!) {
+          query GetBusiness($id: ID!) {
             getBusiness(id: $id) {
               id
               name

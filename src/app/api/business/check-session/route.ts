@@ -106,7 +106,7 @@ export async function GET(request: NextRequest) {
         // Check if user has access to the last business ID
         const userAccessResult = await client.graphql({
           query: `
-            query GetBusinessUser($email: String!, $businessId: String!) {
+            query GetBusinessUser($email: String!, $businessId: ID!) {
               listBusinessUsers(filter: {
                 email: { eq: $email },
                 businessId: { eq: $businessId }
