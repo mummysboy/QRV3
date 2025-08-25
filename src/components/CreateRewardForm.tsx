@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import CardAnimation from "@/components/CardAnimation";
 import BusinessDropdown from "@/components/BusinessDropdown";
 import { useNotifications } from "@/components/NotificationProvider";
+import { normalizeLogoUrl } from "@/utils/logoUtils";
 
 interface Business {
   id: string;
@@ -68,11 +69,18 @@ export default function CreateRewardForm({
   shouldShowLogoProcessing = false
 }: CreateRewardFormProps) {
   const { showSuccess, showError } = useNotifications();
+  
+  // Normalize the business logo URL to ensure consistency
+  const normalizedBusiness = useMemo(() => ({
+    ...business,
+    logo: normalizeLogoUrl(business.logo)
+  }), [business]);
+
   // Ensure business.logo is never undefined
   const businessWithLogo = useMemo(() => ({
-    ...business,
-    logo: business.logo || ''
-  }), [business.id, business.name, business.address, business.city, business.state, business.zipCode, business.category, business.logo]);
+    ...normalizedBusiness,
+    logo: normalizedBusiness.logo || ''
+  }), [normalizedBusiness.id, normalizedBusiness.name, normalizedBusiness.address, normalizedBusiness.city, normalizedBusiness.state, normalizedBusiness.zipCode, normalizedBusiness.category, normalizedBusiness.logo]);
 
   const [formData, setFormData] = useState<RewardData>({
     businessId: businessWithLogo.id,
@@ -90,27 +98,28 @@ export default function CreateRewardForm({
 
   // Debug: Log the business logo value (only when component mounts or business changes)
   useEffect(() => {
-    console.log('CreateRewardForm - business.logo:', business.logo);
+    console.log('CreateRewardForm - business.logo (original):', business.logo);
+    console.log('CreateRewardForm - business.logo (normalized):', normalizedBusiness.logo);
     console.log('CreateRewardForm - formData.businessLogo:', formData.businessLogo);
     console.log('CreateRewardForm - business object:', business);
     console.log('CreateRewardForm - isProfileComplete:', isProfileComplete);
-  }, [business.id, business.logo, isProfileComplete]);
+  }, [business.id, business.logo, normalizedBusiness.logo, isProfileComplete]);
 
   // Update formData when business data changes
   useEffect(() => {
-    console.log('CreateRewardForm - useEffect triggered, business.logo:', business.logo);
+    console.log('CreateRewardForm - useEffect triggered, business.logo (normalized):', normalizedBusiness.logo);
     setFormData(prev => ({
       ...prev,
-      businessId: business.id,
-      businessName: business.name,
-      businessAddress: business.address,
-      businessCity: business.city,
-      businessState: business.state,
-      businessZipCode: business.zipCode,
-      businessCategory: business.category,
-      businessLogo: business.logo || '',
+      businessId: normalizedBusiness.id,
+      businessName: normalizedBusiness.name,
+      businessAddress: normalizedBusiness.address,
+      businessCity: normalizedBusiness.city,
+      businessState: normalizedBusiness.state,
+      businessZipCode: normalizedBusiness.zipCode,
+      businessCategory: normalizedBusiness.category,
+      businessLogo: normalizedBusiness.logo || '',
     }));
-  }, [business.id, business.name, business.address, business.city, business.state, business.zipCode, business.category, business.logo]);
+  }, [normalizedBusiness.id, normalizedBusiness.name, normalizedBusiness.address, normalizedBusiness.city, normalizedBusiness.state, normalizedBusiness.zipCode, normalizedBusiness.category, normalizedBusiness.logo]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 

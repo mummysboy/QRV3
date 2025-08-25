@@ -33,6 +33,9 @@ export async function POST(request: NextRequest) {
     console.log("[presigned-upload] Starting presigned URL generation...");
     console.log("[presigned-upload] Environment - BUCKET_NAME:", BUCKET_NAME);
     console.log("[presigned-upload] Environment - REGION:", REGION);
+    console.log("[presigned-upload] Environment - ACCESS_KEY_ID exists:", !!process.env.ACCESS_KEY_ID);
+    console.log("[presigned-upload] Environment - SECRET_ACCESS_KEY exists:", !!process.env.SECRET_ACCESS_KEY);
+    console.log("[presigned-upload] Environment - SESSION_TOKEN exists:", !!process.env.SESSION_TOKEN);
 
     const { businessName, fileName, contentType } = await request.json();
     
@@ -69,11 +72,23 @@ export async function POST(request: NextRequest) {
     console.log("[presigned-upload] Generated S3 key:", key);
 
     // Build S3 client with proper credentials for hosted environment
-    const s3Client = new S3Client({
+    const s3ClientConfig: any = {
       region: REGION,
-      // In hosted environment, use environment-based credentials
-      // This will work with Amplify's built-in IAM roles
-    });
+    };
+
+    // Add credentials if they exist in environment variables
+    if (process.env.ACCESS_KEY_ID && process.env.SECRET_ACCESS_KEY) {
+      s3ClientConfig.credentials = {
+        accessKeyId: process.env.ACCESS_KEY_ID,
+        secretAccessKey: process.env.SECRET_ACCESS_KEY,
+        ...(process.env.SESSION_TOKEN && { sessionToken: process.env.SESSION_TOKEN }),
+      };
+      console.log("[presigned-upload] Using explicit credentials from environment");
+    } else {
+      console.log("[presigned-upload] No explicit credentials found, using IAM role");
+    }
+
+    const s3Client = new S3Client(s3ClientConfig);
 
     // Create presigned URL
     const putObjectCommand = new PutObjectCommand({
@@ -110,6 +125,8 @@ export async function POST(request: NextRequest) {
         errorMessage = 'S3 bucket not found.';
       } else if (errorName === 'InvalidAccessKeyId') {
         errorMessage = 'Invalid AWS credentials.';
+      } else if (errorName === 'UnrecognizedClientException') {
+        errorMessage = 'AWS credentials not configured properly.';
       }
     }
 
@@ -121,6 +138,7 @@ export async function POST(request: NextRequest) {
           details: {
             name: errObj?.name,
             message: errObj?.message,
+            code: errObj?.code,
           },
         },
         { status: 500 }

@@ -10,6 +10,7 @@ import AddBusinessForm from "@/components/AddBusinessForm";
 import Header from "@/components/Header";
 import { BarChart3, CheckCircle, Target, PartyPopper, TrendingUp, Gift, QrCode, X } from "lucide-react";
 import { QRCodeCanvas } from 'qrcode.react';
+import { normalizeLogoUrl } from "@/utils/logoUtils";
 
 // Mock business user and business info
 const mockBusiness = {
@@ -916,7 +917,7 @@ export default function DemoDashboard() {
                           card={{
                             cardid: card.cardid,
                             header: card.header || business.name,
-                            logokey: card.logokey || business.logo,
+                            logokey: normalizeLogoUrl(business.logo), // Always use current business logo
                             addresstext: card.addresstext || `${business.address}, ${business.city}, ${business.state} ${business.zipCode}`,
                             addressurl: card.addressurl || "",
                             subheader: card.subheader || "Reward description",

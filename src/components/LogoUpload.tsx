@@ -79,6 +79,31 @@ export default function LogoUpload({ businessName, onUpload, currentLogo }: Logo
 
       console.log('✅ LogoUpload: Direct S3 upload successful');
       console.log('📋 LogoUpload: Logo key:', key);
+      console.log('🔍 LogoUpload: Upload response status:', uploadResponse.status);
+      console.log('🔍 LogoUpload: Upload response headers:', Object.fromEntries(uploadResponse.headers.entries()));
+
+      // Step 3: Verify the upload by trying to access the file
+      try {
+        const s3Bucket = "amplify-qrewardsnew-isaac-qrewardsstoragebucketb6d-lgupebttujw3";
+        const s3Region = "us-west-1";
+        const verifyUrl = `https://${s3Bucket}.s3.${s3Region}.amazonaws.com/${key}`;
+        console.log('🔍 LogoUpload: Verifying upload by accessing:', verifyUrl);
+        
+        const verifyResponse = await fetch(verifyUrl, { method: 'HEAD' });
+        console.log('🔍 LogoUpload: Verification result:', {
+          status: verifyResponse.status,
+          ok: verifyResponse.ok,
+          headers: Object.fromEntries(verifyResponse.headers.entries())
+        });
+        
+        if (verifyResponse.ok) {
+          console.log('✅ LogoUpload: File verification successful - logo is accessible');
+        } else {
+          console.warn('⚠️ LogoUpload: File verification failed - logo may not be accessible');
+        }
+      } catch (verifyError) {
+        console.warn('⚠️ LogoUpload: Could not verify upload:', verifyError);
+      }
 
       // Step 3: Delete old logo if it exists
       if (currentLogo && typeof currentLogo === "string" && currentLogo.trim() !== "") {

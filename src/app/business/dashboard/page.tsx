@@ -19,6 +19,7 @@ import SettingsView from "@/components/SettingsView";
 import ContactPopup from "@/components/Popups/ContactPopup";
 import BusinessDropdown from "@/components/BusinessDropdown";
 import { useNotifications } from "@/components/NotificationProvider";
+import { normalizeLogoUrl } from "@/utils/logoUtils";
 
 
 interface BusinessUser {

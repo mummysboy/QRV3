@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateClient } from "aws-amplify/api";
 import "../../../../lib/amplify-client";
+import { normalizeLogoUrl } from "../../../../utils/logoUtils";
 
 interface Business {
   id: string;
@@ -173,10 +174,10 @@ export async function PUT(request: NextRequest) {
       ...(zipCode !== undefined && { zipCode }),
       ...(website !== undefined && { website }),
       ...(socialMedia !== undefined && { socialMedia }),
-      ...(businessHours !== undefined && { businessHours }),
-      ...(description !== undefined && { description }),
-      ...(logo !== undefined && { logo }),
-      ...(photos !== undefined && { photos }),
+              ...(businessHours !== undefined && { businessHours }),
+        ...(description !== undefined && { description }),
+        ...(logo !== undefined && { logo: normalizeLogoUrl(logo) }),
+        ...(photos !== undefined && { photos }),
       ...(primaryContactEmail !== undefined && { primaryContactEmail }),
       ...(primaryContactPhone !== undefined && { primaryContactPhone }),
       // Note: neighborhood field not available in current schema yet, but we'll detect it
@@ -225,6 +226,69 @@ export async function PUT(request: NextRequest) {
     const updatedBusiness = (updateResult as { data: { updateBusiness: Business } }).data.updateBusiness;
     
     console.log('🔧 Business update: Successfully updated business:', updatedBusiness);
+
+    // If logo was updated, also update all existing cards to use the new logo
+    if (logo !== undefined && logo !== null) {
+      try {
+        console.log('🔧 Business update: Logo changed, updating existing cards...');
+        
+        // Get all cards for this business
+        const cardsResult = await client.graphql({
+          query: `
+            query GetBusinessCards($businessId: String!) {
+              listCards(filter: {
+                businessId: { eq: $businessId }
+              }) {
+                items {
+                  cardid
+                  businessId
+                }
+              }
+            }
+          `,
+          variables: { businessId },
+        });
+
+        const cards = (cardsResult as { data: { listCards: { items: Array<{ cardid: string; businessId: string }> } } }).data.listCards.items;
+        
+        if (cards.length > 0) {
+          console.log(`🔧 Business update: Found ${cards.length} cards to update`);
+          
+          // Update each card with the new logo
+          for (const card of cards) {
+            try {
+              await client.graphql({
+                query: `
+                  mutation UpdateCard($input: UpdateCardInput!) {
+                    updateCard(input: $input) {
+                      cardid
+                      logokey
+                    }
+                  }
+                `,
+                variables: {
+                  input: {
+                    cardid: card.cardid,
+                    logokey: normalizeLogoUrl(logo), // Use the normalized logo URL
+                  },
+                },
+              });
+              console.log(`🔧 Business update: Updated card ${card.cardid} with new logo`);
+            } catch (cardUpdateError) {
+              console.error(`🔧 Business update: Failed to update card ${card.cardid}:`, cardUpdateError);
+              // Continue updating other cards even if one fails
+            }
+          }
+          
+          console.log('🔧 Business update: Finished updating all cards with new logo');
+        } else {
+          console.log('🔧 Business update: No existing cards found to update');
+        }
+      } catch (cardsUpdateError) {
+        console.error('🔧 Business update: Error updating existing cards:', cardsUpdateError);
+        // Don't fail the business update if card updates fail
+      }
+    }
 
     return NextResponse.json({
       success: true,

@@ -35,8 +35,9 @@
       "zipCode": "94110",
       "category": "Restaurant"
     },
-    "status": "pending",
-    "submittedAt": "2025-08-24T17:47:40.366Z"
+    "status": "rejected",
+    "submittedAt": "2025-08-24T17:47:40.366Z",
+    "rejectedAt": "2025-08-24T19:41:39.009Z"
   },
   {
     "id": "update_278d5b94-4f29-45f7-bde0-086818e1f73b_1756057719339",
@@ -54,7 +55,148 @@
       "zipCode": "94110",
       "category": "Restaurant"
     },
-    "status": "pending",
-    "submittedAt": "2025-08-24T17:48:39.339Z"
+    "status": "rejected",
+    "submittedAt": "2025-08-24T17:48:39.339Z",
+    "rejectedAt": "2025-08-24T19:41:19.381Z"
+  },
+  {
+    "id": "update_68130836-f8b2-4f88-9a54-cfa5bebe5f9b_1756064126704",
+    "businessId": "68130836-f8b2-4f88-9a54-cfa5bebe5f9b",
+    "userEmail": "isaachirsch@gmail.com",
+    "businessName": "State Street Crossfit",
+    "userFirstName": "Isaac",
+    "userLastName": "Hirsch",
+    "currentData": {},
+    "requestedUpdates": {
+      "name": "Pancake Bizzz",
+      "address": "8 The Green",
+      "city": "Dover",
+      "state": "DE",
+      "zipCode": "19901",
+      "category": "Restaurant"
+    },
+    "status": "approved",
+    "submittedAt": "2025-08-24T19:35:26.704Z",
+    "approvedAt": "2025-08-24T19:37:22.334Z"
+  },
+  {
+    "id": "update_68130836-f8b2-4f88-9a54-cfa5bebe5f9b_1756064261560",
+    "businessId": "68130836-f8b2-4f88-9a54-cfa5bebe5f9b",
+    "userEmail": "isaachirsch@gmail.com",
+    "businessName": "State Street Crossfit",
+    "userFirstName": "Isaac",
+    "userLastName": "Hirsch",
+    "currentData": {},
+    "requestedUpdates": {
+      "name": "Pancake Bizzzz",
+      "address": "8 The Green",
+      "city": "Dover",
+      "state": "DE",
+      "zipCode": "19901",
+      "category": "Restaurant"
+    },
+    "status": "approved",
+    "submittedAt": "2025-08-24T19:37:41.560Z",
+    "approvedAt": "2025-08-24T19:38:08.555Z"
+  },
+  {
+    "id": "update_68130836-f8b2-4f88-9a54-cfa5bebe5f9b_1756064529802",
+    "businessId": "68130836-f8b2-4f88-9a54-cfa5bebe5f9b",
+    "userEmail": "isaachirsch@gmail.com",
+    "businessName": "State Street Crossfit",
+    "userFirstName": "Isaac",
+    "userLastName": "Hirsch",
+    "currentData": {},
+    "requestedUpdates": {
+      "name": "Pancake Biz",
+      "address": "8 The Green",
+      "city": "Dover",
+      "state": "DE",
+      "zipCode": "19901",
+      "category": "Restaurant"
+    },
+    "status": "approved",
+    "submittedAt": "2025-08-24T19:42:09.802Z",
+    "approvedAt": "2025-08-24T19:43:17.547Z"
+  },
+  {
+    "id": "update_68130836-f8b2-4f88-9a54-cfa5bebe5f9b_1756064620213",
+    "businessId": "68130836-f8b2-4f88-9a54-cfa5bebe5f9b",
+    "userEmail": "isaachirsch@gmail.com",
+    "businessName": "State Street Crossfit",
+    "userFirstName": "Isaac",
+    "userLastName": "Hirsch",
+    "currentData": {},
+    "requestedUpdates": {
+      "name": "Pancake Biz",
+      "address": "8 The Green",
+      "city": "Dover",
+      "state": "DE",
+      "zipCode": "19901",
+      "category": "Restaurant"
+    },
+    "status": "approved",
+    "submittedAt": "2025-08-24T19:43:40.213Z",
+    "approvedAt": "2025-08-24T19:44:33.167Z"
+  },
+  {
+    "id": "update_68130836-f8b2-4f88-9a54-cfa5bebe5f9b_1756064699616",
+    "businessId": "68130836-f8b2-4f88-9a54-cfa5bebe5f9b",
+    "userEmail": "isaachirsch@gmail.com",
+    "businessName": "State Street Crossfit",
+    "userFirstName": "Isaac",
+    "userLastName": "Hirsch",
+    "currentData": {},
+    "requestedUpdates": {
+      "name": "Pancake Bizzzz",
+      "address": "8 The Green",
+      "city": "Dover",
+      "state": "DE",
+      "zipCode": "19901",
+      "category": "Restaurant"
+    },
+    "status": "approved",
+    "submittedAt": "2025-08-24T19:44:59.616Z",
+    "approvedAt": "2025-08-24T19:45:22.976Z"
+  },
+  {
+    "id": "update_72939731-1062-4bae-85d2-b7ae03833271_1756065906619",
+    "businessId": "72939731-1062-4bae-85d2-b7ae03833271",
+    "userEmail": "isaachirsch@gmail.com",
+    "businessName": "State Street Crossfit",
+    "userFirstName": "Isaac",
+    "userLastName": "Hirsch",
+    "currentData": {},
+    "requestedUpdates": {
+      "name": "Pancake Biz",
+      "address": "1031 Leavenworth",
+      "city": "san Francisco",
+      "state": "CA",
+      "zipCode": "94109",
+      "category": "Restaurant"
+    },
+    "status": "approved",
+    "submittedAt": "2025-08-24T20:05:06.619Z",
+    "approvedAt": "2025-08-24T20:05:32.418Z"
+  },
+  {
+    "id": "update_72939731-1062-4bae-85d2-b7ae03833271_1756066023825",
+    "businessId": "72939731-1062-4bae-85d2-b7ae03833271",
+    "userEmail": "isaachirsch@gmail.com",
+    "businessName": "State Street Crossfit",
+    "userFirstName": "Isaac",
+    "userLastName": "Hirsch",
+    "currentData": {},
+    "requestedUpdates": {
+      "name": "Pancake Biz",
+      "address": "4216 25th Street",
+      "city": "San Francisco",
+      "state": "CA",
+      "zipCode": "94114",
+      "category": "Restaurant"
+    },
+    "status": "approved",
+    "submittedAt": "2025-08-24T20:07:03.825Z",
+    "approvedAt": "2025-08-24T20:07:16.718Z"
   }
 ]

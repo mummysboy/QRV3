@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import DefaultLogo from "@/components/DefaultLogo";
 import { generateGoogleMapsUrl } from "@/lib/utils";
 import { getStorageUrlSync } from "@/lib/storage";
+import { normalizeLogoUrl } from "@/utils/logoUtils";
 
 interface CardProps {
   cardid?: string | number;
@@ -88,11 +89,11 @@ export default function CardAnimation({ card, isPreview = false, isRedeem = fals
   const [hasTriggered, setHasTriggered] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Try different possible property names for flexibility
+  // Try different possible property names for flexibility and normalize logo URLs
   const cardData = card ? {
     cardid: card.cardid || card.id || card.cardId,
     header: card.header || card.title || card.name || card.business_name,
-    logokey: card.logokey || card.logo || card.logoUrl || card.image,
+    logokey: normalizeLogoUrl(card.logokey || card.logo || card.logoUrl || card.image),
     addresstext: card.addresstext || card.address || card.location,
     addressurl: card.addressurl || card.website || card.url,
     subheader: card.subheader || card.description || card.subtitle,
@@ -100,6 +101,20 @@ export default function CardAnimation({ card, isPreview = false, isRedeem = fals
     quantity: card.quantity || card.qty,
     neighborhood: card.neighborhood,
   } : null;
+
+  // Debug logging for logo handling
+  useEffect(() => {
+    if (card) {
+      console.log('CardAnimation - Logo debugging:', {
+        originalLogokey: card.logokey,
+        originalLogo: card.logo,
+        originalLogoUrl: card.logoUrl,
+        originalImage: card.image,
+        normalizedLogokey: cardData?.logokey,
+        finalLogoUrl: cardData?.logokey
+      });
+    }
+  }, [card, cardData?.logokey]);
 
   // Helper function to check if expiration is less than 24 hours
   const isExpiringSoon = (expirationDate: string | Date) => {
