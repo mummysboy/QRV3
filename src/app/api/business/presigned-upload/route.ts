@@ -3,6 +3,7 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { v4 as uuidv4 } from "uuid";
 import outputs from "../../../../amplify_outputs.json";
+import { fromNodeProviderChain } from "@aws-sdk/credential-providers";
 
 // Get bucket name from Amplify outputs
 const BUCKET_NAME = (outputs as any).storage?.bucket_name || "amplify-qrewardsnew-isaac-qrewardsstoragebucketb6d-lgupebttujw3";
@@ -85,7 +86,10 @@ export async function POST(request: NextRequest) {
       };
       console.log("[presigned-upload] Using explicit credentials from environment");
     } else {
-      console.log("[presigned-upload] No explicit credentials found, using IAM role");
+      // Use credential provider chain for IAM roles
+      const creds = await fromNodeProviderChain()();
+      s3ClientConfig.credentials = creds;
+      console.log("[presigned-upload] Using IAM role via credential provider chain");
     }
 
     const s3Client = new S3Client(s3ClientConfig);
