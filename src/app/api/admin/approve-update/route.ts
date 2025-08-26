@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { loadPendingUpdates, savePendingUpdates } from "@/lib/pending-updates";
 import { generateClient } from "aws-amplify/api";
 import "../../../../lib/amplify-client";
 
@@ -24,27 +23,68 @@ export async function POST(request: NextRequest) {
 
     console.log(`📝 Processing ${action} for update: ${updateId}`);
 
-    // Load current pending updates
-    const pendingUpdates = loadPendingUpdates();
-    console.log(`📋 Found ${pendingUpdates.length} pending updates`);
+    const client = generateClient({ authMode: "apiKey" });
 
-    // Find the specific update
-    const updateIndex = pendingUpdates.findIndex((update: unknown) => (update as any)?.id === updateId);
-    
-    if (updateIndex === -1) {
+    // Get the pending update from database
+    const updateResult = await client.graphql({
+      query: `
+        query GetPendingUpdate($id: ID!) {
+          getPendingUpdate(id: $id) {
+            id
+            businessId
+            userEmail
+            businessName
+            userFirstName
+            userLastName
+            currentData
+            requestedUpdates
+            status
+            submittedAt
+            reviewedAt
+            reviewedBy
+            notes
+          }
+        }
+      `,
+      variables: { id: updateId },
+    });
+
+    const update = (updateResult as { data: { getPendingUpdate?: { 
+      id: string; 
+      businessId: string; 
+      userEmail: string; 
+      businessName: string; 
+      userFirstName: string; 
+      userLastName: string; 
+      currentData: string; 
+      requestedUpdates: string; 
+      status: string; 
+      submittedAt: string; 
+      reviewedAt: string; 
+      reviewedBy: string; 
+      notes: string; 
+    } } }).data.getPendingUpdate;
+
+    if (!update) {
       console.log("❌ Update not found:", updateId);
       return NextResponse.json({ error: "Update not found" }, { status: 404 });
     }
 
-    const update = pendingUpdates[updateIndex];
     console.log("✅ Found update:", update);
 
     if (action === 'approve') {
       // Update the actual business data in the database
       console.log("🔍 Updating business data in database...");
       
-      const client = generateClient({ authMode: "apiKey" });
-      
+      // Parse the requested updates
+      let requestedUpdates;
+      try {
+        requestedUpdates = JSON.parse(update.requestedUpdates);
+      } catch (error) {
+        console.error("❌ Error parsing requested updates:", error);
+        return NextResponse.json({ error: "Invalid requested updates format" }, { status: 400 });
+      }
+
       // Get current business data
       const businessResult = await client.graphql({
         query: `
@@ -79,10 +119,10 @@ export async function POST(request: NextRequest) {
       }
 
       console.log("🔍 Current business data:", currentBusiness);
-      console.log("🔍 Requested updates:", update.requestedUpdates);
+      console.log("🔍 Requested updates:", requestedUpdates);
 
       // Update the business with the new data
-      const updateResult = await client.graphql({
+      const updateBusinessResult = await client.graphql({
         query: `
           mutation UpdateBusiness($input: UpdateBusinessInput!) {
             updateBusiness(input: $input) {
@@ -106,27 +146,62 @@ export async function POST(request: NextRequest) {
         variables: {
           input: {
             id: update.businessId,
-            ...update.requestedUpdates,
+            ...requestedUpdates,
             updatedAt: new Date().toISOString()
           }
         },
       });
 
-      console.log("✅ Business updated in database:", updateResult);
+      console.log("✅ Business updated in database:", updateBusinessResult);
       
-      // Mark as approved
-      update.status = 'approved';
-      update.approvedAt = new Date().toISOString();
+      // Mark pending update as approved
+      await client.graphql({
+        query: `
+          mutation UpdatePendingUpdate($input: UpdatePendingUpdateInput!) {
+            updatePendingUpdate(input: $input) {
+              id
+              status
+              reviewedAt
+              reviewedBy
+            }
+          }
+        `,
+        variables: {
+          input: {
+            id: updateId,
+            status: 'approved',
+            reviewedAt: new Date().toISOString(),
+            reviewedBy: 'admin', // TODO: Get actual admin user ID
+          }
+        },
+      });
+
       console.log("✅ Update approved and business data updated");
     } else {
-      // Mark as rejected
-      update.status = 'rejected';
-      update.rejectedAt = new Date().toISOString();
+      // Mark pending update as rejected
+      await client.graphql({
+        query: `
+          mutation UpdatePendingUpdate($input: UpdatePendingUpdateInput!) {
+            updatePendingUpdate(input: $input) {
+              id
+              status
+              reviewedAt
+              reviewedBy
+            }
+          }
+        `,
+        variables: {
+          input: {
+            id: updateId,
+            status: 'rejected',
+            reviewedAt: new Date().toISOString(),
+            reviewedBy: 'admin', // TODO: Get actual admin user ID
+          }
+        },
+      });
+
       console.log("❌ Update rejected");
     }
-
-    // Save the updated pending updates
-    savePendingUpdates(pendingUpdates);
     
     console.log(`✅ Update ${action}ed successfully: ${updateId}`);
 

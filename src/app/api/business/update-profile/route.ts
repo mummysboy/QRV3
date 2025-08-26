@@ -1,15 +1,53 @@
 import { NextRequest, NextResponse } from "next/server";
-import { loadPendingUpdates, savePendingUpdates } from "@/lib/pending-updates";
+import { generateClient } from "aws-amplify/api";
+import "../../../../lib/amplify-client";
 
 // Simple test endpoint
 export async function GET() {
-  const pendingUpdates = loadPendingUpdates();
-  return NextResponse.json({ 
-    success: true, 
-    message: "Profile update API is working",
-    timestamp: new Date().toISOString(),
-    pendingUpdatesCount: pendingUpdates.length
-  });
+  try {
+    const client = generateClient({ authMode: "apiKey" });
+    
+    // Get count of pending updates from database
+    const result = await client.graphql({
+      query: `
+        query ListPendingUpdates {
+          listPendingUpdates(filter: {
+            status: { eq: "pending" }
+          }) {
+            items {
+              id
+              businessId
+              businessName
+              status
+              submittedAt
+            }
+          }
+        }
+      `
+    });
+
+    const pendingUpdates = (result as { data: { listPendingUpdates?: { items: Array<{ 
+      id: string; 
+      businessId: string; 
+      businessName: string; 
+      status: string; 
+      submittedAt: string; 
+    }> } } }).data.listPendingUpdates?.items || [];
+
+    return NextResponse.json({ 
+      success: true, 
+      message: "Profile update API is working",
+      timestamp: new Date().toISOString(),
+      pendingUpdatesCount: pendingUpdates.length
+    });
+  } catch (error) {
+    console.error("Error fetching pending updates count:", error);
+    return NextResponse.json({ 
+      success: false, 
+      message: "Error fetching pending updates count",
+      error: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -33,36 +71,156 @@ export async function POST(request: NextRequest) {
 
     console.log(`📝 Processing profile update for business: ${businessId}`);
 
-    // For now, create a simple pending update record
-    // We'll store this in a way that the admin dashboard can find it
-    const pendingUpdate = {
-      id: `update_${businessId}_${Date.now()}`,
-      businessId,
-      userEmail,
-      businessName: "State Street Crossfit", // We'll get this from the actual business data later
-      userFirstName: "Isaac",
-      userLastName: "Hirsch",
-      currentData: {},
-      requestedUpdates: updates,
-      status: 'pending',
-      submittedAt: new Date().toISOString()
-    };
+    const client = generateClient({ authMode: "apiKey" });
 
-    console.log("📝 Pending update created:", JSON.stringify(pendingUpdate, null, 2));
-    
-    // Load existing updates and add the new one
-    const existingUpdates = loadPendingUpdates();
-    existingUpdates.push(pendingUpdate);
-    savePendingUpdates(existingUpdates);
-    
-    console.log(`✅ Profile update stored in file. Total pending updates: ${existingUpdates.length}`);
+    // Get current business data to store as currentData
+    let currentBusinessResult;
+    try {
+      currentBusinessResult = await client.graphql({
+        query: `
+          query GetBusiness($id: ID!) {
+            getBusiness(id: $id) {
+              id
+              name
+              phone
+              email
+              address
+              city
+              state
+              zipCode
+              category
+              website
+              socialMedia
+              businessHours
+              description
+            }
+          }
+        `,
+        variables: { id: businessId },
+      });
+    } catch (error) {
+      console.error("❌ Error fetching current business data:", error);
+      return NextResponse.json({ error: "Failed to fetch current business data" }, { status: 500 });
+    }
 
-    return NextResponse.json({ 
-      success: true, 
-      message: "Profile update submitted for admin approval",
-      updateId: pendingUpdate.id,
-      pendingUpdate: pendingUpdate // Include the data for testing
-    });
+    const currentBusiness = (currentBusinessResult as { data: { getBusiness?: { 
+      id: string; 
+      name: string; 
+      phone: string; 
+      email: string; 
+      address: string; 
+      city: string; 
+      state: string; 
+      zipCode: string; 
+      category: string; 
+      website: string; 
+      socialMedia: string; 
+      businessHours: string; 
+      description: string; 
+    } } }).data.getBusiness;
+
+    if (!currentBusiness) {
+      return NextResponse.json({ error: "Business not found" }, { status: 404 });
+    }
+
+    // Get user information
+    let userResult;
+    try {
+      userResult = await client.graphql({
+        query: `
+          query GetBusinessUser($email: String!) {
+            listBusinessUsers(filter: {
+              email: { eq: $email }
+            }) {
+              items {
+                id
+                firstName
+                lastName
+                email
+              }
+            }
+          }
+        `,
+        variables: { email: userEmail },
+      });
+    } catch (error) {
+      console.error("❌ Error fetching user data:", error);
+      return NextResponse.json({ error: "Failed to fetch user data" }, { status: 500 });
+    }
+
+    const users = (userResult as { data: { listBusinessUsers: { items: Array<{ 
+      id: string; 
+      firstName: string; 
+      lastName: string; 
+      email: string; 
+    }> } } }).data.listBusinessUsers.items;
+
+    if (users.length === 0) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const user = users[0];
+
+    // Create pending update in database
+    try {
+      const result = await client.graphql({
+        query: `
+          mutation CreatePendingUpdate($input: CreatePendingUpdateInput!) {
+            createPendingUpdate(input: $input) {
+              id
+              businessId
+              userEmail
+              businessName
+              userFirstName
+              userLastName
+              currentData
+              requestedUpdates
+              status
+              submittedAt
+            }
+          }
+        `,
+        variables: {
+          input: {
+            businessId,
+            userEmail,
+            businessName: currentBusiness.name,
+            userFirstName: user.firstName,
+            userLastName: user.lastName,
+            currentData: JSON.stringify(currentBusiness),
+            requestedUpdates: JSON.stringify(updates),
+            status: 'pending',
+            submittedAt: new Date().toISOString(),
+          },
+        },
+      });
+
+      const pendingUpdate = (result as { data: { createPendingUpdate: { 
+        id: string; 
+        businessId: string; 
+        userEmail: string; 
+        businessName: string; 
+        userFirstName: string; 
+        userLastName: string; 
+        currentData: string; 
+        requestedUpdates: string; 
+        status: string; 
+        submittedAt: string; 
+      } } }).data.createPendingUpdate;
+
+      console.log("✅ Pending update created in database:", JSON.stringify(pendingUpdate, null, 2));
+
+      return NextResponse.json({ 
+        success: true, 
+        message: "Profile update submitted for admin approval",
+        updateId: pendingUpdate.id,
+        pendingUpdate: pendingUpdate
+      });
+
+    } catch (error) {
+      console.error("❌ Error creating pending update:", error);
+      return NextResponse.json({ error: "Failed to create pending update" }, { status: 500 });
+    }
 
   } catch (error) {
     console.error("❌ Error updating profile:", error);
@@ -76,7 +234,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
-
-// Note: Storage functions are internal to this route and not exported
-// Other routes should implement their own storage logic if needed 
+} 

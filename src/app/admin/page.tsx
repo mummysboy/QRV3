@@ -125,10 +125,13 @@ interface PendingUpdate {
   businessName: string;
   userFirstName: string;
   userLastName: string;
-  currentData: Record<string, string>;
-  requestedUpdates: Record<string, string>;
+  currentData: string; // JSON string of current business data
+  requestedUpdates: string; // JSON string of requested changes
   status: string;
   submittedAt: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
+  notes?: string;
 }
 
 export default function AdminDashboard() {
@@ -279,11 +282,6 @@ export default function AdminDashboard() {
     } finally {
       setIsLoadingPendingUpdates(false);
     }
-  };
-
-  // Function to add a new pending update to the test data
-  const addPendingUpdate = (update: PendingUpdate) => {
-    setPendingUpdates(prev => [update, ...prev]);
   };
 
   const handleUpdateAction = async (updateId: string, action: 'approve' | 'reject') => {
@@ -535,10 +533,9 @@ export default function AdminDashboard() {
       if (statusFilter === 'all') return allItems;
       return allItems.filter(item => item.status === statusFilter);
     } else {
-      // Only show approved businesses in businesses tab
-      const approvedBusinesses = businesses.filter(business => business.status === 'approved');
-      if (statusFilter === 'all') return approvedBusinesses;
-      return approvedBusinesses.filter(business => business.status === statusFilter);
+      // Show all businesses in businesses tab, let status filter work properly
+      if (statusFilter === 'all') return businesses;
+      return businesses.filter(business => business.status === statusFilter);
     }
   };
 
@@ -661,7 +658,7 @@ export default function AdminDashboard() {
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                Businesses ({businesses.filter(b => b.status === 'approved').length})
+                Businesses ({businesses.length})
               </button>
               <button
                 onClick={() => setActiveTab('analytics')}
@@ -985,11 +982,18 @@ export default function AdminDashboard() {
                         </td>
                         <td className="px-6 py-4">
                           <div className="text-sm text-gray-900">
-                            {Object.entries(update.requestedUpdates).map(([field, value]) => (
-                              <div key={field} className="mb-1">
-                                <span className="font-medium">{field}:</span> {value}
-                              </div>
-                            ))}
+                            {(() => {
+                              try {
+                                const updates = JSON.parse(update.requestedUpdates) as Record<string, string>;
+                                return Object.entries(updates).map(([field, value]) => (
+                                  <div key={field} className="mb-1">
+                                    <span className="font-medium">{field}:</span> {value}
+                                  </div>
+                                ));
+                              } catch {
+                                return <div className="text-red-500">Error parsing updates</div>;
+                              }
+                            })()}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

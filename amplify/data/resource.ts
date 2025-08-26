@@ -156,6 +156,25 @@ const schema = a.schema({
     })
     .identifier(["id"])
     .authorization((allow) => [allow.publicApiKey()]),
+
+  PendingUpdate: a
+    .model({
+      id: a.id().required(),
+      businessId: a.string().required(),
+      userEmail: a.string().required(),
+      businessName: a.string().required(),
+      userFirstName: a.string().required(),
+      userLastName: a.string().required(),
+      currentData: a.string(), // JSON string of current business data
+      requestedUpdates: a.string().required(), // JSON string of requested changes
+      status: a.string().required(), // 'pending', 'approved', 'rejected'
+      submittedAt: a.string().required(),
+      reviewedAt: a.string(),
+      reviewedBy: a.string(),
+      notes: a.string(),
+    })
+    .identifier(["id"])
+    .authorization((allow) => [allow.publicApiKey()]),
 });
 
 export type Schema = ClientSchema<typeof schema>;
