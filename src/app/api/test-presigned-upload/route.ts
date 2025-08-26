@@ -7,6 +7,7 @@ import outputs from "../../../amplify_outputs.json";
 const BUCKET_NAME = (outputs as any).storage?.bucket_name || "amplify-qrewardsnew-isaac-qrewardsstoragebucketb6d-lgupebttujw3";
 const REGION = (outputs as any).storage?.aws_region || "us-west-1";
 
+// Test endpoint for presigned upload functionality - Updated for environment variable testing
 export async function GET(request: NextRequest) {
   console.log("🧪 Testing presigned upload generation...");
   
