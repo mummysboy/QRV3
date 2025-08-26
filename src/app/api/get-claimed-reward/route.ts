@@ -16,11 +16,16 @@ export async function GET(req: Request) {
     
     console.log('🔍 Looking for claimed reward with cardId:', cardId);
     
-    // Find the claimed reward for this card
+    // Find the claimed reward for this card that hasn't been redeemed yet
     const result = await client.graphql({
       query: `
         query GetClaimedRewardByCard($cardid: String!) {
-          listClaimedRewards(filter: { cardid: { eq: $cardid } }) {
+          listClaimedRewards(filter: { 
+            and: [
+              { cardid: { eq: $cardid } },
+              { redeemed_at: { attributeExists: false } }
+            ]
+          }) {
             items {
               id
               cardid
@@ -35,6 +40,7 @@ export async function GET(req: Request) {
               expires
               claimed_at
               businessId
+              redeemed_at
             }
           }
         }
@@ -45,13 +51,15 @@ export async function GET(req: Request) {
     const claimedRewards = (result as any).data.listClaimedRewards.items;
     
     if (claimedRewards.length === 0) {
-      console.log('❌ No claimed rewards found for cardId:', cardId);
-      return NextResponse.json({ error: "Claimed reward not found" }, { status: 404 });
+      console.log('❌ No unredeemed claimed rewards found for cardId:', cardId);
+      return NextResponse.json({ 
+        error: "Claimed reward not found or already redeemed and removed" 
+      }, { status: 404 });
     }
     
-    // Return the most recent claimed reward
+    // Return the most recent unredeemed claimed reward
     const claimedReward = claimedRewards[claimedRewards.length - 1];
-    console.log('✅ Found claimed reward:', claimedReward.id);
+    console.log('✅ Found unredeemed claimed reward:', claimedReward.id);
     
     return NextResponse.json(claimedReward);
     

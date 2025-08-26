@@ -77,12 +77,15 @@ export async function GET(request: NextRequest) {
 
 
 
-    // Get claimed rewards for this business
+    // Get claimed rewards for this business (only unredeemed ones)
     const claimedRewardsResult = await client.graphql({
       query: `
         query GetBusinessClaimedRewards($businessId: String!) {
           listClaimedRewards(filter: {
-            businessId: { eq: $businessId }
+            and: [
+              { businessId: { eq: $businessId } },
+              { redeemed_at: { attributeExists: false } }
+            ]
           }) {
             items {
               id
@@ -98,6 +101,7 @@ export async function GET(request: NextRequest) {
               expires
               claimed_at
               businessId
+              redeemed_at
             }
           }
         }
