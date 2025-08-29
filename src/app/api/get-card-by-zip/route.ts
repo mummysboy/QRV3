@@ -478,6 +478,16 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "No cards available" }, { status: 404 });
     }
 
+    // Log current server time for debugging
+    const now = new Date();
+    console.log("🔍 Get-Card-By-Zip - Current server time:", {
+      iso: now.toISOString(),
+      local: now.toString(),
+      timestamp: now.getTime(),
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      zipcode: zipCode
+    });
+
     // Filter out expired cards and cards with 0 quantity
     const availableCards = filterAvailableCards(cards);
     

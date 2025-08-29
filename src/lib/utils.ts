@@ -128,7 +128,8 @@ export function isCardExpired(expires: string | null | undefined): boolean {
       currentTime: currentTime,
       currentTimeISO: new Date(currentTime).toISOString(),
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      serverTime: new Date().toString()
+      serverTime: new Date().toString(),
+      environment: process.env.NODE_ENV || 'unknown'
     });
     
     // Compare the expiration date timestamp with current UTC timestamp
@@ -164,5 +165,6 @@ export function filterExpiredCards<T extends { expires?: string | null }>(cards:
  * @returns Array of available cards (non-expired and quantity > 0)
  */
 export function filterAvailableCards<T extends { expires?: string | null; quantity?: number }>(cards: T[]): T[] {
-  return cards.filter(card => !isCardExpiredTimezoneSafe(card.expires) && (card.quantity === undefined || card.quantity > 0));
+  // Use the simpler isCardExpired function which handles timezone issues better
+  return cards.filter(card => !isCardExpired(card.expires) && (card.quantity === undefined || card.quantity > 0));
 }

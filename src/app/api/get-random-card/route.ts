@@ -41,6 +41,15 @@ export async function GET() {
       return NextResponse.json({ error: "No cards available" }, { status: 404 });
     }
 
+    // Log current server time for debugging
+    const now = new Date();
+    console.log("🔍 API Route - Current server time:", {
+      iso: now.toISOString(),
+      local: now.toString(),
+      timestamp: now.getTime(),
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+    });
+
     // Filter out expired cards and cards with 0 quantity
     const validCards = filterAvailableCards(cards);
     
