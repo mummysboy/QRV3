@@ -211,10 +211,22 @@ export default function ClaimRewardPage() {
         console.log("📋 Setting card data:", data);
         
         // Additional safety checks: verify the card is not expired and has quantity
-        if (data && isCardExpired(data.expires)) {
-          console.log("⚠️ Card is expired, not displaying:", data.cardid);
-          setCard(null);
-          return;
+        if (data && data.expires) {
+          console.log("🔍 Frontend expiration check:", {
+            originalExpires: data.expires,
+            parsedExpires: new Date(data.expires).toISOString(),
+            currentTime: new Date().toISOString(),
+            browserTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            isExpired: isCardExpired(data.expires),
+            timeRemaining: new Date(data.expires).getTime() - Date.now(),
+            timeRemainingHours: (new Date(data.expires).getTime() - Date.now()) / (1000 * 60 * 60)
+          });
+          
+          if (isCardExpired(data.expires)) {
+            console.log("⚠️ Card is expired, not displaying:", data.cardid);
+            setCard(null);
+            return;
+          }
         }
         
         if (data && data.quantity <= 0) {
