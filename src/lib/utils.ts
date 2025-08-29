@@ -51,6 +51,58 @@ export function deleteCookie(name: string, options: { path?: string } = {}) {
 }
 
 /**
+ * Check if a card is expired based on its expiration date (timezone-safe version)
+ * @param expires - The expiration date string (ISO format)
+ * @returns true if the card is expired, false otherwise
+ */
+export function isCardExpiredTimezoneSafe(expires: string | null | undefined): boolean {
+  if (!expires || expires.trim() === '') {
+    return false; // No expiration date means it doesn't expire
+  }
+  
+  try {
+    // Parse the expiration date and convert to UTC
+    const expirationDate = new Date(expires);
+    const expirationUTC = Date.UTC(
+      expirationDate.getUTCFullYear(),
+      expirationDate.getUTCMonth(),
+      expirationDate.getUTCDate(),
+      expirationDate.getUTCHours(),
+      expirationDate.getUTCMinutes(),
+      expirationDate.getUTCSeconds(),
+      expirationDate.getUTCMilliseconds()
+    );
+    
+    // Get current time in UTC
+    const now = new Date();
+    const currentUTC = Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate(),
+      now.getUTCHours(),
+      now.getUTCMinutes(),
+      now.getUTCSeconds(),
+      now.getUTCMilliseconds()
+    );
+    
+    // Debug logging for timezone troubleshooting
+    console.log('🔍 Timezone-Safe Debug:', {
+      originalExpiration: expires,
+      expirationUTC: new Date(expirationUTC).toISOString(),
+      currentUTC: new Date(currentUTC).toISOString(),
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      isExpired: expirationUTC < currentUTC,
+      timeRemaining: expirationUTC - currentUTC
+    });
+    
+    return expirationUTC < currentUTC;
+  } catch (error) {
+    console.error('Error parsing expiration date (timezone-safe):', error);
+    return false; // If we can't parse the date, assume it's not expired
+  }
+}
+
+/**
  * Check if a card is expired based on its expiration date
  * @param expires - The expiration date string (ISO format)
  * @returns true if the card is expired, false otherwise
@@ -64,12 +116,33 @@ export function isCardExpired(expires: string | null | undefined): boolean {
     // Parse the expiration date (which is stored as UTC ISO string)
     const expirationDate = new Date(expires);
     
-    // Get current time as UTC timestamp for consistent comparison
+    // Get current time - ensure we're comparing in the same timezone context
+    // For hosted environments, we need to be extra careful about timezone handling
     const currentTime = Date.now();
+    
+    // Debug logging for timezone troubleshooting
+    console.log('🔍 Timezone Debug:', {
+      expirationDate: expires,
+      parsedExpiration: expirationDate.toISOString(),
+      expirationTimestamp: expirationDate.getTime(),
+      currentTime: currentTime,
+      currentTimeISO: new Date(currentTime).toISOString(),
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      serverTime: new Date().toString()
+    });
     
     // Compare the expiration date timestamp with current UTC timestamp
     // This avoids timezone conversion issues since both are in UTC
-    return expirationDate.getTime() < currentTime;
+    const isExpired = expirationDate.getTime() < currentTime;
+    
+    console.log('🔍 Expiration Check:', {
+      expirationDate: expirationDate.toISOString(),
+      currentTime: new Date(currentTime).toISOString(),
+      isExpired: isExpired,
+      timeRemaining: expirationDate.getTime() - currentTime
+    });
+    
+    return isExpired;
   } catch (error) {
     console.error('Error parsing expiration date:', error);
     return false; // If we can't parse the date, assume it's not expired
@@ -91,5 +164,5 @@ export function filterExpiredCards<T extends { expires?: string | null }>(cards:
  * @returns Array of available cards (non-expired and quantity > 0)
  */
 export function filterAvailableCards<T extends { expires?: string | null; quantity?: number }>(cards: T[]): T[] {
-  return cards.filter(card => !isCardExpired(card.expires) && (card.quantity === undefined || card.quantity > 0));
+  return cards.filter(card => !isCardExpiredTimezoneSafe(card.expires) && (card.quantity === undefined || card.quantity > 0));
 }
