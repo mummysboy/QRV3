@@ -1755,9 +1755,10 @@ export default function BusinessDashboard() {
                     {/* Active/Expired Notification above buttons */}
                     <div className="w-full flex justify-center mt-2 mb-2">
                       {(() => {
-                        const now = new Date();
+                        // Use Date.now() for consistent timezone handling
+                        const now = Date.now();
                         const exp = new Date(card.expires || "");
-                        const isActive = exp.getTime() > now.getTime();
+                        const isActive = exp.getTime() > now;
                         return (
                           <span className={`text-xs font-semibold ${isActive ? 'text-green-600' : 'text-red-600'}`}
                             style={{ minWidth: 70, textAlign: 'center' }}>

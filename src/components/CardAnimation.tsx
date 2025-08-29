@@ -46,7 +46,8 @@ function CountdownTimer({ expirationDate }: { expirationDate: string }) {
 
   useEffect(() => {
     const calculateTimeLeft = () => {
-      const now = new Date().getTime();
+      // Use Date.now() for consistent timezone handling
+      const now = Date.now();
       const expiration = new Date(expirationDate).getTime();
       const difference = expiration - now;
 
@@ -120,7 +121,8 @@ export default function CardAnimation({ card, isPreview = false, isRedeem = fals
   const isExpiringSoon = (expirationDate: string | Date) => {
     if (!expirationDate || expirationDate === "Demo Reward Not Valid") return false;
     
-    const now = new Date().getTime();
+    // Use Date.now() for consistent timezone handling
+    const now = Date.now();
     const expiration = new Date(expirationDate).getTime();
     const difference = expiration - now;
     const twentyFourHours = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
@@ -250,9 +252,10 @@ export default function CardAnimation({ card, isPreview = false, isRedeem = fals
 
   // Check if card is expired or has no quantity and don't render if it is (unless it's a preview)
   if (card && !isPreview && card.expires) {
-    const now = new Date();
+    // Use Date.now() for consistent timezone handling
+    const now = Date.now();
     const expiration = new Date(card.expires);
-    if (expiration.getTime() <= now.getTime()) {
+    if (expiration.getTime() <= now) {
       console.log("⚠️ Card is expired, not rendering:", card.cardid);
       return null;
     }
@@ -428,9 +431,10 @@ export default function CardAnimation({ card, isPreview = false, isRedeem = fals
                 {/* Expiration - Fixed at bottom */}
                 <div className={`flex-shrink-0 ${isPreview ? 'px-2' : 'px-1'} -mt-1 ${(() => {
                   if (!cardData?.expires || cardData.expires === "Demo Reward Not Valid") return '';
-                  const now = new Date();
+                  // Use Date.now() for consistent timezone handling
+                  const now = Date.now();
                   const exp = new Date(cardData.expires as string);
-                  const diffInHours = (exp.getTime() - now.getTime()) / (1000 * 60 * 60);
+                  const diffInHours = (exp.getTime() - now) / (1000 * 60 * 60);
                   return diffInHours > 24 ? '-mb-3' : '-mb-0';
                 })()}`}> 
                   {cardData?.expires && 
@@ -445,9 +449,10 @@ export default function CardAnimation({ card, isPreview = false, isRedeem = fals
                         </p>
                         {/* Show Expired in red if expired */}
                         {(() => {
-                          const now = new Date();
+                          // Use Date.now() for consistent timezone handling
+                          const now = Date.now();
                           const exp = new Date(cardData.expires as string);
-                          if (exp.getTime() <= now.getTime()) {
+                          if (exp.getTime() <= now) {
                             return <div className="w-full flex justify-center mt-1"><span className="text-xs font-semibold text-red-600">Expired</span></div>;
                           }
                           return null;

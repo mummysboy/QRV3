@@ -61,11 +61,15 @@ export function isCardExpired(expires: string | null | undefined): boolean {
   }
   
   try {
+    // Parse the expiration date (which is stored as UTC ISO string)
     const expirationDate = new Date(expires);
-    const currentDate = new Date();
     
-    // Check if the expiration date is in the past
-    return expirationDate < currentDate;
+    // Get current time as UTC timestamp for consistent comparison
+    const currentTime = Date.now();
+    
+    // Compare the expiration date timestamp with current UTC timestamp
+    // This avoids timezone conversion issues since both are in UTC
+    return expirationDate.getTime() < currentTime;
   } catch (error) {
     console.error('Error parsing expiration date:', error);
     return false; // If we can't parse the date, assume it's not expired
