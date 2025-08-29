@@ -128,8 +128,7 @@ export function isCardExpired(expires: string | null | undefined): boolean {
       currentTime: currentTime,
       currentTimeISO: new Date(currentTime).toISOString(),
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      serverTime: new Date().toString(),
-      environment: process.env.NODE_ENV || 'unknown'
+      serverTime: new Date().toString()
     });
     
     // Compare the expiration date timestamp with current UTC timestamp
@@ -151,6 +150,76 @@ export function isCardExpired(expires: string | null | undefined): boolean {
 }
 
 /**
+ * Check if a card is expired using forced UTC comparison (for hosted environments)
+ * This function specifically handles AWS Lambda and other hosted environment timezone issues
+ * @param expires - The expiration date string (ISO format)
+ * @returns true if the card is expired, false otherwise
+ */
+export function isCardExpiredForcedUTC(expires: string | null | undefined): boolean {
+  if (!expires || expires.trim() === '') {
+    return false; // No expiration date means it doesn't expire
+  }
+  
+  try {
+    // Force UTC parsing to avoid timezone issues
+    let expirationDate: Date;
+    
+    // Handle different date formats
+    if (expires.includes('T') && !expires.includes('Z')) {
+      // If it's ISO format without Z, treat it as local time and convert to UTC
+      expirationDate = new Date(expires + 'Z');
+    } else if (expires.includes('T') && expires.includes('Z')) {
+      // If it's already UTC ISO format
+      expirationDate = new Date(expires);
+    } else {
+      // If it's a simple date string, parse and convert to UTC
+      expirationDate = new Date(expires);
+    }
+    
+    // Force UTC conversion
+    const expirationUTC = Date.UTC(
+      expirationDate.getUTCFullYear(),
+      expirationDate.getUTCMonth(),
+      expirationDate.getUTCDate(),
+      expirationDate.getUTCHours(),
+      expirationDate.getUTCMinutes(),
+      expirationDate.getUTCSeconds(),
+      expirationDate.getUTCMilliseconds()
+    );
+    
+    // Get current time in UTC
+    const now = new Date();
+    const currentUTC = Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate(),
+      now.getUTCHours(),
+      now.getUTCMinutes(),
+      now.getUTCSeconds(),
+      now.getUTCMilliseconds()
+    );
+    
+    const isExpired = expirationUTC < currentUTC;
+    
+    console.log('🔍 Forced UTC Expiration Check:', {
+      originalExpiration: expires,
+      parsedExpiration: expirationDate.toISOString(),
+      expirationUTC: new Date(expirationUTC).toISOString(),
+      currentUTC: new Date(currentUTC).toISOString(),
+      isExpired: isExpired,
+      timeRemaining: expirationUTC - currentUTC,
+      timeRemainingHours: (expirationUTC - currentUTC) / (1000 * 60 * 60),
+      environment: process.env.NODE_ENV || 'unknown'
+    });
+    
+    return isExpired;
+  } catch (error) {
+    console.error('Error parsing expiration date (forced UTC):', error);
+    return false; // If we can't parse the date, assume it's not expired
+  }
+}
+
+/**
  * Filter out expired cards from an array
  * @param cards - Array of cards with expiration dates
  * @returns Array of non-expired cards
@@ -165,6 +234,5 @@ export function filterExpiredCards<T extends { expires?: string | null }>(cards:
  * @returns Array of available cards (non-expired and quantity > 0)
  */
 export function filterAvailableCards<T extends { expires?: string | null; quantity?: number }>(cards: T[]): T[] {
-  // Use the simpler isCardExpired function which handles timezone issues better
-  return cards.filter(card => !isCardExpired(card.expires) && (card.quantity === undefined || card.quantity > 0));
+  return cards.filter(card => !isCardExpiredForcedUTC(card.expires) && (card.quantity === undefined || card.quantity > 0));
 }
