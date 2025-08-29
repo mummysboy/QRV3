@@ -234,5 +234,7 @@ export function filterExpiredCards<T extends { expires?: string | null }>(cards:
  * @returns Array of available cards (non-expired and quantity > 0)
  */
 export function filterAvailableCards<T extends { expires?: string | null; quantity?: number }>(cards: T[]): T[] {
-  return cards.filter(card => !isCardExpiredForcedUTC(card.expires) && (card.quantity === undefined || card.quantity > 0));
+  // Use the simple method that works well locally
+  // The issue might be elsewhere, not in the basic expiration checking
+  return cards.filter(card => !isCardExpired(card.expires) && (card.quantity === undefined || card.quantity > 0));
 }

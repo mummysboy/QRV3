@@ -33,7 +33,7 @@ export async function GET() {
       `
     });
 
-    const cards = (result as any).data.listCards.items;
+    const cards = (result as { data: { listCards: { items: Array<{ cardid: string; expires?: string; quantity?: number }> } } }).data.listCards.items;
     console.log("🔍 API Route - Cards fetched:", cards?.length || 0);
 
     if (!cards || cards.length === 0) {
@@ -53,6 +53,26 @@ export async function GET() {
     // Filter out expired cards and cards with 0 quantity
     const validCards = filterAvailableCards(cards);
     
+    // Additional debugging for each card
+    console.log("🔍 API Route - Card expiration details:");
+    cards.forEach((card: { cardid: string; expires?: string; quantity?: number }, index: number) => {
+      if (card.expires) {
+        const expirationDate = new Date(card.expires);
+        const isExpired = expirationDate.getTime() < now.getTime();
+        console.log(`  Card ${index + 1} (${card.cardid}):`, {
+          originalExpires: card.expires,
+          parsedExpiration: expirationDate.toISOString(),
+          expirationTimestamp: expirationDate.getTime(),
+          currentTimestamp: now.getTime(),
+          timeRemaining: expirationDate.getTime() - now.getTime(),
+          timeRemainingHours: (expirationDate.getTime() - now.getTime()) / (1000 * 60 * 60),
+          isExpired: isExpired,
+          quantity: card.quantity,
+          willBeFiltered: isExpired || (card.quantity !== undefined && card.quantity <= 0)
+        });
+      }
+    });
+    
     console.log("🔍 API Route - Valid cards after filtering:", validCards.length);
     
     if (validCards.length === 0) {
@@ -65,7 +85,7 @@ export async function GET() {
     // Pick a random card from non-expired cards
     const card = validCards[Math.floor(Math.random() * validCards.length)];
 
-    console.log("✅ API Route - Selected card:", (card as any).cardid);
+            console.log("✅ API Route - Selected card:", card.cardid);
 
     return NextResponse.json(card);
   } catch (err) {
