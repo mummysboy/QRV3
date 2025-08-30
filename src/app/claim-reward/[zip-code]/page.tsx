@@ -12,7 +12,42 @@ import { generateClient } from "aws-amplify/api";
 import ContactPopup from "@/components/Popups/ContactPopup";
 import { useParams } from "next/navigation";
 import { trackCardView } from "@/lib/analytics";
-import { isCardExpired } from "@/lib/utils";
+// Removed unused import - using local timezone-safe function instead
+
+// Add a timezone-safe expiration check function
+function isCardExpiredTimezoneSafe(expires: string | null | undefined): boolean {
+  if (!expires || expires.trim() === '') {
+    return false; // No expiration date means it doesn't expire
+  }
+  
+  try {
+    // Parse the expiration date
+    const expirationDate = new Date(expires);
+    
+    // Get current time in milliseconds (UTC-based)
+    const currentTime = Date.now();
+    
+    // Compare timestamps directly to avoid timezone issues
+    const isExpired = expirationDate.getTime() < currentTime;
+    
+    console.log('🔍 Frontend Timezone-Safe Check:', {
+      originalExpires: expires,
+      parsedExpiration: expirationDate.toISOString(),
+      expirationTimestamp: expirationDate.getTime(),
+      currentTime: currentTime,
+      currentTimeISO: new Date(currentTime).toISOString(),
+      browserTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      isExpired: isExpired,
+      timeRemaining: expirationDate.getTime() - currentTime,
+      timeRemainingHours: (expirationDate.getTime() - currentTime) / (1000 * 60 * 60)
+    });
+    
+    return isExpired;
+  } catch (error) {
+    console.error('Error parsing expiration date (frontend):', error);
+    return false; // If we can't parse the date, assume it's not expired
+  }
+}
 
 interface CardData {
   cardid: string;
@@ -211,22 +246,10 @@ export default function ClaimRewardPage() {
         console.log("📋 Setting card data:", data);
         
         // Additional safety checks: verify the card is not expired and has quantity
-        if (data && data.expires) {
-          console.log("🔍 Frontend expiration check:", {
-            originalExpires: data.expires,
-            parsedExpires: new Date(data.expires).toISOString(),
-            currentTime: new Date().toISOString(),
-            browserTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            isExpired: isCardExpired(data.expires),
-            timeRemaining: new Date(data.expires).getTime() - Date.now(),
-            timeRemainingHours: (new Date(data.expires).getTime() - Date.now()) / (1000 * 60 * 60)
-          });
-          
-          if (isCardExpired(data.expires)) {
-            console.log("⚠️ Card is expired, not displaying:", data.cardid);
-            setCard(null);
-            return;
-          }
+        if (data && isCardExpiredTimezoneSafe(data.expires)) {
+          console.log("⚠️ Card is expired, not displaying:", data.cardid);
+          setCard(null);
+          return;
         }
         
         if (data && data.quantity <= 0) {
