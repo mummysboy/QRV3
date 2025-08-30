@@ -12,7 +12,42 @@ import { generateClient } from "aws-amplify/api";
 import ContactPopup from "@/components/Popups/ContactPopup";
 import { useParams } from "next/navigation";
 import { trackCardView } from "@/lib/analytics";
-import { isCardExpired } from "@/lib/utils";
+// Using local timezone-safe function instead
+
+// Add a timezone-safe expiration check function for frontend
+function isCardExpiredFrontend(expires: string | null | undefined): boolean {
+  if (!expires || expires.trim() === '') {
+    return false; // No expiration date means it doesn't expire
+  }
+  
+  try {
+    // Parse the expiration date
+    const expirationDate = new Date(expires);
+    
+    // Get current time in milliseconds (UTC-based)
+    const currentTime = Date.now();
+    
+    // Compare timestamps directly to avoid timezone issues
+    const isExpired = expirationDate.getTime() < currentTime;
+    
+    console.log('🔍 Frontend Timezone-Safe Check:', {
+      originalExpires: expires,
+      parsedExpiration: expirationDate.toISOString(),
+      expirationTimestamp: expirationDate.getTime(),
+      currentTime: currentTime,
+      currentTimeISO: new Date(currentTime).toISOString(),
+      browserTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      isExpired: isExpired,
+      timeRemaining: expirationDate.getTime() - currentTime,
+      timeRemainingHours: (expirationDate.getTime() - currentTime) / (1000 * 60 * 60)
+    });
+    
+    return isExpired;
+  } catch (error) {
+    console.error('Error parsing expiration date (frontend):', error);
+    return false; // If we can't parse the date, assume it's not expired
+  }
+}
 
 interface CardData {
   cardid: string;
@@ -39,24 +74,6 @@ export default function ClaimRewardPage() {
   const [showThankYouOverlay, setShowThankYouOverlay] = useState(false);
   const [showContactPopup, setShowContactPopup] = useState(false);
   const [isDemo, setIsDemo] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Add error boundary and environment debugging
-  useEffect(() => {
-    try {
-      console.log("🔍 Environment Debug:", {
-        NODE_ENV: process.env.NODE_ENV,
-        VERCEL: process.env.VERCEL,
-        AWS_REGION: process.env.AWS_REGION,
-        browserTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        userAgent: navigator.userAgent,
-        timestamp: new Date().toISOString()
-      });
-    } catch (err) {
-      console.error("❌ Environment debug failed:", err);
-      setError("Environment debug failed");
-    }
-  }, []);
 
   // Log the zip code for debugging
   useEffect(() => {
@@ -229,7 +246,7 @@ export default function ClaimRewardPage() {
         console.log("📋 Setting card data:", data);
         
         // Additional safety checks: verify the card is not expired and has quantity
-        if (data && isCardExpired(data.expires)) {
+        if (data && isCardExpiredFrontend(data.expires)) {
           console.log("⚠️ Card is expired, not displaying:", data.cardid);
           setCard(null);
           return;
@@ -330,24 +347,6 @@ export default function ClaimRewardPage() {
   const codePresent =
     typeof window !== "undefined" &&
     window.location.pathname.includes("/reward/");
-
-  // Show error if something went wrong
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
-        <div className="bg-white p-8 rounded-lg shadow-lg max-w-md mx-4">
-          <h2 className="text-2xl font-bold text-red-600 mb-4">Error</h2>
-          <p className="text-gray-700 mb-4">{error}</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-          >
-            Reload Page
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <main className="relative min-h-screen bg-white transition-opacity duration-1000 pt-24">
