@@ -24,6 +24,8 @@ export async function GET() {
               businessId
               quantity
               expires
+              created_at
+              duration_hours
             }
           }
         }
@@ -39,6 +41,8 @@ export async function GET() {
       businessId?: string;
       quantity: number;
       expires?: string;
+      created_at?: string;
+      duration_hours?: number;
     }> } } }).data.listCards.items;
 
     return NextResponse.json({

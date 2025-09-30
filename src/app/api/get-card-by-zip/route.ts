@@ -449,6 +449,8 @@ export async function GET(request: Request) {
               addresstext
               neighborhood
               expires
+              created_at
+              duration_hours
               businessId
             }
           }
@@ -468,6 +470,8 @@ export async function GET(request: Request) {
       addresstext?: string;
       neighborhood?: string;
       expires?: string;
+      created_at?: string;
+      duration_hours?: number;
       businessId?: string;
     }> } } }).data.listCards.items;
 

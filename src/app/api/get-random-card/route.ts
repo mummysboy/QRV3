@@ -26,6 +26,8 @@ export async function GET() {
               addresstext
               neighborhood
               expires
+              created_at
+              duration_hours
               businessId
             }
           }
@@ -33,7 +35,13 @@ export async function GET() {
       `
     });
 
-    const cards = (result as { data: { listCards: { items: Array<{ cardid: string; expires?: string; quantity?: number }> } } }).data.listCards.items;
+    const cards = (result as { data: { listCards: { items: Array<{ 
+      cardid: string; 
+      expires?: string; 
+      created_at?: string;
+      duration_hours?: number;
+      quantity?: number 
+    }> } } }).data.listCards.items;
     console.log("🔍 API Route - Cards fetched:", cards?.length || 0);
 
     if (!cards || cards.length === 0) {
@@ -55,7 +63,13 @@ export async function GET() {
     
     // Additional debugging for each card
     console.log("🔍 API Route - Card expiration details:");
-    cards.forEach((card: { cardid: string; expires?: string; quantity?: number }, index: number) => {
+    cards.forEach((card: { 
+      cardid: string; 
+      expires?: string; 
+      created_at?: string;
+      duration_hours?: number;
+      quantity?: number 
+    }, index: number) => {
       if (card.expires) {
         const expirationDate = new Date(card.expires);
         const isExpired = expirationDate.getTime() < now.getTime();
