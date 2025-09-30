@@ -5,6 +5,8 @@ import CardAnimation from "@/components/CardAnimation";
 import BusinessDropdown from "@/components/BusinessDropdown";
 import { useNotifications } from "@/components/NotificationProvider";
 import { normalizeLogoUrl } from "@/utils/logoUtils";
+import { dashboardTranslations } from "@/translations/dashboard";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Business {
   id: string;
@@ -69,6 +71,12 @@ export default function CreateRewardForm({
   shouldShowLogoProcessing = false
 }: CreateRewardFormProps) {
   const { showSuccess, showError } = useNotifications();
+  const { language } = useLanguage();
+  
+  // Get translation function
+  const t = (key: keyof typeof dashboardTranslations.en) => {
+    return dashboardTranslations[language][key];
+  };
   
   // Normalize the business logo URL to ensure consistency
   const normalizedBusiness = useMemo(() => ({
@@ -333,11 +341,11 @@ export default function CreateRewardForm({
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-y-auto mx-2 sm:mx-4">
         <div className="p-4 sm:p-6 lg:p-8">
           <div className="flex justify-between items-center mb-4 sm:mb-6">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Create New Reward</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">{t('createRewardTitle')}</h2>
             <button
               onClick={onClose}
               className="text-gray-400 hover:text-gray-600 transition-colors p-2 -m-2"
-              aria-label="Close form"
+              aria-label={t('closeButton')}
             >
               <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -416,7 +424,7 @@ export default function CreateRewardForm({
                 <div className="space-y-4">
                   <div>
                     <label htmlFor="subheader" className="block text-sm font-medium text-gray-700 mb-1">
-                      Reward Description *
+                      {t('rewardDescription')} *
                     </label>
                     <div className="relative">
                       <textarea
@@ -564,7 +572,7 @@ export default function CreateRewardForm({
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Quantity Available
+                      {t('rewardQuantity')}
                     </label>
                     <input
                       type="number"
@@ -576,7 +584,7 @@ export default function CreateRewardForm({
                       max="1000"
                       inputMode="numeric"
                       className="w-full px-3 sm:px-4 py-3 border border-gray-300 rounded-xl focus:border-gray-400 focus:outline-none transition-colors text-base [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      placeholder="Enter quantity"
+                      placeholder={t('rewardQuantityPlaceholder')}
                     />
                   </div>
                 </div>
@@ -587,7 +595,7 @@ export default function CreateRewardForm({
                     disabled={isSubmitting || !isProfileComplete || !formData.subheader.trim() || !formData.expires.trim() || !formData.quantity || formData.quantity <= 0}
                     className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-medium py-3 sm:py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 active:scale-95 disabled:transform-none text-base"
                   >
-                    {isSubmitting ? "Creating..." : "Create Reward"}
+                    {isSubmitting ? t('creating') : t('createRewardButton')}
                   </button>
                 </div>
               </form>

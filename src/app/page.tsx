@@ -5,12 +5,10 @@ import { useState, useEffect } from "react";
 import LogoVideo from "@/components/LogoVideo";
 import BusinessSignupForm, { BusinessSignupData } from "@/components/BusinessSignupForm";
 import CardAnimation from "@/components/CardAnimation";
-import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { Smartphone, Mail, Building2, ArrowRight, BarChart3, Sparkles, PartyPopper } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { homeTranslations } from "@/translations/home";
-
-type Language = 'en' | 'es';
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Home() {
   const [isVisible, setIsVisible] = useState(false);
@@ -18,25 +16,9 @@ export default function Home() {
   const [showCustomerDemo, setShowCustomerDemo] = useState(false);
   const [customerZipCode, setCustomerZipCode] = useState("");
   const [visibleSections, setVisibleSections] = useState<Set<string>>(new Set());
-  const [language, setLanguage] = useState<Language>('en');
-
-
+  const { language } = useLanguage();
 
   const router = useRouter();
-
-  // Load saved language preference
-  useEffect(() => {
-    const savedLanguage = localStorage.getItem('preferredLanguage') as Language;
-    if (savedLanguage === 'en' || savedLanguage === 'es') {
-      setLanguage(savedLanguage);
-    }
-  }, []);
-
-  // Save language preference
-  const handleLanguageChange = (lang: Language) => {
-    setLanguage(lang);
-    localStorage.setItem('preferredLanguage', lang);
-  };
 
   // Get translation function
   const t = (key: keyof typeof homeTranslations.en) => {
@@ -210,14 +192,6 @@ export default function Home() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.08),transparent_50%)]"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(16,185,129,0.06),transparent_50%)]"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_90%_10%,rgba(168,85,247,0.04),transparent_50%)]"></div>
-      </div>
-
-      {/* Language Switcher - Fixed position */}
-      <div className="fixed top-4 right-4 z-50">
-        <LanguageSwitcher 
-          currentLanguage={language} 
-          onLanguageChange={handleLanguageChange}
-        />
       </div>
 
       {/* Logo Section - Minimal spacing from header */}

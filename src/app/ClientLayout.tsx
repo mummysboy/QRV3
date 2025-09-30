@@ -6,6 +6,8 @@ import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import CookieConsentBanner from '@/components/Popups/CookieConsentBanner';
 import { NotificationProvider } from '@/components/NotificationProvider';
+import { LanguageProvider } from '@/contexts/LanguageContext';
+import LanguageSelectionPrompt from '@/components/LanguageSelectionPrompt';
 
 export const ContactContext = createContext<{ onContactClick: () => void }>({ onContactClick: () => {} });
 
@@ -13,16 +15,22 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
   const [showContactPopup, setShowContactPopup] = useState(false);
   const onContactClick = () => setShowContactPopup(true);
   const pathname = usePathname();
+  
+  // Don't show the header on dashboard pages (they render their own)
+  const isDashboardPage = pathname?.startsWith('/business/dashboard');
+  
   return (
     <NotificationProvider>
-      <ContactContext.Provider value={{ onContactClick }}>
-        <Header onContactClick={onContactClick} />
-        {showContactPopup && (
-          <div style={{ position: 'fixed', inset: 0, zIndex: 999999 }}>
-            <ContactPopup onClose={() => setShowContactPopup(false)} />
-          </div>
-        )}
-        <AnimatePresence mode="wait">
+      <LanguageProvider>
+        <LanguageSelectionPrompt />
+        <ContactContext.Provider value={{ onContactClick }}>
+          {!isDashboardPage && <Header onContactClick={onContactClick} />}
+          {showContactPopup && (
+            <div style={{ position: 'fixed', inset: 0, zIndex: 999999 }}>
+              <ContactPopup onClose={() => setShowContactPopup(false)} />
+            </div>
+          )}
+          <AnimatePresence mode="wait">
           <motion.main
             key={pathname}
             initial={{ opacity: 0 }}
@@ -33,7 +41,8 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
           </motion.main>
         </AnimatePresence>
         <CookieConsentBanner />
-      </ContactContext.Provider>
+        </ContactContext.Provider>
+      </LanguageProvider>
     </NotificationProvider>
   );
 } 

@@ -1,9 +1,10 @@
 "use client";
 
 import { memo } from "react";
-import { Building2, Trash2 } from "lucide-react";
+import { Building2, Trash2, Languages } from "lucide-react";
 import { getStorageUrlSync } from "@/lib/storage";
 import DefaultLogo from "@/components/DefaultLogo";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ProfileFormData {
   name: string;
@@ -127,17 +128,20 @@ const SettingsView = memo(({
   onShowLogoUpload,
   onShowAddBusiness,
   onShowDeleteConfirmation
-}: SettingsViewProps) => (
-  <div className="space-y-6">
-    <div className="flex items-center justify-between">
-      <h2 className="text-3xl font-light text-gray-900">Settings</h2>
-      <button
-        onClick={onBackToDashboard}
-        className="text-gray-600 hover:text-gray-900 transition-colors"
-      >
-        ← Back to Dashboard
-      </button>
-    </div>
+}: SettingsViewProps) => {
+  const { language, setLanguage } = useLanguage();
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-3xl font-light text-gray-900">Settings</h2>
+        <button
+          onClick={onBackToDashboard}
+          className="text-gray-600 hover:text-gray-900 transition-colors"
+        >
+          ← Back to Dashboard
+        </button>
+      </div>
     
     <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
       <h3 className="text-2xl font-light text-gray-900 mb-6">Business Management</h3>
@@ -226,6 +230,46 @@ const SettingsView = memo(({
           </div>
         </div>
         
+        {/* Language Selection Section */}
+        <div className="border-t border-gray-200 pt-6">
+          <h4 className="text-xl font-light text-gray-900 mb-4">Language Preference</h4>
+          <div className="grid grid-cols-2 gap-4">
+            <button
+              onClick={() => setLanguage('en')}
+              className={`flex flex-col items-center justify-center p-6 rounded-xl border-2 transition-all duration-200 ${
+                language === 'en'
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              <span className="text-4xl mb-2">🇺🇸</span>
+              <span className={`text-lg font-medium ${language === 'en' ? 'text-blue-600' : 'text-gray-900'}`}>
+                English
+              </span>
+              {language === 'en' && (
+                <span className="text-xs text-blue-600 mt-1">Current</span>
+              )}
+            </button>
+            
+            <button
+              onClick={() => setLanguage('es')}
+              className={`flex flex-col items-center justify-center p-6 rounded-xl border-2 transition-all duration-200 ${
+                language === 'es'
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              <span className="text-4xl mb-2">🇪🇸</span>
+              <span className={`text-lg font-medium ${language === 'es' ? 'text-blue-600' : 'text-gray-900'}`}>
+                Español
+              </span>
+              {language === 'es' && (
+                <span className="text-xs text-blue-600 mt-1">Current</span>
+              )}
+            </button>
+          </div>
+        </div>
+        
         {/* Delete Account Section - At the very bottom */}
         <div className="border-t border-gray-200 pt-6">
           <h4 className="text-xl font-light text-gray-900 mb-4">Account Management</h4>
@@ -239,7 +283,8 @@ const SettingsView = memo(({
       </div>
     </div>
   </div>
-));
+  );
+});
 
 SettingsView.displayName = 'SettingsView';
 

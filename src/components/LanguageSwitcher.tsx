@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from 'react';
-import { Languages } from 'lucide-react';
+import { Languages, Check } from 'lucide-react';
 
 type Language = 'en' | 'es';
 
@@ -12,92 +12,184 @@ interface LanguageSwitcherProps {
 }
 
 const languages = [
-  { code: 'en', name: 'English', flag: '🇺🇸' },
-  { code: 'es', name: 'Español', flag: '🇪🇸' },
+  { code: 'en', name: 'English', nativeName: 'English', flag: '🇺🇸' },
+  { code: 'es', name: 'Spanish', nativeName: 'Español', flag: '🇪🇸' },
 ] as const;
 
 export default function LanguageSwitcher({ currentLanguage, onLanguageChange, className = '' }: LanguageSwitcherProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState(-1);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
+        setFocusedIndex(-1);
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside);
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [isOpen]);
+
+  // Keyboard navigation
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (!isOpen) {
+        // Open dropdown with Space or Enter when button is focused
+        if (document.activeElement === buttonRef.current && (event.key === ' ' || event.key === 'Enter')) {
+          event.preventDefault();
+          setIsOpen(true);
+          setFocusedIndex(languages.findIndex(lang => lang.code === currentLanguage));
+        }
+        return;
+      }
+
+      switch (event.key) {
+        case 'Escape':
+          event.preventDefault();
+          setIsOpen(false);
+          setFocusedIndex(-1);
+          buttonRef.current?.focus();
+          break;
+
+        case 'ArrowDown':
+          event.preventDefault();
+          setFocusedIndex(prev => {
+            const nextIndex = prev < languages.length - 1 ? prev + 1 : 0;
+            itemRefs.current[nextIndex]?.focus();
+            return nextIndex;
+          });
+          break;
+
+        case 'ArrowUp':
+          event.preventDefault();
+          setFocusedIndex(prev => {
+            const nextIndex = prev > 0 ? prev - 1 : languages.length - 1;
+            itemRefs.current[nextIndex]?.focus();
+            return nextIndex;
+          });
+          break;
+
+        case 'Home':
+          event.preventDefault();
+          setFocusedIndex(0);
+          itemRefs.current[0]?.focus();
+          break;
+
+        case 'End':
+          event.preventDefault();
+          const lastIndex = languages.length - 1;
+          setFocusedIndex(lastIndex);
+          itemRefs.current[lastIndex]?.focus();
+          break;
+
+        case 'Enter':
+        case ' ':
+          event.preventDefault();
+          if (focusedIndex >= 0) {
+            handleLanguageSelect(languages[focusedIndex].code);
+          }
+          break;
+      }
+    }
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+    }
+
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, focusedIndex, currentLanguage]);
+
+  // Focus first item when dropdown opens
+  useEffect(() => {
+    if (isOpen) {
+      const currentIndex = languages.findIndex(lang => lang.code === currentLanguage);
+      setFocusedIndex(currentIndex);
+      // Small delay to ensure dropdown is rendered
+      setTimeout(() => {
+        itemRefs.current[currentIndex]?.focus();
+      }, 50);
+    }
+  }, [isOpen, currentLanguage]);
+
+  const handleLanguageSelect = (lang: Language) => {
+    onLanguageChange(lang);
+    setIsOpen(false);
+    setFocusedIndex(-1);
+    buttonRef.current?.focus();
+  };
 
   const currentLang = languages.find(lang => lang.code === currentLanguage) || languages[0];
 
   return (
-    <div className={`relative ${className}`} ref={dropdownRef}>
+    <div className={`relative z-50 ${className}`} ref={dropdownRef}>
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setIsOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+      
+      {/* Main Button */}
       <button
+        ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 px-4 py-2 bg-white/90 backdrop-blur-sm hover:bg-white border border-gray-200 rounded-xl shadow-sm transition-all duration-200 hover:shadow-md"
-        aria-label="Select language"
+        className="flex items-center justify-center p-2 relative"
+        aria-label={`Select language. Currently ${currentLang.nativeName}`}
+        aria-expanded={isOpen}
+        aria-haspopup="true"
       >
-        <Languages size={18} className="text-gray-600" />
-        <span className="text-lg">{currentLang.flag}</span>
-        <span className="text-sm font-medium text-gray-700 hidden sm:inline">{currentLang.name}</span>
-        <svg 
-          className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} 
-          fill="none" 
-          stroke="currentColor" 
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
+        <span className="text-2xl">
+          {currentLang.flag}
+        </span>
       </button>
 
+      {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden z-50 animate-fade-in">
-          {languages.map((lang) => (
-            <button
-              key={lang.code}
-              onClick={() => {
-                onLanguageChange(lang.code);
-                setIsOpen(false);
-              }}
-              className={`w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors ${
-                currentLanguage === lang.code ? 'bg-blue-50' : ''
-              }`}
-            >
-              <span className="text-xl">{lang.flag}</span>
-              <span className={`text-sm font-medium ${
-                currentLanguage === lang.code ? 'text-blue-600' : 'text-gray-700'
-              }`}>
-                {lang.name}
-              </span>
-              {currentLanguage === lang.code && (
-                <svg className="ml-auto w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-              )}
-            </button>
-          ))}
+        <div 
+          className="absolute right-0 mt-2 w-48 rounded-xl bg-white p-3 shadow-xl z-50"
+          role="menu"
+          aria-orientation="vertical"
+        >
+          {languages.map((lang, index) => {
+            const isSelected = currentLanguage === lang.code;
+            
+            return (
+              <button
+                key={lang.code}
+                ref={el => itemRefs.current[index] = el}
+                onClick={() => handleLanguageSelect(lang.code)}
+                onMouseEnter={() => setFocusedIndex(index)}
+                role="menuitem"
+                className="block w-full text-left px-4 py-2 hover:bg-gray-100 rounded"
+                tabIndex={isOpen ? 0 : -1}
+              >
+                <div className="flex items-center space-x-3">
+                  <span className="text-xl">{lang.flag}</span>
+                  <span className={`text-sm ${isSelected ? 'font-semibold' : ''}`}>
+                    {lang.nativeName}
+                  </span>
+                  {isSelected && (
+                    <Check 
+                      className="w-4 h-4 ml-auto text-gray-600" 
+                      strokeWidth={2.5}
+                    />
+                  )}
+                </div>
+              </button>
+            );
+          })}
         </div>
       )}
-
-      <style jsx global>{`
-        @keyframes fade-in {
-          from {
-            opacity: 0;
-            transform: translateY(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-fade-in {
-          animation: fade-in 0.2s ease-out;
-        }
-      `}</style>
     </div>
   );
 }

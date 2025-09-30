@@ -19,7 +19,8 @@ import SettingsView from "@/components/SettingsView";
 import ContactPopup from "@/components/Popups/ContactPopup";
 import BusinessDropdown from "@/components/BusinessDropdown";
 import { useNotifications } from "@/components/NotificationProvider";
-import { normalizeLogoUrl } from "@/utils/logoUtils";
+import { dashboardTranslations } from "@/translations/dashboard";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 
 interface BusinessUser {
@@ -124,6 +125,12 @@ type TimeRange = 'day' | 'week' | 'month';
 export default function BusinessDashboard() {
   const router = useRouter();
   const { showSuccess, showError } = useNotifications();
+  const { language } = useLanguage();
+  
+  // Get translation function
+  const t = (key: keyof typeof dashboardTranslations.en) => {
+    return dashboardTranslations[language][key];
+  };
   
   // Test notification on component mount (commented out for now)
   // React.useEffect(() => {
@@ -215,7 +222,7 @@ export default function BusinessDashboard() {
   }, []);
 
   // Function to fetch user and business data from session
-  const fetchUserDataFromSession = async () => {
+  const fetchUserDataFromSession = useCallback(async () => {
     try {
       // Check for last business ID in sessionStorage
       const lastBusinessId = sessionStorage.getItem('lastBusinessId');
@@ -252,8 +259,102 @@ export default function BusinessDashboard() {
       console.error('Error fetching user data from session:', error);
       router.push('/business/login');
     }
-  };
+  }, [router]);
 
+  // Function to fetch dashboard data (rewards and analytics)
+  const fetchDashboardData = useCallback(async () => {
+    if (!business?.id) return;
+    
+    setIsLoadingData(true);
+    try {
+      // Clear existing data first
+      setCards([]);
+      setAnalytics(null);
+      
+      // Fetch rewards data
+      const rewardsResponse = await fetch(`/api/business/rewards?businessId=${business.id}`);
+      const rewardsData = await rewardsResponse.json();
+      
+      if (rewardsData.success) {
+        setCards(rewardsData.cards || []);
+      }
+
+      // Fetch analytics data - use 'day' for dashboard view, selected timeRange for analytics view
+      const analyticsTimeRange = currentView === 'dashboard' ? 'day' : timeRange;
+      const analyticsResponse = await fetch(`/api/business/analytics?businessId=${business.id}&timeRange=${analyticsTimeRange}`);
+      const analyticsData = await analyticsResponse.json();
+      
+      if (analyticsData.success) {
+        setAnalytics(analyticsData.analytics);
+      }
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setIsLoadingData(false);
+    }
+  }, [business?.id, currentView, timeRange]);
+
+  // Function to fetch all businesses for the user
+  const fetchAllBusinesses = useCallback(async () => {
+    if (!user?.email) return;
+    
+    // If we already have businesses loaded from sessionStorage, don't fetch again
+    if (allBusinesses.length > 0) {
+      return;
+    }
+    
+    try {
+      const response = await fetch('/api/business/my-businesses', {
+        headers: {
+          'x-user-email': user.email,
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        const fetchedBusinesses = data.businesses || [];
+        
+        // Merge with existing businesses (if any) and update sessionStorage
+        const mergedBusinesses = [...allBusinesses, ...fetchedBusinesses];
+        setAllBusinesses(mergedBusinesses);
+        sessionStorage.setItem('allBusinesses', JSON.stringify(mergedBusinesses));
+        sessionStorage.setItem('totalBusinesses', mergedBusinesses.length.toString());
+      }
+    } catch (error) {
+      console.error('Error fetching all businesses:', error);
+    }
+  }, [user?.email, allBusinesses]);
+
+  // Add function to refresh business data from database
+  const refreshBusinessData = useCallback(async () => {
+    if (!business?.id || !business?.name || isLoading) {
+      console.log('Skipping refreshBusinessData - business not fully loaded or still loading');
+      return;
+    }
+    
+    try {
+      const response = await fetch(`/api/business/get-business?businessId=${business.id}`, {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.business) {
+          
+          // Update session storage with fresh data
+          sessionStorage.setItem('businessData', JSON.stringify(data.business));
+          setBusiness(data.business);
+        } else {
+          console.error('Failed to refresh business data:', response.status, data);
+        }
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Failed to refresh business data:', response.status, errorData);
+      }
+    } catch (error) {
+      console.error('Error refreshing business data:', error);
+    }
+  }, [business?.id, business?.name, isLoading]);
 
   // Check if profile is complete
   const isProfileComplete = Boolean(business?.logo && business.logo.trim() !== '');
@@ -355,26 +456,26 @@ export default function BusinessDashboard() {
     }
 
     setIsLoading(false);
-  }, [router]);
+  }, [router, fetchUserDataFromSession]);
 
   useEffect(() => {
     if (business?.id) {
       fetchDashboardData();
     }
-  }, [business?.id, currentView, timeRange]);
+  }, [business?.id, fetchDashboardData]);
 
   // Refresh business data if logo is missing
   useEffect(() => {
     if (business?.id && business?.name && (!business.logo || business.logo.trim() === '') && !isLoading) {
       refreshBusinessData();
     }
-  }, [business?.id, business?.logo, business?.name, isLoading]);
+  }, [business?.id, business?.logo, business?.name, isLoading, refreshBusinessData]);
 
   useEffect(() => {
     if (user?.email) {
       fetchAllBusinesses();
     }
-  }, [user?.email]);
+  }, [user?.email, fetchAllBusinesses]);
 
   useEffect(() => {
     // Trigger animations after component mounts
@@ -479,103 +580,6 @@ export default function BusinessDashboard() {
       sessionStorage.removeItem('showCreateReward');
     }
   }, []);
-
-
-  const fetchAllBusinesses = async () => {
-    if (!user?.email) return;
-    
-    // If we already have businesses loaded from sessionStorage, don't fetch again
-    if (allBusinesses.length > 0) {
-      return;
-    }
-    
-    try {
-      const response = await fetch('/api/business/my-businesses', {
-        headers: {
-          'x-user-email': user.email,
-        },
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        const fetchedBusinesses = data.businesses || [];
-        
-        // Merge with existing businesses (if any) and update sessionStorage
-        const mergedBusinesses = [...allBusinesses, ...fetchedBusinesses];
-        setAllBusinesses(mergedBusinesses);
-        sessionStorage.setItem('allBusinesses', JSON.stringify(mergedBusinesses));
-        sessionStorage.setItem('totalBusinesses', mergedBusinesses.length.toString());
-      }
-    } catch (error) {
-      console.error('Error fetching all businesses:', error);
-    }
-  };
-
-  // Add function to refresh business data from database
-  const refreshBusinessData = async () => {
-    if (!business?.id || !business?.name || isLoading) {
-      console.log('Skipping refreshBusinessData - business not fully loaded or still loading');
-      return;
-    }
-    
-    try {
-      const response = await fetch(`/api/business/get-business?businessId=${business.id}`, {
-        credentials: 'include'
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.business) {
-          
-          // Update session storage with fresh data
-          sessionStorage.setItem('businessData', JSON.stringify(data.business));
-          setBusiness(data.business);
-        } else {
-          console.error('Failed to refresh business data:', response.status, data);
-        }
-      } else {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('Failed to refresh business data:', response.status, errorData);
-      }
-    } catch (error) {
-      console.error('Error refreshing business data:', error);
-    }
-  };
-
-  const fetchDashboardData = async () => {
-    if (!business?.id) return;
-    
-    setIsLoadingData(true);
-    try {
-      // Clear existing data first
-      setCards([]);
-      setAnalytics(null);
-      
-      // Fetch rewards data
-      const rewardsResponse = await fetch(`/api/business/rewards?businessId=${business.id}`);
-      const rewardsData = await rewardsResponse.json();
-      
-      if (rewardsData.success) {
-        setCards(rewardsData.cards || []);
-      }
-
-      // Fetch analytics data - use 'day' for dashboard view, selected timeRange for analytics view
-      const analyticsTimeRange = currentView === 'dashboard' ? 'day' : timeRange;
-      const analyticsResponse = await fetch(`/api/business/analytics?businessId=${business.id}&timeRange=${analyticsTimeRange}`);
-      const analyticsData = await analyticsResponse.json();
-      
-      if (analyticsData.success) {
-        setAnalytics(analyticsData.analytics);
-      }
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-    } finally {
-      setIsLoadingData(false);
-    }
-  };
-
-
-
 
 
   const handleDeleteReward = async (cardid: string) => {
@@ -742,8 +746,8 @@ export default function BusinessDashboard() {
         // Check if it's a content moderation error
         if (error.message?.includes('explicit content') || error.isExplicit) {
           // Throw error with specific flag so CreateRewardForm can handle it
-          const contentError = new Error(error.message || 'Content moderation failed');
-          (contentError as any).isExplicit = true;
+          const contentError = new Error(error.message || 'Content moderation failed') as Error & { isExplicit: boolean };
+          contentError.isExplicit = true;
           throw contentError;
         } else {
           // Throw error so CreateRewardForm can handle it
@@ -1186,7 +1190,7 @@ export default function BusinessDashboard() {
   const AnalyticsView = () => (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-light text-gray-900">Analytics</h2>
+        <h2 className="text-3xl font-light text-gray-900">{t('analytics')}</h2>
         <button
           onClick={() => {
             setCurrentView('dashboard');
@@ -1195,14 +1199,14 @@ export default function BusinessDashboard() {
           }}
           className="text-gray-600 hover:text-gray-900 transition-colors"
         >
-          ← Back to Dashboard
+          {t('backToDashboard')}
         </button>
       </div>
       
       {/* Time Range Selector */}
       <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-light text-gray-900">Time Range</h3>
+          <h3 className="text-xl font-light text-gray-900">{t('timeRange')}</h3>
           <div className="flex space-x-2">
             {(['day', 'week', 'month'] as TimeRange[]).map((range) => (
               <button
@@ -1214,7 +1218,7 @@ export default function BusinessDashboard() {
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                {range.charAt(0).toUpperCase() + range.slice(1)}
+                {range === 'day' ? t('day') : range === 'week' ? t('week') : t('month')}
               </button>
             ))}
           </div>
@@ -1229,7 +1233,7 @@ export default function BusinessDashboard() {
           <div className="text-3xl font-light text-gray-900 mb-1">
             {isLoadingData ? "..." : analytics?.totalViews || 0}
           </div>
-          <div className="text-sm text-gray-600">Total Views</div>
+          <div className="text-sm text-gray-600">{t('totalViews')}</div>
         </div>
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
           <div className="mb-2">
@@ -1238,7 +1242,7 @@ export default function BusinessDashboard() {
           <div className="text-3xl font-light text-gray-900 mb-1">
             {isLoadingData ? "..." : analytics?.totalClaims || 0}
           </div>
-          <div className="text-sm text-gray-600">Total Claims</div>
+          <div className="text-sm text-gray-600">{t('totalClaims')}</div>
         </div>
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
           <div className="mb-2">
@@ -1247,7 +1251,7 @@ export default function BusinessDashboard() {
           <div className="text-3xl font-light text-gray-900 mb-1">
             {isLoadingData ? "..." : `${analytics?.conversionRate || 0}%`}
           </div>
-          <div className="text-sm text-gray-600">Conversion Rate</div>
+          <div className="text-sm text-gray-600">{t('conversionRate')}</div>
         </div>
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
           <div className="mb-2">
@@ -1256,7 +1260,7 @@ export default function BusinessDashboard() {
           <div className="text-3xl font-light text-gray-900 mb-1">
             {isLoadingData ? "..." : analytics?.totalRedeemed || 0}
           </div>
-          <div className="text-sm text-gray-600">Total Redeemed</div>
+          <div className="text-sm text-gray-600">{t('totalRedeemed')}</div>
         </div>
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
           <div className="mb-2">
@@ -1265,7 +1269,7 @@ export default function BusinessDashboard() {
           <div className="text-3xl font-light text-gray-900 mb-1">
             {isLoadingData ? "..." : `${analytics?.redemptionRate || 0}%`}
           </div>
-          <div className="text-sm text-gray-600">Redemption Rate</div>
+          <div className="text-sm text-gray-600">{t('redemptionRate')}</div>
         </div>
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
           <div className="mb-2">
@@ -1274,14 +1278,14 @@ export default function BusinessDashboard() {
           <div className="text-3xl font-light text-gray-900 mb-1">
             {isLoadingData ? "..." : analytics?.totalRewards || 0}
           </div>
-          <div className="text-sm text-gray-600">Total Rewards</div>
+          <div className="text-sm text-gray-600">{t('totalRewards')}</div>
         </div>
       </div>
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
-          <h3 className="text-2xl font-light text-gray-900 mb-6">Claims Over Time</h3>
+          <h3 className="text-2xl font-light text-gray-900 mb-6">{t('claimsOverTime')}</h3>
           <div className="h-64 flex items-end justify-center space-x-2">
             {timeRange === 'day' && analytics?.claimsByDay?.map((day, idx) => (
               <div key={idx} className="flex flex-col items-center">
@@ -1314,12 +1318,12 @@ export default function BusinessDashboard() {
         </div>
 
         <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
-          <h3 className="text-2xl font-light text-gray-900 mb-6">Reward Status</h3>
+          <h3 className="text-2xl font-light text-gray-900 mb-6">{t('rewardStatus')}</h3>
           <div className="space-y-4">
             <div className="flex items-center justify-between p-4 bg-green-50 rounded-2xl">
               <div className="flex items-center space-x-3">
                 <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                <span className="font-medium text-gray-900">Active Rewards</span>
+                <span className="font-medium text-gray-900">{t('activeRewards')}</span>
               </div>
               <span className="text-2xl font-light text-gray-900">
                 {isLoadingData ? "..." : analytics?.activeRewards || 0}
@@ -1328,7 +1332,7 @@ export default function BusinessDashboard() {
             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl">
               <div className="flex items-center space-x-3">
                 <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
-                <span className="font-medium text-gray-900">Inactive Rewards</span>
+                <span className="font-medium text-gray-900">{t('inactiveRewards')}</span>
               </div>
               <span className="text-2xl font-light text-gray-900">
                 {isLoadingData ? "..." : (analytics?.totalRewards || 0) - (analytics?.activeRewards || 0)}
@@ -1340,7 +1344,7 @@ export default function BusinessDashboard() {
 
       {/* Individual Reward Analytics */}
       <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
-        <h3 className="text-2xl font-light text-gray-900 mb-6">Reward Performance</h3>
+        <h3 className="text-2xl font-light text-gray-900 mb-6">{t('rewardPerformance')}</h3>
         <div className="space-y-4">
           {analytics?.rewardAnalytics?.length ? (
             analytics.rewardAnalytics.map((reward, idx) => (
@@ -1348,56 +1352,56 @@ export default function BusinessDashboard() {
                 <div className="mb-4 text-center">
                   <h4 className="text-lg font-medium text-gray-900">{reward.header}</h4>
                   <div className="text-gray-600 mt-1 mb-2">{reward.subheader}</div>
-                  <div className="text-gray-500 text-base">Quantity</div>
+                  <div className="text-gray-500 text-base">{t('quantity')}</div>
                   <div className="text-2xl font-semibold text-gray-900">{reward.quantity}</div>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-6 gap-4 text-center">
                   <div className="text-center">
                     <div className="text-2xl font-light text-gray-900 mb-1">{reward.views}</div>
-                    <div className="text-sm text-gray-600">Views</div>
+                    <div className="text-sm text-gray-600">{t('views')}</div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-light text-gray-900 mb-1">{reward.claims}</div>
-                    <div className="text-sm text-gray-600">Claims</div>
+                    <div className="text-sm text-gray-600">{t('claims')}</div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-light text-gray-900 mb-1">{reward.redeemed}</div>
-                    <div className="text-sm text-gray-600">Redeemed</div>
+                    <div className="text-sm text-gray-600">{t('redeemed')}</div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-light text-gray-900 mb-1">{reward.conversionRate}%</div>
-                    <div className="text-sm text-gray-600">Conversion</div>
+                    <div className="text-sm text-gray-600">{t('conversion')}</div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-light text-gray-900 mb-1">{reward.redemptionRate}%</div>
-                    <div className="text-sm text-gray-600">Redemption</div>
+                    <div className="text-sm text-gray-600">{t('redemption')}</div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-light text-gray-900 mb-1">
-                      {reward.lastRedeemed ? new Date(reward.lastRedeemed).toLocaleDateString() : 'Never'}
+                      {reward.lastRedeemed ? new Date(reward.lastRedeemed).toLocaleDateString() : t('never')}
                     </div>
-                    <div className="text-sm text-gray-600">Last Redeemed</div>
+                    <div className="text-sm text-gray-600">{t('lastRedeemed')}</div>
                   </div>
                 </div>
               </div>
             ))
           ) : (
             <div className="text-center py-8 text-gray-500">
-              No rewards found
+              {t('noRewards')}
             </div>
           )}
         </div>
       </div>
 
       <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
-        <h3 className="text-2xl font-light text-gray-900 mb-6">Recent Activity</h3>
+        <h3 className="text-2xl font-light text-gray-900 mb-6">{t('recentActivity')}</h3>
         <div className="space-y-4">
           {analytics?.recentClaims?.length ? (
             analytics.recentClaims.map((claim, idx) => (
               <div key={idx} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-2xl">
                 <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                 <div className="flex-1">
-                  <div className="font-medium text-gray-900">New reward claimed</div>
+                  <div className="font-medium text-gray-900">{t('newRewardClaimed')}</div>
                   <div className="text-sm text-gray-600">{claim.header} • {claim.delivery_method}</div>
                 </div>
                 <div className="text-sm text-gray-500">
@@ -1407,7 +1411,7 @@ export default function BusinessDashboard() {
             ))
           ) : (
             <div className="text-center py-8 text-gray-500">
-              No recent activity
+              {t('noActivity')}
             </div>
           )}
         </div>
@@ -1422,7 +1426,7 @@ export default function BusinessDashboard() {
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading dashboard...</p>
+          <p className="mt-4 text-gray-600">{t('loadingDashboard')}</p>
         </div>
       </div>
     );
@@ -1652,8 +1656,8 @@ export default function BusinessDashboard() {
                     </div>
                   </div>
                   <div>
-                    <h2 className="text-3xl font-light text-gray-900">Welcome back, {business?.name || 'Business'}!</h2>
-                    <p className="text-gray-600">Here&rsquo;s how your rewards are performing today</p>
+                    <h2 className="text-3xl font-light text-gray-900">{t('welcomeBack')}, {business?.name || 'Business'}!</h2>
+                    <p className="text-gray-600">{t('performanceToday')}</p>
                   </div>
                 </div>
               </div>
@@ -1667,12 +1671,12 @@ export default function BusinessDashboard() {
                 {(() => {
                   const stats = getTodayStats(analytics);
                   return [
-                    { icon: <BarChart3 size={32} className="text-blue-600" />, label: 'Today\'s Views', value: stats.todayViews },
-                    { icon: <CheckCircle size={32} className="text-green-600" />, label: 'Today\'s Claims', value: stats.todayClaims },
-                    { icon: <Target size={32} className="text-orange-600" />, label: 'Today\'s Conversion', value: `${stats.conversionRate}%` },
-                    { icon: <PartyPopper size={32} className="text-purple-600" />, label: 'Today\'s Redeemed', value: stats.todayRedeemed },
-                    { icon: <TrendingUp size={32} className="text-indigo-600" />, label: 'Today\'s Redemption', value: `${stats.redemptionRate}%` },
-                    { icon: <Gift size={32} className="text-pink-600" />, label: 'Total Rewards', value: stats.totalRewards },
+                    { icon: <BarChart3 size={32} className="text-blue-600" />, label: t('todayViews'), value: stats.todayViews },
+                    { icon: <CheckCircle size={32} className="text-green-600" />, label: t('todayClaims'), value: stats.todayClaims },
+                    { icon: <Target size={32} className="text-orange-600" />, label: t('todayConversion'), value: `${stats.conversionRate}%` },
+                    { icon: <PartyPopper size={32} className="text-purple-600" />, label: t('todayRedeemed'), value: stats.todayRedeemed },
+                    { icon: <TrendingUp size={32} className="text-indigo-600" />, label: t('todayRedemption'), value: `${stats.redemptionRate}%` },
+                    { icon: <Gift size={32} className="text-pink-600" />, label: t('totalRewards'), value: stats.totalRewards },
                   ].map((card, idx) => (
                     <div key={idx} className="bg-white rounded-2xl p-6 shadow-md border border-gray-100">
                       <div className="mb-2">{card.icon}</div>
@@ -1689,7 +1693,7 @@ export default function BusinessDashboard() {
               isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
             }`}>
               <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100 mb-8">
-                <h3 className="text-2xl font-light text-gray-900 mb-6">Quick Actions</h3>
+                <h3 className="text-2xl font-light text-gray-900 mb-6">{t('quickActions')}</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <button 
                     onClick={() => handleQuickAction('create')}
@@ -1697,8 +1701,8 @@ export default function BusinessDashboard() {
                   >
                     <Plus size={24} className="text-green-600" />
                     <div className="text-left">
-                      <div className="font-medium text-gray-900">Create Reward</div>
-                      <div className="text-sm text-gray-600">New offer in seconds</div>
+                      <div className="font-medium text-gray-900">{t('createReward')}</div>
+                      <div className="text-sm text-gray-600">{t('createRewardDesc')}</div>
                     </div>
                   </button>
                   <button 
@@ -1707,8 +1711,8 @@ export default function BusinessDashboard() {
                   >
                     <BarChart3 size={24} className="text-blue-600" />
                     <div className="text-left">
-                      <div className="font-medium text-gray-900">View Analytics</div>
-                      <div className="text-sm text-gray-600">Detailed insights</div>
+                      <div className="font-medium text-gray-900">{t('viewAnalytics')}</div>
+                      <div className="text-sm text-gray-600">{t('viewAnalyticsDesc')}</div>
                     </div>
                   </button>
                   <button 
@@ -1717,8 +1721,8 @@ export default function BusinessDashboard() {
                   >
                     <QrCode size={24} className="text-indigo-600" />
                     <div className="text-left">
-                      <div className="font-medium text-gray-900">My QR Code</div>
-                      <div className="text-sm text-gray-600">Download & print</div>
+                      <div className="font-medium text-gray-900">{t('myQRCode')}</div>
+                      <div className="text-sm text-gray-600">{t('myQRCodeDesc')}</div>
                     </div>
                   </button>
 
@@ -1730,7 +1734,7 @@ export default function BusinessDashboard() {
             {/* Rewards Section */}
             <div key={`rewards-${business?.id}`} className="transition-all duration-600 delay-500 ease-in-out mb-12">
               <div className="mb-6">
-                <h3 className="text-2xl font-light text-gray-900">Your Rewards</h3>
+                <h3 className="text-2xl font-light text-gray-900">{t('yourRewards')}</h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {cards.map((card, idx) => (
@@ -1761,7 +1765,7 @@ export default function BusinessDashboard() {
                         return (
                           <span className={`text-xs font-semibold ${isActive ? 'text-green-600' : 'text-red-600'}`}
                             style={{ minWidth: 70, textAlign: 'center' }}>
-                            {isActive ? 'Active' : 'Expired'}
+                            {isActive ? t('active') : t('expired')}
                           </span>
                         );
                       })()}
@@ -1772,13 +1776,13 @@ export default function BusinessDashboard() {
                         onClick={() => handleEditReward(card)}
                         className="flex-1 flex items-center justify-center bg-blue-50 hover:bg-blue-100 text-blue-700 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ease-in-out shadow-sm border border-blue-100"
                       >
-                        <Eye className="w-4 h-4 mr-2" /> Edit
+                        <Eye className="w-4 h-4 mr-2" /> {t('edit')}
                       </button>
                       <button
                         onClick={() => handleDeleteReward(card.cardid)}
                         className="flex-1 flex items-center justify-center bg-red-50 hover:bg-red-100 text-red-600 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ease-in-out shadow-sm border border-red-100"
                       >
-                        <ArrowRight className="w-4 h-4 mr-2" /> Delete
+                        <ArrowRight className="w-4 h-4 mr-2" /> {t('delete')}
                       </button>
                     </div>
                   </div>
@@ -1930,21 +1934,21 @@ export default function BusinessDashboard() {
             <button
               className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 z-10"
               onClick={() => setShowQRCodeModal(false)}
-              aria-label="Close QR code modal"
+              aria-label={t('closeButton')}
             >
               <X size={24} />
             </button>
-            <h3 className="text-xl sm:text-2xl font-semibold mb-4 text-center">My QRewards Code</h3>
+            <h3 className="text-xl sm:text-2xl font-semibold mb-4 text-center">{t('myQRCodeTitle')}</h3>
             
             {/* Layout Selector */}
             <div className="mb-4 sm:mb-6 w-full max-w-md">
-              <label className="block text-sm font-medium text-gray-700 mb-2 sm:mb-3 text-center">Choose Layout</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2 sm:mb-3 text-center">{t('chooseLayout')}</label>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {[
-                  { value: 'single', label: 'Single', description: '1 Large' },
-                  { value: '2x2', label: '2x2', description: '4 Medium' },
-                  { value: '3x3', label: '3x3', description: '9 Small' },
-                  { value: '4x4', label: '4x4', description: '16 Tiny' }
+                  { value: 'single', label: t('single'), description: t('large') },
+                  { value: '2x2', label: t('grid2x2'), description: t('medium') },
+                  { value: '3x3', label: t('grid3x3'), description: t('small') },
+                  { value: '4x4', label: t('grid4x4'), description: t('tiny') }
                 ].map((layout) => (
                   <button
                     key={layout.value}
@@ -1971,12 +1975,12 @@ export default function BusinessDashboard() {
               className="mb-4 sm:mb-6 mt-4 sm:mt-6 px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium shadow transition-all text-sm sm:text-base"
               onClick={handleDownloadQR}
             >
-              Download {qrLayout === 'single' ? 'Single' : qrLayout === '2x2' ? '4 QR Codes' : qrLayout === '3x3' ? '9 QR Codes' : '16 QR Codes'}
+              {qrLayout === 'single' ? t('downloadSingle') : qrLayout === '2x2' ? t('download4') : qrLayout === '3x3' ? t('download9') : t('download16')}
             </button>
             <p className="mt-4 sm:mt-6 text-gray-500 text-xs sm:text-sm text-center px-4">
               {qrLayout === 'single' 
-                ? 'Print and post this card anywhere you want to find customers!'
-                : `Print and cut out ${qrLayout === '2x2' ? '4' : qrLayout === '3x3' ? '9' : '16'} QR codes to place wherever you want to find customers!`
+                ? t('qrInstructions')
+                : t('qrInstructionsMulti').replace('{count}', qrLayout === '2x2' ? '4' : qrLayout === '3x3' ? '9' : '16')
               }
             </p>
           </div>
