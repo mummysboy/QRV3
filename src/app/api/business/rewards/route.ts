@@ -11,7 +11,9 @@ interface Card {
   addressurl?: string;
   addresstext?: string;
   neighborhood?: string;
-  expires?: string;
+  expires?: string; // Legacy field for backward compatibility
+  created_at?: string; // New: Creation timestamp
+  duration_hours?: number; // New: Duration in hours
   businessId?: string;
 }
 
@@ -27,7 +29,9 @@ interface ClaimedReward {
   addressurl?: string;
   addresstext?: string;
   neighborhood?: string;
-  expires?: string;
+  expires?: string; // Legacy field for backward compatibility
+  created_at?: string; // New: Creation timestamp
+  duration_hours?: number; // New: Duration in hours
   claimed_at?: string;
   businessId?: string;
 }
@@ -63,6 +67,8 @@ export async function GET(request: NextRequest) {
               addresstext
               neighborhood
               expires
+              created_at
+              duration_hours
               businessId
             }
           }
@@ -99,6 +105,8 @@ export async function GET(request: NextRequest) {
               addressurl
               addresstext
               expires
+              created_at
+              duration_hours
               claimed_at
               businessId
               redeemed_at
@@ -240,13 +248,37 @@ export async function POST(request: NextRequest) {
       console.error('Failed to fetch business:', err);
     }
 
+    // Calculate duration from expiration time if provided
+    const now = new Date();
+    const createdAt = now.toISOString();
+    let durationHours: number | null = null;
+    
+    if (expires && expires.trim() !== '') {
+      try {
+        const expirationDate = new Date(expires);
+        const durationMs = expirationDate.getTime() - now.getTime();
+        durationHours = durationMs / (1000 * 60 * 60); // Convert to hours
+        
+        console.log('📅 Reward duration calculation:', {
+          createdAt,
+          expires,
+          durationMs,
+          durationHours
+        });
+      } catch (error) {
+        console.error('Failed to calculate duration from expires:', error);
+      }
+    }
+
     const cardInput = {
       cardid,
       businessId,
       quantity: parseInt(quantity) || 100,
       header: header || "Reward", // Use business name as header, fallback to "Reward"
       subheader: subheader,
-      expires: expires || "",
+      expires: expires || "", // Keep for backward compatibility
+      created_at: createdAt, // New: Store creation timestamp
+      duration_hours: durationHours, // New: Store duration in hours
       logokey: logokey || "",
       addressurl: addressurl || "",
       addresstext: addresstext || "",
@@ -269,6 +301,8 @@ export async function POST(request: NextRequest) {
             addresstext
             neighborhood
             expires
+            created_at
+            duration_hours
             businessId
           }
         }
@@ -372,6 +406,8 @@ export async function PUT(request: NextRequest) {
             addressurl
             addresstext
             expires
+            created_at
+            duration_hours
             businessId
           }
         }

@@ -36,7 +36,15 @@ interface CardProps {
 }
 
 // Countdown Timer Component
-function CountdownTimer({ expirationDate }: { expirationDate: string }) {
+function CountdownTimer({ 
+  expirationDate, 
+  createdAt, 
+  durationHours 
+}: { 
+  expirationDate?: string; 
+  createdAt?: string; 
+  durationHours?: number; 
+}) {
   const [timeLeft, setTimeLeft] = useState<{
     hours: number;
     minutes: number;
@@ -48,7 +56,19 @@ function CountdownTimer({ expirationDate }: { expirationDate: string }) {
     const calculateTimeLeft = () => {
       // Use Date.now() for consistent timezone handling
       const now = Date.now();
-      const expiration = new Date(expirationDate).getTime();
+      
+      // Calculate expiration using relative duration if available
+      let expiration: number;
+      if (createdAt && durationHours) {
+        const creationTime = new Date(createdAt).getTime();
+        expiration = creationTime + (durationHours * 60 * 60 * 1000);
+      } else if (expirationDate) {
+        expiration = new Date(expirationDate).getTime();
+      } else {
+        setIsExpired(true);
+        return;
+      }
+      
       const difference = expiration - now;
 
       if (difference > 0) {
@@ -68,7 +88,7 @@ function CountdownTimer({ expirationDate }: { expirationDate: string }) {
     const timer = setInterval(calculateTimeLeft, 1000);
 
     return () => clearInterval(timer);
-  }, [expirationDate]);
+  }, [expirationDate, createdAt, durationHours]);
 
   // Don't render anything if the card is expired
   if (isExpired) {
@@ -99,6 +119,8 @@ export default function CardAnimation({ card, isPreview = false, isRedeem = fals
     addressurl: card.addressurl || card.website || card.url,
     subheader: card.subheader || card.description || card.subtitle,
     expires: card.expires || card.expiry || card.expiration_date,
+    created_at: (card as CardProps & { created_at?: string }).created_at,
+    duration_hours: (card as CardProps & { duration_hours?: number }).duration_hours,
     quantity: card.quantity || card.qty,
     neighborhood: card.neighborhood,
   } : null;
@@ -441,7 +463,11 @@ export default function CardAnimation({ card, isPreview = false, isRedeem = fals
                    cardData.expires !== "Demo Reward Not Valid" && 
                    (typeof cardData.expires === 'string' ? cardData.expires.trim() !== "" : true) ? (
                     isExpiringSoon(cardData.expires) ? (
-                      <CountdownTimer expirationDate={String(cardData.expires)} />
+                      <CountdownTimer 
+                        expirationDate={cardData.expires ? String(cardData.expires) : undefined}
+                        createdAt={cardData.created_at}
+                        durationHours={cardData.duration_hours}
+                      />
                     ) : (
                       <>
                         <p className={`${isPreview ? 'text-xs' : 'text-xs'} font-light leading-tight`}>

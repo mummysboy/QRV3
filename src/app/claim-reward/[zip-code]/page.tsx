@@ -14,8 +14,38 @@ import { useParams } from "next/navigation";
 import { trackCardView } from "@/lib/analytics";
 // Using local timezone-safe function instead
 
-// Add a timezone-safe expiration check function for frontend
-function isCardExpiredFrontend(expires: string | null | undefined): boolean {
+// Add a timezone-safe expiration check function for frontend using relative duration
+function isCardExpiredFrontend(
+  expires: string | null | undefined,
+  created_at?: string | null,
+  duration_hours?: number | null
+): boolean {
+  // Try new relative duration logic first
+  if (created_at && duration_hours) {
+    try {
+      const creationTime = new Date(created_at).getTime();
+      const expirationTime = creationTime + (duration_hours * 60 * 60 * 1000);
+      const currentTime = Date.now();
+      const isExpired = expirationTime < currentTime;
+      
+      console.log('🔍 Frontend Relative Duration Check:', {
+        created_at,
+        duration_hours,
+        expirationTime: new Date(expirationTime).toISOString(),
+        currentTime: new Date(currentTime).toISOString(),
+        browserTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        isExpired: isExpired,
+        timeRemaining: expirationTime - currentTime,
+        timeRemainingHours: (expirationTime - currentTime) / (1000 * 60 * 60)
+      });
+      
+      return isExpired;
+    } catch (error) {
+      console.error('Error calculating expiration from duration:', error);
+    }
+  }
+  
+  // Fallback to legacy expires field
   if (!expires || expires.trim() === '') {
     return false; // No expiration date means it doesn't expire
   }
@@ -30,7 +60,7 @@ function isCardExpiredFrontend(expires: string | null | undefined): boolean {
     // Compare timestamps directly to avoid timezone issues
     const isExpired = expirationDate.getTime() < currentTime;
     
-    console.log('🔍 Frontend Timezone-Safe Check:', {
+    console.log('🔍 Frontend Legacy Timezone-Safe Check:', {
       originalExpires: expires,
       parsedExpiration: expirationDate.toISOString(),
       expirationTimestamp: expirationDate.getTime(),
@@ -55,6 +85,8 @@ interface CardData {
   addressurl: string;
   subheader: string;
   expires: string;
+  created_at?: string; // New: Creation timestamp
+  duration_hours?: number; // New: Duration in hours
   quantity: number;
   logokey: string;
   header: string;
@@ -246,7 +278,7 @@ export default function ClaimRewardPage() {
         console.log("📋 Setting card data:", data);
         
         // Additional safety checks: verify the card is not expired and has quantity
-        if (data && isCardExpiredFrontend(data.expires)) {
+        if (data && isCardExpiredFrontend(data.expires, data.created_at, data.duration_hours)) {
           console.log("⚠️ Card is expired, not displaying:", data.cardid);
           setCard(null);
           return;

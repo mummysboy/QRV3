@@ -65,6 +65,42 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if this card has already been claimed and redeemed
+    try {
+      const existingRewardsResponse = await client.graphql({
+        query: `
+          query CheckExistingClaimedRewards($cardid: String!) {
+            listClaimedRewards(filter: { 
+              and: [
+                { cardid: { eq: $cardid } },
+                { redeemed_at: { attributeExists: false } }
+              ]
+            }) {
+              items {
+                id
+                cardid
+                redeemed_at
+              }
+            }
+          }
+        `,
+        variables: { cardid }
+      });
+      
+      const existingRewards = (existingRewardsResponse as any).data.listClaimedRewards.items;
+      
+      if (existingRewards.length > 0) {
+        console.error("❌ Card has already been claimed and not yet redeemed:", cardid);
+        return NextResponse.json(
+          { error: "This reward has already been claimed and is pending redemption" },
+          { status: 400 }
+        );
+      }
+    } catch (checkError) {
+      console.error("❌ Failed to check existing claimed rewards:", checkError);
+      // Don't fail the claim if this check fails, but log it
+    }
+
     try {
       console.log("🔍 Updating card quantity from", card.quantity, "to", card.quantity - 1);
       // Update card quantity
@@ -103,6 +139,8 @@ export async function POST(request: NextRequest) {
       logokey: card.logokey || "",
       header: card.header || "",
       subheader: card.subheader || "",
+      created_at: card.created_at || "", // Copy creation timestamp
+      duration_hours: card.duration_hours || null, // Copy duration
       addressurl: card.addressurl || "",
       addresstext: card.addresstext || "",
       expires: card.expires || "",
@@ -128,6 +166,30 @@ export async function POST(request: NextRequest) {
     } catch (createError) {
       console.error("❌ Failed to create claimed reward:", createError);
       // Don't fail the whole request if logging fails
+    }
+
+    // Track the claim for analytics
+    try {
+      const analyticsResponse = await fetch(`${request.nextUrl.origin}/api/track-reward-claim`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cardid,
+          businessId: card.businessId,
+          email,
+          phone,
+          delivery_method,
+        }),
+      });
+      
+      if (!analyticsResponse.ok) {
+        console.error("❌ Failed to track claim analytics");
+      } else {
+        console.log("✅ Claim analytics tracked successfully");
+      }
+    } catch (analyticsError) {
+      console.error("❌ Error tracking claim analytics:", analyticsError);
+      // Don't fail the claim if analytics tracking fails
     }
 
     return NextResponse.json({

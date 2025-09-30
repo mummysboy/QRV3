@@ -11,7 +11,9 @@ const schema = a.schema({
       addressurl: a.string(),
       addresstext: a.string(),
       neighborhood: a.string(), // Store business neighborhood at card creation
-      expires: a.string(),
+      expires: a.string(), // DEPRECATED: Legacy field for backward compatibility
+      created_at: a.string(), // Timestamp when reward was created (ISO format)
+      duration_hours: a.float(), // Number of hours the reward is valid for
       businessId: a.string(), // Link to business
     })
     .identifier(["cardid"])
@@ -23,6 +25,34 @@ const schema = a.schema({
       cardid: a.string().required(),
       businessId: a.string(),
       viewed_at: a.string().required(),
+      ip_address: a.string(),
+      user_agent: a.string(),
+    })
+    .identifier(["id"])
+    .authorization((allow) => [allow.publicApiKey()]),
+
+  RewardClaim: a
+    .model({
+      id: a.id().required(),
+      cardid: a.string().required(),
+      businessId: a.string(),
+      email: a.string(),
+      phone: a.string(),
+      delivery_method: a.string(),
+      claimed_at: a.string().required(),
+      ip_address: a.string(),
+      user_agent: a.string(),
+    })
+    .identifier(["id"])
+    .authorization((allow) => [allow.publicApiKey()]),
+
+  RewardRedemption: a
+    .model({
+      id: a.id().required(),
+      claimedRewardId: a.string().required(),
+      cardid: a.string().required(),
+      businessId: a.string(),
+      redeemed_at: a.string().required(),
       ip_address: a.string(),
       user_agent: a.string(),
     })
@@ -41,7 +71,9 @@ const schema = a.schema({
       subheader: a.string(),
       addressurl: a.string(),
       addresstext: a.string(),
-      expires: a.string(),
+      expires: a.string(), // DEPRECATED: Legacy field for backward compatibility
+      created_at: a.string(), // Timestamp when card was created (ISO format)
+      duration_hours: a.float(), // Number of hours the reward is valid for
       claimed_at: a.string(),
       redeemed_at: a.string(),
       businessId: a.string(), // Link to business

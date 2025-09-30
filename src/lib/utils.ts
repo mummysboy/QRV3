@@ -51,7 +51,77 @@ export function deleteCookie(name: string, options: { path?: string } = {}) {
 }
 
 /**
+ * Calculate the expiration timestamp from creation time and duration
+ * @param created_at - ISO timestamp when reward was created
+ * @param duration_hours - Number of hours the reward is valid for
+ * @returns Expiration timestamp in milliseconds, or null if not calculable
+ */
+export function calculateExpiration(created_at: string | null | undefined, duration_hours: number | null | undefined): number | null {
+  if (!created_at || !duration_hours || duration_hours <= 0) {
+    return null; // No expiration if missing required fields
+  }
+  
+  try {
+    const creationTime = new Date(created_at).getTime();
+    if (isNaN(creationTime)) {
+      console.error('Invalid created_at timestamp:', created_at);
+      return null;
+    }
+    
+    // Calculate expiration as creation time + duration in milliseconds
+    const expirationTime = creationTime + (duration_hours * 60 * 60 * 1000);
+    return expirationTime;
+  } catch (error) {
+    console.error('Error calculating expiration:', error);
+    return null;
+  }
+}
+
+/**
+ * Check if a card is expired using relative duration logic
+ * @param created_at - ISO timestamp when reward was created
+ * @param duration_hours - Number of hours the reward is valid for
+ * @param expires - Legacy expiration timestamp (for backward compatibility)
+ * @returns true if the card is expired, false otherwise
+ */
+export function isCardExpiredRelative(
+  created_at: string | null | undefined,
+  duration_hours: number | null | undefined,
+  expires?: string | null | undefined
+): boolean {
+  // Try new relative duration logic first
+  if (created_at && duration_hours) {
+    const expirationTime = calculateExpiration(created_at, duration_hours);
+    if (expirationTime !== null) {
+      const currentTime = Date.now();
+      const isExpired = expirationTime < currentTime;
+      
+      console.log('🔍 Relative Duration Check:', {
+        created_at,
+        duration_hours,
+        expirationTime: new Date(expirationTime).toISOString(),
+        currentTime: new Date(currentTime).toISOString(),
+        isExpired,
+        timeRemaining: expirationTime - currentTime,
+        timeRemainingHours: (expirationTime - currentTime) / (1000 * 60 * 60)
+      });
+      
+      return isExpired;
+    }
+  }
+  
+  // Fallback to legacy expires field for backward compatibility
+  if (expires && expires.trim() !== '') {
+    return isCardExpired(expires);
+  }
+  
+  // No expiration data means it doesn't expire
+  return false;
+}
+
+/**
  * Check if a card is expired based on its expiration date (timezone-safe version)
+ * DEPRECATED: Use isCardExpiredRelative instead
  * @param expires - The expiration date string (ISO format)
  * @returns true if the card is expired, false otherwise
  */
@@ -230,11 +300,19 @@ export function filterExpiredCards<T extends { expires?: string | null }>(cards:
 
 /**
  * Filter out expired cards and cards with 0 quantity from an array
+ * Uses new relative duration logic with fallback to legacy expires field
  * @param cards - Array of cards with expiration dates and quantity
  * @returns Array of available cards (non-expired and quantity > 0)
  */
-export function filterAvailableCards<T extends { expires?: string | null; quantity?: number }>(cards: T[]): T[] {
-  // Use the simple method that works well locally
-  // The issue might be elsewhere, not in the basic expiration checking
-  return cards.filter(card => !isCardExpired(card.expires) && (card.quantity === undefined || card.quantity > 0));
+export function filterAvailableCards<T extends { 
+  expires?: string | null; 
+  created_at?: string | null;
+  duration_hours?: number | null;
+  quantity?: number 
+}>(cards: T[]): T[] {
+  return cards.filter(card => {
+    const isExpired = isCardExpiredRelative(card.created_at, card.duration_hours, card.expires);
+    const hasQuantity = card.quantity === undefined || card.quantity > 0;
+    return !isExpired && hasQuantity;
+  });
 }
