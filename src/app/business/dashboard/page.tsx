@@ -734,26 +734,25 @@ export default function BusinessDashboard() {
         console.log('Reward created successfully:', result);
         setShowCreateReward(false);
         fetchDashboardData();
-        showSuccess('Reward Created', 'Reward created successfully!');
+        // Don't show success here - let CreateRewardForm handle it
       } else {
         const error = await response.json();
         console.error('Failed to create reward:', error);
         
         // Check if it's a content moderation error
         if (error.message?.includes('explicit content') || error.isExplicit) {
-          showError('Content Moderation Failed', error.message || 'Sorry, it looks like there is explicit content in this reward. Please revise your description.');
-          // Throw error so CreateRewardForm can handle it
-          throw new Error(error.message || 'Content moderation failed');
+          // Throw error with specific flag so CreateRewardForm can handle it
+          const contentError = new Error(error.message || 'Content moderation failed');
+          (contentError as any).isExplicit = true;
+          throw contentError;
         } else {
-          showError('Creation Failed', error.error || error.message || 'Failed to create reward');
           // Throw error so CreateRewardForm can handle it
           throw new Error(error.error || error.message || 'Failed to create reward');
         }
       }
     } catch (error) {
       console.error('Error creating reward:', error);
-      showError('Creation Failed', 'Network error. Please check your connection and try again.');
-      // Re-throw the error so CreateRewardForm can handle it
+      // Only re-throw the error - let CreateRewardForm show the notification
       throw error;
     }
   };

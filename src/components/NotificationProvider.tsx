@@ -74,7 +74,7 @@ function NotificationComponent({
   const styles = notificationStyles[type];
   const Icon = styles.icon;
 
-  console.log('🔔 Rendering notification component:', { type, title, message, isVisible });
+  // console.log('🔔 Rendering notification component:', { type, title, message, isVisible });
 
   React.useEffect(() => {
     // Show notification
@@ -184,10 +184,10 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       id,
       onClose: () => removeNotification(id)
     };
-    console.log('🔔 Adding notification to state:', newNotification);
+    // console.log('🔔 Adding notification to state:', newNotification);
     setNotifications(prev => {
       const updated = [...prev, newNotification];
-      console.log('🔔 Current notifications:', updated);
+      // console.log('🔔 Current notifications:', updated);
       return updated;
     });
   };
@@ -197,22 +197,22 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   };
 
   const showSuccess = (title: string, message?: string) => {
-    console.log('🔔 Showing success notification:', { title, message });
+    // console.log('🔔 Showing success notification:', { title, message });
     showNotification({ type: "success", title, message });
   };
 
   const showError = (title: string, message?: string) => {
-    console.log('🔔 Showing error notification:', { title, message });
+    // console.log('🔔 Showing error notification:', { title, message });
     showNotification({ type: "error", title, message });
   };
 
   const showWarning = (title: string, message?: string) => {
-    console.log('🔔 Showing warning notification:', { title, message });
+    // console.log('🔔 Showing warning notification:', { title, message });
     showNotification({ type: "warning", title, message });
   };
 
   const showInfo = (title: string, message?: string) => {
-    console.log('🔔 Showing info notification:', { title, message });
+    // console.log('🔔 Showing info notification:', { title, message });
     showNotification({ type: "info", title, message });
   };
 

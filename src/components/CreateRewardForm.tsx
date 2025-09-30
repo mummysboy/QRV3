@@ -137,6 +137,12 @@ export default function CreateRewardForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Prevent multiple simultaneous submissions
+    if (isSubmitting) {
+      console.warn('⚠️ Form is already submitting, ignoring duplicate submission');
+      return;
+    }
+    
     if (!isProfileComplete) {
       showError("Profile Incomplete", "Please complete your business profile by uploading a logo before creating rewards.");
       return;
@@ -153,6 +159,9 @@ export default function CreateRewardForm({
     
     try {
       await onSubmit(formData);
+      console.log('✅ Reward created successfully, closing form');
+      // Show success notification
+      showSuccess("Reward Created!", "Your reward has been successfully created and is now live.");
       // Reset form
       setFormData({
         businessId: businessWithLogo.id,
@@ -167,15 +176,17 @@ export default function CreateRewardForm({
         quantity: 100,
         expires: "",
       });
-      showSuccess("Reward Created!", "Your reward has been successfully created and is now live.");
+      // Close the form (this will be called from the dashboard)
+      // onClose(); // Don't call this here - let the dashboard handle it
     } catch (error: unknown) {
-      console.error("Error creating reward:", error);
+      console.error("❌ Error creating reward (CreateRewardForm):", error);
       
       // Check if it's an explicit content error
       const errorMessage = error instanceof Error ? error.message : '';
       const errorObj = error as { isExplicit?: boolean };
       
       if (errorMessage.includes('explicit content') || errorMessage.includes('Content moderation failed') || errorObj.isExplicit) {
+        console.log('🔔 Showing explicit content error notification');
         setExplicitContentError("Sorry, it looks like there is explicit content in this reward");
         showError("Content Moderation Failed", "Sorry, it looks like there is explicit content in this reward. Please revise your description.");
         // Clear the description field
@@ -183,10 +194,15 @@ export default function CreateRewardForm({
           ...prev,
           subheader: ""
         }));
+      } else if (errorMessage.includes('Failed to fetch') || errorMessage.includes('NetworkError') || errorMessage.includes('Network')) {
+        console.log('🔔 Showing network error notification');
+        showError("Network Error", "Unable to connect to the server. Please check your internet connection and try again.");
       } else {
-        showError("Creation Failed", "Failed to create reward. Please try again.");
+        console.log('🔔 Showing generic error notification:', errorMessage);
+        showError("Creation Failed", errorMessage || "Failed to create reward. Please try again.");
       }
     } finally {
+      console.log('🔄 Resetting isSubmitting flag');
       setIsSubmitting(false);
     }
   };

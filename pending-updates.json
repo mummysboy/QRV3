@@ -198,5 +198,24 @@
     "status": "approved",
     "submittedAt": "2025-08-24T20:07:03.825Z",
     "approvedAt": "2025-08-24T20:07:16.718Z"
+  },
+  {
+    "id": "update_24e29783-84a6-42fb-ac3b-59550d27707e_1756242603434",
+    "businessId": "24e29783-84a6-42fb-ac3b-59550d27707e",
+    "userEmail": "mishmishplayschool@gmail.com",
+    "businessName": "State Street Crossfit",
+    "userFirstName": "Isaac",
+    "userLastName": "Hirsch",
+    "currentData": {},
+    "requestedUpdates": {
+      "name": "Paddy's Pancakesssss",
+      "address": "515 West Post Rd.",
+      "city": "White Plains",
+      "state": "NY",
+      "zipCode": "10606",
+      "category": "Restaurant"
+    },
+    "status": "pending",
+    "submittedAt": "2025-08-26T21:10:03.434Z"
   }
 ]

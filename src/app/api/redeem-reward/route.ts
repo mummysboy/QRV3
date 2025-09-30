@@ -170,6 +170,26 @@ export async function POST(request: NextRequest) {
       // Don't fail the redemption if this check fails
     }
 
+    // Track the redemption for analytics
+    try {
+      const analyticsResponse = await fetch(`${request.nextUrl.origin}/api/track-reward-redemption`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          claimedRewardId,
+        }),
+      });
+      
+      if (!analyticsResponse.ok) {
+        console.error("❌ Failed to track redemption analytics");
+      } else {
+        console.log("✅ Redemption analytics tracked successfully");
+      }
+    } catch (analyticsError) {
+      console.error("❌ Error tracking redemption analytics:", analyticsError);
+      // Don't fail the redemption if analytics tracking fails
+    }
+
     return NextResponse.json({
       success: true,
       message: "Reward redeemed successfully",

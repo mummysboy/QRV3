@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import CardAnimation from "@/components/CardAnimation";
 import LogoVideo from "@/components/LogoVideo";
 import { useRouter } from "next/navigation";
+import { trackRewardRedemption } from "@/lib/analytics";
 
 interface CardData {
   id: string;
@@ -121,6 +122,7 @@ export default function RewardPage() {
     setRedeemError("");
     try {
       // Track the redemption
+      await trackRewardRedemption(card.id);
       
       const res = await fetch("/api/redeem-reward", {
         method: "POST",
