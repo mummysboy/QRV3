@@ -492,16 +492,16 @@ export default function AdminDashboard() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'approved':
-        return 'bg-green-100 text-green-800';
+        return 'bg-emerald-100 text-emerald-800 border border-emerald-200';
       case 'rejected':
-        return 'bg-red-100 text-red-800';
+        return 'bg-rose-100 text-rose-800 border border-rose-200';
       case 'pending':
       case 'pending_approval':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-amber-100 text-amber-800 border border-amber-200';
       case 'paused':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-slate-100 text-slate-800 border border-slate-200';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-slate-100 text-slate-800 border border-slate-200';
     }
   };
 
@@ -770,33 +770,33 @@ export default function AdminDashboard() {
               <div className="p-6">
                 {/* Summary Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                  <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-6 text-white">
-                    <div className="text-2xl font-bold">{analytics.totalBusinesses}</div>
-                    <div className="text-sm opacity-90">Total Businesses</div>
+                  <div className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300">
+                    <div className="text-3xl font-bold mb-1">{analytics.totalBusinesses}</div>
+                    <div className="text-sm opacity-90 font-medium">Total Businesses</div>
                   </div>
-                  <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg p-6 text-white">
-                    <div className="text-2xl font-bold">{analytics.totalCardViews}</div>
-                    <div className="text-sm opacity-90">Total Views</div>
+                  <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300">
+                    <div className="text-3xl font-bold mb-1">{analytics.totalCardViews}</div>
+                    <div className="text-sm opacity-90 font-medium">Total Views</div>
                   </div>
-                  <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg p-6 text-white">
-                    <div className="text-2xl font-bold">{analytics.totalClaims}</div>
-                    <div className="text-sm opacity-90">Total Claims</div>
+                  <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300">
+                    <div className="text-3xl font-bold mb-1">{analytics.totalClaims}</div>
+                    <div className="text-sm opacity-90 font-medium">Total Claims</div>
                   </div>
-                  <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg p-6 text-white">
-                    <div className="text-2xl font-bold">{analytics.conversionRate}%</div>
-                    <div className="text-sm opacity-90">Conversion Rate</div>
+                  <div className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl p-6 text-white shadow-lg hover:shadow-xl transition-all duration-300">
+                    <div className="text-3xl font-bold mb-1">{analytics.conversionRate}%</div>
+                    <div className="text-sm opacity-90 font-medium">Conversion Rate</div>
                   </div>
                 </div>
 
                 {/* Charts */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                  <div className="bg-white rounded-lg border border-gray-200 p-6">
+                  <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Claims Over Time</h3>
                     <div className="h-64 flex items-end justify-center space-x-2">
                       {analytics.claimsByDay.map((day, idx) => (
                         <div key={idx} className="flex flex-col items-center">
                           <div 
-                            className="bg-green-500 rounded-t-lg w-8 transition-all duration-300"
+                            className="bg-gradient-to-t from-indigo-500 to-indigo-400 rounded-t-lg w-8 transition-all duration-300 hover:from-indigo-600 hover:to-indigo-500"
                             style={{ height: `${Math.max(day.count * 10, 4)}px` }}
                           ></div>
                           <span className="text-xs text-gray-500 mt-2">{day.date}</span>
@@ -805,13 +805,13 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                   
-                  <div className="bg-white rounded-lg border border-gray-200 p-6">
+                  <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Views Over Time</h3>
                     <div className="h-64 flex items-end justify-center space-x-2">
                       {analytics.viewsByDay.map((day, idx) => (
                         <div key={idx} className="flex flex-col items-center">
                           <div 
-                            className="bg-blue-500 rounded-t-lg w-8 transition-all duration-300"
+                            className="bg-gradient-to-t from-emerald-500 to-emerald-400 rounded-t-lg w-8 transition-all duration-300 hover:from-emerald-600 hover:to-emerald-500"
                             style={{ height: `${Math.max(day.count * 5, 4)}px` }}
                           ></div>
                           <span className="text-xs text-gray-500 mt-2">{day.date}</span>
@@ -1004,14 +1004,14 @@ export default function AdminDashboard() {
                             <button
                               onClick={() => handleUpdateAction(update.id, 'approve')}
                               disabled={isProcessing}
-                              className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm disabled:opacity-50"
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded-lg text-sm disabled:opacity-50 transition-colors duration-200 font-medium"
                             >
                               Approve
                             </button>
                             <button
                               onClick={() => handleUpdateAction(update.id, 'reject')}
                               disabled={isProcessing}
-                              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm disabled:opacity-50"
+                              className="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1 rounded-lg text-sm disabled:opacity-50 transition-colors duration-200 font-medium"
                             >
                               Reject
                             </button>
@@ -1186,28 +1186,28 @@ export default function AdminDashboard() {
                 <button
                   onClick={() => handleStatusUpdate(selectedItem.type, selectedItem.data.id, 'approved')}
                   disabled={isProcessing}
-                  className="bg-emerald-500 text-white px-3 py-2 rounded text-sm hover:bg-emerald-600 disabled:opacity-50"
+                  className="bg-emerald-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-emerald-600 disabled:opacity-50 transition-colors duration-200 font-medium"
                 >
                   Approve
                 </button>
                 <button
                   onClick={() => handleStatusUpdate(selectedItem.type, selectedItem.data.id, 'rejected')}
                   disabled={isProcessing}
-                  className="bg-rose-500 text-white px-3 py-2 rounded text-sm hover:bg-rose-600 disabled:opacity-50"
+                  className="bg-rose-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-rose-600 disabled:opacity-50 transition-colors duration-200 font-medium"
                 >
                   Reject
                 </button>
                 <button
                   onClick={() => handleStatusUpdate(selectedItem.type, selectedItem.data.id, 'paused')}
                   disabled={isProcessing}
-                  className="bg-amber-500 text-white px-3 py-2 rounded text-sm hover:bg-amber-600 disabled:opacity-50"
+                  className="bg-amber-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-amber-600 disabled:opacity-50 transition-colors duration-200 font-medium"
                 >
                   Pause
                 </button>
                 <button
                   onClick={() => handleDelete(selectedItem.type, selectedItem.data.id)}
                   disabled={isProcessing}
-                  className="bg-slate-500 text-white px-3 py-2 rounded text-sm hover:bg-slate-600 disabled:opacity-50"
+                  className="bg-slate-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-slate-600 disabled:opacity-50 transition-colors duration-200 font-medium"
                 >
                   Delete
                 </button>
@@ -1262,28 +1262,28 @@ export default function AdminDashboard() {
                   <button
                     onClick={() => handleStatusUpdate('business', editingBusiness.id, 'approved')}
                     disabled={isProcessing || editingBusiness.status === 'approved'}
-                    className="bg-emerald-500 text-white px-3 py-2 rounded text-sm hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-emerald-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 font-medium"
                   >
                     Approve
                   </button>
                   <button
                     onClick={() => handleStatusUpdate('business', editingBusiness.id, 'rejected')}
                     disabled={isProcessing || editingBusiness.status === 'rejected'}
-                    className="bg-rose-500 text-white px-3 py-2 rounded text-sm hover:bg-rose-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-rose-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-rose-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 font-medium"
                   >
                     Reject
                   </button>
                   <button
                     onClick={() => handleStatusUpdate('business', editingBusiness.id, 'paused')}
                     disabled={isProcessing || editingBusiness.status === 'paused'}
-                    className="bg-amber-500 text-white px-3 py-2 rounded text-sm hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-amber-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 font-medium"
                   >
                     Pause
                   </button>
                   <button
                     onClick={() => handleStatusUpdate('business', editingBusiness.id, 'pending_approval')}
                     disabled={isProcessing || editingBusiness.status === 'pending_approval'}
-                    className="bg-sky-500 text-white px-3 py-2 rounded text-sm hover:bg-sky-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-sky-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-sky-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 font-medium"
                   >
                     Set Pending
                   </button>
@@ -1423,14 +1423,14 @@ export default function AdminDashboard() {
                 <div className="flex space-x-3">
                   <button
                     onClick={handleLoginAsBusiness}
-                    className="px-6 py-3 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition-colors"
+                    className="px-6 py-3 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors duration-200 font-medium shadow-sm hover:shadow-md"
                   >
                     🔐 Login As Business
                   </button>
                   <button
                     onClick={() => handleDelete('business', editingBusiness.id)}
                     disabled={isProcessing}
-                    className="px-6 py-3 bg-slate-500 text-white rounded-md hover:bg-slate-600 disabled:opacity-50 transition-colors"
+                    className="px-6 py-3 bg-slate-500 text-white rounded-lg hover:bg-slate-600 disabled:opacity-50 transition-colors duration-200 font-medium shadow-sm hover:shadow-md"
                   >
                     🗑️ Delete Business
                   </button>
@@ -1441,14 +1441,14 @@ export default function AdminDashboard() {
                       setShowBusinessEditModal(false);
                       setEditingBusiness(null);
                     }}
-                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200 font-medium"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleEditBusiness}
                     disabled={isProcessing || !editFormData.name.trim() || !editFormData.email.trim()}
-                    className="px-6 py-3 bg-teal-500 text-white rounded-md hover:bg-teal-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="px-6 py-3 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 font-medium shadow-sm hover:shadow-md"
                   >
                     {isProcessing ? 'Updating...' : '💾 Save Changes'}
                   </button>
