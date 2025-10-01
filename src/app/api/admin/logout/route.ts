@@ -2,8 +2,13 @@ import { NextResponse } from "next/server";
 
 export async function POST() {
   try {
+    console.log("🔓 Admin logout requested");
+
     const response = NextResponse.json(
-      { success: true, message: "Logged out successfully" },
+      { 
+        success: true,
+        message: "Admin logged out successfully"
+      },
       { status: 200 }
     );
 
@@ -16,12 +21,17 @@ export async function POST() {
       path: '/'
     });
 
+    console.log("✅ Admin logout successful");
+
     return response;
   } catch (error) {
-    console.error("Admin logout error:", error);
+    console.error("❌ Admin logout error:", error);
     return NextResponse.json(
-      { error: "Logout failed" },
+      { 
+        error: "Logout failed",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
       { status: 500 }
     );
   }
-} 
+}

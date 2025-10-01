@@ -19,10 +19,13 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
   // Don't show the header on dashboard pages (they render their own)
   const isDashboardPage = pathname?.startsWith('/business/dashboard');
   
+  // Don't show the language button on claim reward pages
+  const isClaimRewardPage = pathname?.startsWith('/claim-reward');
+  
   return (
     <NotificationProvider>
       <LanguageProvider>
-        <GoogleTranslate />
+        {!isClaimRewardPage && <GoogleTranslate />}
         <ContactContext.Provider value={{ onContactClick }}>
           {!isDashboardPage && <Header onContactClick={onContactClick} />}
           {showContactPopup && (
