@@ -44,6 +44,24 @@ declare namespace google {
       }
     }
   }
+
+  namespace translate {
+    class TranslateElement {
+      constructor(options: TranslateElementOptions, elementId: string);
+      static InlineLayout: {
+        SIMPLE: string;
+        HORIZONTAL: string;
+        VERTICAL: string;
+      };
+    }
+
+    interface TranslateElementOptions {
+      pageLanguage?: string;
+      includedLanguages?: string;
+      layout?: string;
+      autoDisplay?: boolean;
+    }
+  }
 }
 
 export {}; 

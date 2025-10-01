@@ -166,7 +166,7 @@ export default function LanguageSwitcher({ currentLanguage, onLanguageChange, cl
             return (
               <button
                 key={lang.code}
-                ref={el => itemRefs.current[index] = el}
+                ref={el => { itemRefs.current[index] = el; }}
                 onClick={() => handleLanguageSelect(lang.code)}
                 onMouseEnter={() => setFocusedIndex(index)}
                 role="menuitem"
