@@ -368,7 +368,16 @@ export default function BusinessDashboard() {
     (business?.logo && business.logo.trim() !== '' && !isLogoProcessing && logoProcessingStartTime && 
      (Date.now() - logoProcessingStartTime) < 60000); // Show for 1 minute after upload
 
+  // Add ref to track if we've already checked the session to prevent duplicate calls
+  const hasCheckedSession = useRef(false);
+
   useEffect(() => {
+    // Prevent duplicate session checks
+    if (hasCheckedSession.current) {
+      return;
+    }
+    hasCheckedSession.current = true;
+
     // Check if user is logged in via cookie
     if (typeof window !== "undefined") {
       const session = getCookie("qrewards_session");
@@ -494,44 +503,7 @@ export default function BusinessDashboard() {
     }
   }, [logoProcessing, logoProcessingStartTime]);
 
-  // Check for session and show consent banner if needed
-  useEffect(() => {
-    const sessionToken = sessionStorage.getItem('businessSessionToken');
-    
-    // Check if we have a valid session cookie via API
-    const checkSession = async () => {
-      try {
-        // Check for last business ID in sessionStorage
-        const lastBusinessId = sessionStorage.getItem('lastBusinessId');
-        
-        const headers: Record<string, string> = {};
-        if (lastBusinessId) {
-          headers['x-last-business-id'] = lastBusinessId;
-        }
-        
-        const response = await fetch('/api/business/check-session', {
-          headers
-        });
-        const data = await response.json();
-        
-        if (data.hasSession) {
-          setShowConsent(false);
-        } else if (sessionToken) {
-          setShowConsent(true);
-        } else {
-          setShowConsent(false);
-        }
-      } catch (error) {
-        console.error('Error checking session:', error);
-        // Fallback: show consent banner if we have sessionToken
-        if (sessionToken) {
-          setShowConsent(true);
-        }
-      }
-    };
-    
-    checkSession();
-  }, []);
+  // Note: Session check and consent banner logic moved to the main useEffect above to prevent duplicate API calls
 
 
 
@@ -826,44 +798,8 @@ export default function BusinessDashboard() {
       }
     }
 
-    // If still no user data, try to get from session API
-    if (!userEmail || !userFirstName || !userLastName) {
-      console.log('⚠️ SessionStorage also empty, trying session API...');
-      try {
-        const sessionResponse = await fetch('/api/business/check-session');
-        const sessionData = await sessionResponse.json();
-        
-        console.log('📋 Session API response:', sessionData);
-        
-        if (sessionData.hasSession && sessionData.user) {
-          userEmail = sessionData.user.email;
-          // Try to get firstName and lastName from the session user data
-          // Note: The session API might not return firstName/lastName, so we'll use email as fallback
-          userFirstName = sessionData.user.firstName || 'User';
-          userLastName = sessionData.user.lastName || 'Name';
-          
-          console.log('✅ Retrieved user data from session API:', {
-            email: userEmail,
-            firstName: userFirstName,
-            lastName: userLastName
-          });
-          
-          // Update sessionStorage with the user data
-          const userDataToStore = {
-            id: sessionData.user.id,
-            email: userEmail,
-            firstName: userFirstName,
-            lastName: userLastName,
-            role: sessionData.user.role,
-            status: 'active'
-          };
-          sessionStorage.setItem('businessUser', JSON.stringify(userDataToStore));
-          console.log('💾 Updated sessionStorage with user data');
-        }
-      } catch (error) {
-        console.error('❌ Error fetching user data from session API:', error);
-      }
-    }
+    // If still no user data, try to get from business data (skip session API to avoid extra calls)
+    // The session should already be validated when the dashboard loaded
 
     // Final validation - if still no user data, try to get from business data
     if (!userEmail || !userFirstName || !userLastName) {

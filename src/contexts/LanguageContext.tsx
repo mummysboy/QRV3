@@ -70,6 +70,19 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       document.head.appendChild(metaLang);
     }
     metaLang.setAttribute('content', language);
+    
+    // Sync with Google Translate if it's available
+    const syncWithGoogleTranslate = () => {
+      const selectElement = document.querySelector('.goog-te-combo') as HTMLSelectElement;
+      if (selectElement && selectElement.value !== language) {
+        selectElement.value = language;
+        selectElement.dispatchEvent(new Event('change'));
+      }
+    };
+    
+    // Try to sync after a short delay to ensure Google Translate is loaded
+    const timeout = setTimeout(syncWithGoogleTranslate, 500);
+    return () => clearTimeout(timeout);
   }, [language, mounted]);
 
   // Save language preference

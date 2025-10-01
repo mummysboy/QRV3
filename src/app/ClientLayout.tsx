@@ -7,7 +7,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import CookieConsentBanner from '@/components/Popups/CookieConsentBanner';
 import { NotificationProvider } from '@/components/NotificationProvider';
 import { LanguageProvider } from '@/contexts/LanguageContext';
-import LanguageSelectionPrompt from '@/components/LanguageSelectionPrompt';
+import GoogleTranslate from '@/components/GoogleTranslate';
 
 export const ContactContext = createContext<{ onContactClick: () => void }>({ onContactClick: () => {} });
 
@@ -22,7 +22,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
   return (
     <NotificationProvider>
       <LanguageProvider>
-        <LanguageSelectionPrompt />
+        <GoogleTranslate />
         <ContactContext.Provider value={{ onContactClick }}>
           {!isDashboardPage && <Header onContactClick={onContactClick} />}
           {showContactPopup && (

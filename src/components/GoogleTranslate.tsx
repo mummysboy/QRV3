@@ -1,22 +1,17 @@
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-declare global {
-  interface Window {
-    google?: any;
-    googleTranslateElementInit?: () => void;
-  }
-}
-
 export default function GoogleTranslate() {
-  const { language } = useLanguage();
+  const { showLanguagePrompt, setShowLanguagePrompt, setLanguage } = useLanguage();
+  const [isGoogleTranslateLoaded, setIsGoogleTranslateLoaded] = useState(false);
 
   useEffect(() => {
     // Add Google Translate script
     const addScript = () => {
       if (document.getElementById('google-translate-script')) {
+        setIsGoogleTranslateLoaded(true);
         return;
       }
 
@@ -24,6 +19,7 @@ export default function GoogleTranslate() {
       script.id = 'google-translate-script';
       script.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
       script.async = true;
+      script.onload = () => setIsGoogleTranslateLoaded(true);
       document.body.appendChild(script);
     };
 
@@ -39,6 +35,24 @@ export default function GoogleTranslate() {
           },
           'google_translate_element'
         );
+        
+        // Listen for language changes
+        const observer = new MutationObserver(() => {
+          const selectElement = document.querySelector('.goog-te-combo') as HTMLSelectElement;
+          if (selectElement) {
+            // Update our language context when Google Translate changes language
+            const currentLang = selectElement.value;
+            if (currentLang === 'en' || currentLang === 'es') {
+              setLanguage(currentLang as 'en' | 'es');
+            }
+          }
+        });
+        
+        // Watch for changes in the Google Translate widget
+        const translateElement = document.getElementById('google_translate_element');
+        if (translateElement) {
+          observer.observe(translateElement, { childList: true, subtree: true });
+        }
       }
     };
 
@@ -52,26 +66,91 @@ export default function GoogleTranslate() {
       }
       delete window.googleTranslateElementInit;
     };
-  }, []);
+  }, [setLanguage]);
 
-  // Trigger translation when language changes
-  useEffect(() => {
-    const triggerTranslation = () => {
-      const selectElement = document.querySelector('.goog-te-combo') as HTMLSelectElement;
-      if (selectElement) {
-        selectElement.value = language;
-        selectElement.dispatchEvent(new Event('change'));
-      }
-    };
+  // Show Google Translate widget when language prompt should be shown
+  if (showLanguagePrompt && isGoogleTranslateLoaded) {
+    return (
+      <>
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4 text-center">
+              Choose Your Language
+            </h2>
+            <p className="text-gray-600 mb-6 text-center">
+              Please select your preferred language to continue
+            </p>
+            
+            <div className="flex justify-center">
+              <div id="google_translate_element" className="google-translate-widget" />
+            </div>
+            
+            <div className="mt-6 text-center">
+              <button
+                onClick={() => setShowLanguagePrompt(false)}
+                className="text-sm text-gray-500 hover:text-gray-700 underline"
+              >
+                Continue with English
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <style jsx global>{`
+          /* Style the Google Translate widget */
+          .google-translate-widget .goog-te-gadget {
+            font-family: inherit !important;
+            border: none !important;
+            background: transparent !important;
+          }
+          
+          .google-translate-widget .goog-te-gadget-simple {
+            background-color: white !important;
+            border: 2px solid #e5e7eb !important;
+            border-radius: 12px !important;
+            padding: 12px 16px !important;
+            font-size: 16px !important;
+            font-weight: 500 !important;
+            color: #374151 !important;
+            min-width: 200px !important;
+            text-align: center !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+          }
+          
+          .google-translate-widget .goog-te-gadget-simple:hover {
+            border-color: #3b82f6 !important;
+            background-color: #eff6ff !important;
+          }
+          
+          /* Hide the "Powered by Google" text */
+          .google-translate-widget .goog-te-gadget span {
+            display: none !important;
+          }
+          
+          /* Hide the dropdown arrow initially - we'll show it on hover */
+          .google-translate-widget .goog-te-gadget-simple::after {
+            content: "🌐" !important;
+            margin-left: 8px !important;
+          }
+          
+          /* Hide Google Translate banner */
+          .goog-te-banner-frame {
+            display: none !important;
+          }
+          
+          body {
+            top: 0 !important;
+          }
+        `}</style>
+      </>
+    );
+  }
 
-    // Wait a bit for Google Translate to initialize
-    const timeout = setTimeout(triggerTranslation, 1000);
-    return () => clearTimeout(timeout);
-  }, [language]);
-
+  // Regular Google Translate widget for when user is browsing
   return (
     <>
-      <div id="google_translate_element" className="hidden" />
+      <div id="google_translate_element" className="fixed bottom-4 right-4 z-50" />
       <style jsx global>{`
         /* Hide Google Translate banner */
         .goog-te-banner-frame {
@@ -81,7 +160,7 @@ export default function GoogleTranslate() {
           top: 0 !important;
         }
         
-        /* Optional: Style the translate widget if you want to show it */
+        /* Style the floating translate widget */
         #google_translate_element {
           position: fixed;
           bottom: 20px;
@@ -104,9 +183,14 @@ export default function GoogleTranslate() {
           border-radius: 8px;
           padding: 8px 12px;
           font-size: 14px;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .goog-te-gadget-simple:hover {
+          border-color: #3b82f6;
+          background-color: #eff6ff;
         }
       `}</style>
     </>
   );
 }
-
