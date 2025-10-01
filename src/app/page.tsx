@@ -7,8 +7,6 @@ import BusinessSignupForm, { BusinessSignupData } from "@/components/BusinessSig
 import CardAnimation from "@/components/CardAnimation";
 import { Smartphone, Mail, Building2, ArrowRight, BarChart3, Sparkles, PartyPopper } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { homeTranslations } from "@/translations/home";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Home() {
   const [isVisible, setIsVisible] = useState(false);
@@ -16,14 +14,8 @@ export default function Home() {
   const [showCustomerDemo, setShowCustomerDemo] = useState(false);
   const [customerZipCode, setCustomerZipCode] = useState("");
   const [visibleSections, setVisibleSections] = useState<Set<string>>(new Set());
-  const { language } = useLanguage();
 
   const router = useRouter();
-
-  // Get translation function
-  const t = (key: keyof typeof homeTranslations.en) => {
-    return homeTranslations[language][key];
-  };
 
   // Auto-redirect if session cookie is present
   useEffect(() => {
@@ -139,22 +131,22 @@ export default function Home() {
 
   const businessSteps = [
     {
-      title: t('step1Title'),
-      caption: t('step1Caption'),
+      title: 'Create Real-Time Promotions',
+      caption: 'Instantly create targeted ads for slow days, overstock items, or special events. No waiting, no delays - just immediate advertising power.',
       icon: BarChart3,
       color:
         "bg-gradient-to-br from-yellow-50 to-amber-50 text-amber-600 border border-amber-100",
     },
     {
-      title: t('step2Title'),
-      caption: t('step2Caption'),
+      title: 'Reach Local Customers Instantly',
+      caption: 'Your promotions appear immediately to customers in your area. No expensive ad agencies or complex campaigns needed.',
       icon: Sparkles,
       color:
         "bg-gradient-to-br from-blue-50 to-indigo-50 text-blue-600 border border-blue-100",
     },
     {
-      title: t('step3Title'),
-      caption: t('step3Caption'),
+      title: 'Track Results and Boost Sales',
+      caption: 'Watch customers respond to your ads in real-time. Simple dashboard shows you exactly what\'s working.',
       icon: PartyPopper,
       color:
         "bg-gradient-to-br from-green-50 to-emerald-50 text-green-600 border border-green-100",
@@ -163,22 +155,22 @@ export default function Home() {
 
   const customerSteps = [
     {
-      title: t('customerStep1Title'),
-      caption: t('customerStep1Caption'),
+      title: 'Discover Rewards',
+      caption: 'Customers generate a reward by scanning a QR code located in your area.',
       icon: Smartphone,
       color:
         "bg-gradient-to-br from-cyan-50 to-blue-50 text-cyan-600 border border-cyan-100",
     },
     {
-      title: t('customerStep2Title'),
-      caption: t('customerStep2Caption'),
+      title: 'Claim via Email or SMS',
+      caption: 'If relevant, customers will claim and receive the reward via email or SMS.',
       icon: Mail,
       color:
         "bg-gradient-to-br from-orange-50 to-amber-50 text-orange-600 border border-orange-100",
     },
     {
-      title: t('customerStep3Title'),
-      caption: t('customerStep3Caption'),
+      title: 'Redeem In-Store',
+      caption: 'Fast, easy redemption with just two taps in-store—no POS integration needed.',
       icon: Building2,
       color:
         "bg-gradient-to-br from-emerald-50 to-teal-50 text-emerald-600 border border-emerald-100",
@@ -215,35 +207,35 @@ export default function Home() {
           >
             <img
               src="/HomePagePhotos/small-business-owner.webp"
-              alt={t('altSmallBusinessOwner')}
+              alt="Small Business Owner"
               className="w-full h-[400px] md:h-[500px] lg:h-[600px] object-cover object-top flex-shrink-0"
               loading="eager"
               decoding="async"
             />
             <img
               src="/HomePagePhotos/cafe.webp"
-              alt={t('altCafe')}
+              alt="Cafe"
               className="w-full h-[400px] md:h-[500px] lg:h-[600px] object-cover flex-shrink-0"
               loading="eager"
               decoding="async"
             />
             <img
               src="/HomePagePhotos/dogGroomer.webp"
-              alt={t('altDogGroomer')}
+              alt="Dog Groomer"
               className="w-full h-[400px] md:h-[500px] lg:h-[600px] object-cover flex-shrink-0"
               loading="eager"
               decoding="async"
             />
             <img
               src="/HomePagePhotos/pilates.webp"
-              alt={t('altPilatesStudio')}
+              alt="Pilates Studio"
               className="w-full h-[400px] md:h-[500px] lg:h-[600px] object-cover flex-shrink-0"
               loading="eager"
               decoding="async"
             />
             <img
               src="/HomePagePhotos/boutiqueOwner.webp"
-              alt={t('altBoutiqueOwner')}
+              alt="Boutique Owner"
               className="w-full h-[400px] md:h-[500px] lg:h-[600px] object-cover flex-shrink-0"
               style={{ objectPosition: "center 30%" }}
               loading="eager"
@@ -251,7 +243,7 @@ export default function Home() {
             />
             <img
               src="/HomePagePhotos/carpenter.webp"
-              alt={t('altCarpenter')}
+              alt="Carpenter"
               className="w-full h-[400px] md:h-[500px] lg:h-[600px] object-cover flex-shrink-0"
               style={{ objectPosition: "center 30%" }}
               loading="eager"
@@ -259,7 +251,7 @@ export default function Home() {
             />
             <img
               src="/HomePagePhotos/HairDresser.webp"
-              alt={t('altHairDresser')}
+              alt="Hair Dresser"
               className="w-full h-[400px] md:h-[500px] lg:h-[600px] object-cover flex-shrink-0"
               style={{ objectPosition: "center 30%" }}
               loading="eager"
@@ -267,7 +259,7 @@ export default function Home() {
             />
             <img
               src="/HomePagePhotos/pizza.webp"
-              alt={t('altPizzaRestaurant')}
+              alt="Pizza Restaurant"
               className="w-full h-[400px] md:h-[500px] lg:h-[600px] object-cover flex-shrink-0"
               style={{ objectPosition: "center 30%" }}
               loading="eager"
@@ -319,13 +311,13 @@ export default function Home() {
               className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light text-slate-800 mb-6 tracking-tight leading-tight text-center"
               style={{ textAlign: "center" }}
             >
-              {t('heroTitle')}
+              Give your business the power to advertise in real-time
             </h1>
             <p
               className="text-lg sm:text-xl md:text-2xl text-slate-600 font-light mb-8 tracking-wide max-w-3xl mx-auto text-center"
               style={{ textAlign: "center" }}
             >
-              {t('heroSubtitle')}
+              Create instant promotions, reach local customers, and boost sales with our easy-to-use dashboard. First month free, then just $10 per month.
             </p>
           </div>
 
@@ -350,13 +342,13 @@ export default function Home() {
               onClick={handleGetStarted}
               className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white px-8 py-4 rounded-2xl shadow-lg font-medium text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl mb-14 mt-10"
             >
-              {t('startFreeTrial')}
+              Start Free Trial
             </button>
 
             {/* Social Media Icons */}
             <div className="flex flex-col items-center space-y-3">
               <p className="text-sm text-slate-500 font-medium">
-                {t('followSocialMedia')}
+                Follow us on social media
               </p>
               <div className="flex items-center space-x-6">
                 <a
@@ -469,13 +461,13 @@ export default function Home() {
               className="text-2xl sm:text-3xl md:text-4xl font-light mb-4 tracking-tight text-slate-800 text-center !text-center"
               style={{ textAlign: "center", width: "100%" }}
             >
-              {t('businessSectionTitle')}
+              Real-Time Advertising Made Simple
             </h2>
             <p
               className="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto text-center !text-center"
               style={{ textAlign: "center", width: "100%" }}
             >
-              {t('businessSectionSubtitle')}
+              Create, publish, and track ads instantly with our easy-to-use dashboard
             </p>
           </div>
 
@@ -566,13 +558,13 @@ export default function Home() {
           {/* Business CTA */}
           <div className="text-center mt-8">
             <div className="mb-2 text-gray-500 text-base font-medium">
-              {t('testDashboard')}
+              Test our simple dashboard!
             </div>
             <button
               onClick={handleDemoDashboard}
               className="inline-flex items-center space-x-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-8 py-4 rounded-2xl shadow-lg font-medium text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
             >
-              <span>{t('demoDashboard')}</span>
+              <span>Demo the Business Dashboard</span>
               <ArrowRight className="w-5 h-5 ml-2" />
             </button>
           </div>
@@ -610,13 +602,13 @@ export default function Home() {
               className="text-2xl sm:text-3xl md:text-4xl font-light mb-4 tracking-tight text-slate-800 text-center"
               style={{ textAlign: "center", width: "100%" }}
             >
-              {t('customerSectionTitle')}
+              How Customers Use QRewards
             </h2>
             <p
               className="text-slate-600 max-w-3xl mx-auto text-center"
               style={{ textAlign: "center", width: "100%" }}
             >
-              {t('customerSectionSubtitle')}
+              A seamless experience that keeps customers coming back
             </p>
           </div>
 
@@ -645,13 +637,13 @@ export default function Home() {
           {/* Customer CTA */}
           <div className="text-center">
             <div className="mb-2 text-gray-500 text-base font-medium">
-              {t('getFullExperience')}
+              Get the full customer experience!
             </div>
             <button
               onClick={() => setShowCustomerDemo(true)}
               className="inline-flex items-center space-x-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white px-8 py-4 rounded-2xl shadow-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
             >
-              <span>{t('demoCustomerExperience')}</span>
+              <span>Demo the Customer Experience</span>
               <ArrowRight className="w-5 h-5 ml-2" />
             </button>
           </div>
@@ -674,23 +666,23 @@ export default function Home() {
               className="text-2xl sm:text-3xl md:text-4xl font-light mb-4 tracking-tight text-slate-800 text-center"
               style={{ textAlign: "center" }}
             >
-              {t('finalCtaTitle')}
+              Ready to advertise in real-time?
             </h2>
             <div className="flex flex-col items-center mb-6">
               <button
                 onClick={handleGetStarted}
                 className="inline-flex items-center space-x-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white px-8 py-4 rounded-2xl shadow-lg font-semibold text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl mb-14 mt-10"
               >
-                <span>{t('finalCtaButton')}</span>
+                <span>Start Free Trial</span>
               </button>
               <p className="text-base md:text-lg text-slate-500 text-center">
-                {t('finalCtaSubtext')}
+                First month free • $10 per month after • Easy dashboard • Cancel anytime
               </p>
 
               {/* Social Media Icons */}
               <div className="flex flex-col items-center space-y-3">
                 <p className="text-sm text-slate-500 font-medium">
-                  {t('followSocialMedia')}
+                  Follow us on social media
                 </p>
                 <div className="flex items-center space-x-6">
                   <a
@@ -777,7 +769,7 @@ export default function Home() {
       <footer className="w-full relative z-10 border-t border-slate-200/60 py-12 mt-20 bg-white">
         <div className="w-full text-center">
           <p className="text-slate-500 text-base md:text-lg text-center">
-            {t('footerText')}
+            © 2024 QRewards. Connecting businesses with customers.
           </p>
         </div>
       </footer>
@@ -787,15 +779,15 @@ export default function Home() {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-8 max-w-md w-full shadow-2xl border border-slate-200/60">
             <h3 className="text-2xl font-semibold mb-6 text-slate-800">
-              {t('customerDemoTitle')}
+              Try the Customer Experience
             </h3>
             <p className="text-slate-600 mb-8">
-              {t('customerDemoDescription')}
+              Enter your zip code to see available rewards in your area:
             </p>
             <form onSubmit={handleCustomerDemoSubmit} className="space-y-6">
               <input
                 type="text"
-                placeholder={t('customerDemoPlaceholder')}
+                placeholder="Enter zip code (e.g., 12345)"
                 value={customerZipCode}
                 onChange={(e) => setCustomerZipCode(e.target.value)}
                 className="w-full border border-slate-300 p-4 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg bg-white/80 backdrop-blur-sm"
@@ -805,14 +797,14 @@ export default function Home() {
                   type="submit"
                   className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-4 rounded-lg font-medium transition-all duration-150 text-lg shadow-md hover:shadow-lg"
                 >
-                  {t('customerDemoSubmit')}
+                  View Rewards
                 </button>
                 <button
                   type="button"
                   onClick={handleCloseCustomerDemo}
                   className="flex-1 border border-slate-300 text-slate-700 hover:bg-slate-50 px-6 py-4 rounded-lg font-medium transition-colors duration-150 text-lg bg-white/80 backdrop-blur-sm"
                 >
-                  {t('customerDemoCancel')}
+                  Cancel
                 </button>
               </div>
             </form>
